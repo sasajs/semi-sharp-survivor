@@ -1,5 +1,32 @@
 # SemiSharp V2 – Development Changelog
 
+### 2026-01-12 – Phase 0 Complete (Foundations)
+
+**What was done**
+- Created full repository skeleton
+- Wrote and finalized ARCHITECTURE.md
+- Wrote and finalized DATA_CONTRACT.md
+- Wrote and finalized BUILD_PLAN.md
+- Added CHANGELOG.md as working memory artifact
+- Initialized git repository and committed baseline
+
+**Key decisions / rationale**
+- Adopted batch-first, local-first architecture
+- Enforced immutable history tables by contract
+- Explicit separation of models, agents, and presentation layers
+- Website treated as downstream, read-only system
+- Git history starts only after architectural freeze
+
+**Open questions / next steps**
+- Implement persistence layer (`db/schema.sql`)
+- Stand up local Postgres with reader/writer roles
+
+**Notes for future me / ChatGPT**
+- Phase 0 is complete and should not be revisited lightly
+- Next phase is Phase 1: Persistence Layer
+- No Python code exists yet by design
+
+
 ## Purpose
 
 This changelog is a **working memory and handoff artifact** for the SemiSharp V2 build.
