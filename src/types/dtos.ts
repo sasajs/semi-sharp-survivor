@@ -888,6 +888,92 @@ export interface WeeklyReportRunDTO {
   created_at: string;
 }
 
+export type ExportFormatDTO = 'docx' | 'html' | 'research-artifact';
+
+export interface ExportConfigDTO {
+  format?: ExportFormatDTO;
+  include_limitations?: boolean;
+  include_assumptions?: boolean;
+  custom_theme?: string;
+}
+
+export interface ReportExportSectionDTO {
+  id: string;
+  heading: string;
+  body_markdown: string;
+}
+
+export interface ExportAuditMetadataDTO {
+  export_version: number;
+  report_version: number;
+  data_version: number;
+  feature_version: number;
+  inventory_version: number;
+  risk_version: number;
+  recommendation_version: number;
+  simulation_version: number;
+  policy_version: number;
+  model_version: string;
+  generated_at: string;
+  report_hash: string;
+  export_hash: string;
+}
+
+export interface DocxExportResultDTO {
+  docx_ready_model: {
+    title: string;
+    sections: ReportExportSectionDTO[];
+    metadata: Record<string, any>;
+  };
+  file_size_estimate_bytes: number;
+  is_valid: boolean;
+}
+
+export interface HtmlExportResultDTO {
+  html_string: string;
+  is_valid: boolean;
+}
+
+export interface ExportArtifactDTO {
+  id: string;
+  report_id: string;
+  format: ExportFormatDTO;
+  docx_result: DocxExportResultDTO | null;
+  html_result: HtmlExportResultDTO | null;
+  audit_metadata: ExportAuditMetadataDTO;
+  created_at: string;
+}
+
+export interface ResearchArtifactDTO {
+  id: string;
+  title: string;
+  report_id: string;
+  generated_at: string;
+  sections: {
+    title_page: any;
+    executive_summary: { content: string };
+    recommended_picks: { content: string };
+    risk_summary: { content: string };
+    inventory_summary: { content: string };
+    simulation_summary: { content: string };
+    chalk_upset_scenario: { content: string };
+    strategy_comparison: { content: string };
+    appendix_audit: { content: string };
+    appendix_assumptions: { content: string };
+    appendix_limitations: { content: string };
+  };
+  audit_metadata: ExportAuditMetadataDTO;
+}
+
+export interface ExportRunDTO {
+  id: string;
+  artifact_id: string;
+  status: 'completed' | 'failed' | 'running';
+  error_message?: string;
+  created_at: string;
+}
+
+
 
 
 

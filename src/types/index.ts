@@ -598,6 +598,92 @@ export interface WeeklyReportRun {
   created_at: string;
 }
 
+export type ExportFormat = 'docx' | 'html' | 'research-artifact';
+
+export interface ExportConfig {
+  format?: ExportFormat;
+  include_limitations?: boolean;
+  include_assumptions?: boolean;
+  custom_theme?: string;
+}
+
+export interface ReportExportSection {
+  id: string;
+  heading: string;
+  body_markdown: string;
+}
+
+export interface ExportAuditMetadata {
+  export_version: number;
+  report_version: number;
+  data_version: number;
+  feature_version: number;
+  inventory_version: number;
+  risk_version: number;
+  recommendation_version: number;
+  simulation_version: number;
+  policy_version: number;
+  model_version: string;
+  generated_at: string;
+  report_hash: string;
+  export_hash: string;
+}
+
+export interface DocxExportResult {
+  docx_ready_model: {
+    title: string;
+    sections: ReportExportSection[];
+    metadata: Record<string, any>;
+  };
+  file_size_estimate_bytes: number;
+  is_valid: boolean;
+}
+
+export interface HtmlExportResult {
+  html_string: string;
+  is_valid: boolean;
+}
+
+export interface ExportArtifact {
+  id: string;
+  report_id: string;
+  format: ExportFormat;
+  docx_result: DocxExportResult | null;
+  html_result: HtmlExportResult | null;
+  audit_metadata: ExportAuditMetadata;
+  created_at: string;
+}
+
+export interface ResearchArtifact {
+  id: string;
+  title: string;
+  report_id: string;
+  generated_at: string;
+  sections: {
+    title_page: any;
+    executive_summary: { content: string };
+    recommended_picks: { content: string };
+    risk_summary: { content: string };
+    inventory_summary: { content: string };
+    simulation_summary: { content: string };
+    chalk_upset_scenario: { content: string };
+    strategy_comparison: { content: string };
+    appendix_audit: { content: string };
+    appendix_assumptions: { content: string };
+    appendix_limitations: { content: string };
+  };
+  audit_metadata: ExportAuditMetadata;
+}
+
+export interface ExportRun {
+  id: string;
+  artifact_id: string;
+  status: 'completed' | 'failed' | 'running';
+  error_message?: string;
+  created_at: string;
+}
+
+
 
 
 

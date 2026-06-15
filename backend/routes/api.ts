@@ -25,6 +25,9 @@ import { AuditTrailService } from "../history/services/auditTrailService";
 import { VersionTrackingService } from "../history/services/versionTrackingService";
 import { MonteCarloSurvivorService } from "../simulation/services/MonteCarloSurvivorService";
 import { WeeklyReportService } from "../reports/services/WeeklyReportService";
+import { DocxExportService } from "../exports/services/DocxExportService";
+import { HtmlExportService } from "../exports/services/HtmlExportService";
+import { ResearchArtifactService } from "../exports/services/ResearchArtifactService";
 
 const router = Router();
 
@@ -610,6 +613,71 @@ router.post("/api/reports/:contestId/:legId/generate", async (req: Request, res:
     const config = req.body || {};
     const report = await WeeklyReportService.generateWeeklyReport(contestId, legId, config);
     res.status(201).json(report);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ====================================================================
+ * DOCX / RESEARCH EXPORT ENGINE API ROUTES
+ * ==================================================================== */
+
+// POST Export weekly report to DOCX
+router.post("/api/exports/reports/:reportId/docx", async (req: Request, res: Response) => {
+  try {
+    const { reportId } = req.params;
+    const config = req.body || {};
+    const result = await DocxExportService.exportWeeklyReportToDocx(reportId, config);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST Export weekly report to HTML
+router.post("/api/exports/reports/:reportId/html", async (req: Request, res: Response) => {
+  try {
+    const { reportId } = req.params;
+    const config = req.body || {};
+    const result = await HtmlExportService.exportWeeklyReportToHtml(reportId, config);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST Compile and archive a Research Artifact
+router.post("/api/exports/reports/:reportId/research-artifact", async (req: Request, res: Response) => {
+  try {
+    const { reportId } = req.params;
+    const config = req.body || {};
+    const artifact = await ResearchArtifactService.createResearchArtifact(reportId, config);
+    res.status(201).json(artifact);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Fetch research artifact details by identifier
+router.get("/api/exports/artifacts/:artifactId", async (req: Request, res: Response) => {
+  try {
+    const { artifactId } = req.params;
+    const artifact = await ResearchArtifactService.getResearchArtifact(artifactId);
+    if (!artifact) {
+      return res.status(404).json({ error: "Research artifact not found" });
+    }
+    res.json(artifact);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Fetch all artifacts belonging to a contest
+router.get("/api/exports/contests/:contestId/artifacts", async (req: Request, res: Response) => {
+  try {
+    const { contestId } = req.params;
+    const artifacts = await ResearchArtifactService.listResearchArtifacts(contestId);
+    res.json(artifacts);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
