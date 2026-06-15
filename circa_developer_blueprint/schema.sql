@@ -127,3 +127,81 @@ CREATE INDEX IF NOT EXISTS idx_games_teams ON games(home_team_id, away_team_id);
 -- Speed up optimization metrics searches
 CREATE INDEX IF NOT EXISTS idx_team_week_lines_lookup ON team_week_lines(contest_leg_id, team_id);
 CREATE INDEX IF NOT EXISTS idx_team_week_lines_score ON team_week_lines(contest_equity_score DESC);
+
+-- 9. Import Jobs Table
+CREATE TABLE IF NOT EXISTS import_jobs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    job_type VARCHAR(100) NOT NULL, -- 'nfl_schedule', 'team_metrics', 'pff_spreadsheet', 'manual_inputs'
+    file_name VARCHAR(255),
+    status VARCHAR(50) NOT NULL DEFAULT 'completed' CHECK (status IN ('pending', 'completed', 'failed')),
+    rows_processed INTEGER DEFAULT 0,
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 10. Weekly Inputs Table (Manual Research inputs / SIC / Rest data)
+CREATE TABLE IF NOT EXISTS weekly_inputs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    contest_leg_id UUID NOT NULL REFERENCES contest_legs(id) ON DELETE CASCADE,
+    team_id VARCHAR(10) NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+    rest_days INTEGER,
+    rest_disparity INTEGER,
+    sic_score NUMERIC(5, 2),
+    injury_risk_score NUMERIC(5, 2),
+    travel_disadvantage NUMERIC(5, 2),
+    weather_risk NUMERIC(5, 2),
+    quarterback_status VARCHAR(100),
+    divisional_game_flag BOOLEAN DEFAULT FALSE,
+    short_week_flag BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_weekly_input UNIQUE (contest_leg_id, team_id)
+);
+
+-- 11. Team Features Table (Aggregated / Cached features per team-week)
+CREATE TABLE IF NOT EXISTS team_features (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    contest_leg_id UUID NOT NULL REFERENCES contest_legs(id) ON DELETE CASCADE,
+    team_id VARCHAR(10) NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+    off_efficiency NUMERIC(5, 2),
+    def_efficiency NUMERIC(5, 2),
+    net_efficiency NUMERIC(5, 2),
+    injury_index NUMERIC(5, 2),
+    pff_grade_offense NUMERIC(5, 2),
+    pff_grade_defense NUMERIC(5, 2),
+    dvoa_offense NUMERIC(5, 2),
+    dvoa_defense NUMERIC(5, 2),
+    rest_days INTEGER,
+    sic_score NUMERIC(5, 2),
+    quarterback_status VARCHAR(100),
+    short_week_flag BOOLEAN DEFAULT FALSE,
+    travel_disadvantage NUMERIC(5, 2),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_team_feature UNIQUE (contest_leg_id, team_id)
+);
+
+-- 12. Game Features Table (Aggregated / Cached features per game/matchup)
+CREATE TABLE IF NOT EXISTS game_features (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    contest_leg_id UUID NOT NULL REFERENCES contest_legs(id) ON DELETE CASCADE,
+    game_id UUID REFERENCES games(id) ON DELETE CASCADE,
+    home_team_id VARCHAR(10) NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+    away_team_id VARCHAR(10) NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+    rest_disparity INTEGER,
+    weather_risk NUMERIC(5, 2),
+    divisional_game_flag BOOLEAN DEFAULT FALSE,
+    line_spread NUMERIC(5, 2),
+    over_under NUMERIC(5, 2),
+    home_win_probability_pff NUMERIC(5, 4),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_game_feature UNIQUE (contest_leg_id, home_team_id, away_team_id)
+);
+
+-- Indexes for the new feature tables
+CREATE INDEX IF NOT EXISTS idx_weekly_inputs_lookup ON weekly_inputs(contest_leg_id, team_id);
+CREATE INDEX IF NOT EXISTS idx_team_features_lookup ON team_features(contest_leg_id, team_id);
+CREATE INDEX IF NOT EXISTS idx_game_features_lookup ON game_features(contest_leg_id, home_team_id, away_team_id);
+
