@@ -24,6 +24,7 @@ import { RecommendationSnapshotService } from "../history/services/recommendatio
 import { AuditTrailService } from "../history/services/auditTrailService";
 import { VersionTrackingService } from "../history/services/versionTrackingService";
 import { MonteCarloSurvivorService } from "../simulation/services/MonteCarloSurvivorService";
+import { WeeklyReportService } from "../reports/services/WeeklyReportService";
 
 const router = Router();
 
@@ -562,6 +563,53 @@ router.get("/api/simulation/project-inventory/:entryId/:legId", async (req: Requ
     const { entryId, legId } = req.params;
     const result = await MonteCarloSurvivorService.projectFutureInventory(entryId, legId);
     res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ====================================================================
+ * WEEKLY REPORT GENERATION ENGINE API ROUTES
+ * ==================================================================== */
+
+// GET Get reports by contest ID and leg ID
+router.get("/api/reports/:contestId/:legId", async (req: Request, res: Response) => {
+  try {
+    const { contestId, legId } = req.params;
+    const reports = await WeeklyReportService.listWeeklyReports(contestId);
+    const legReport = reports.find(r => r.contest_leg_id === legId);
+    if (legReport) {
+      return res.json(legReport);
+    }
+    // Pull on-the-fly if not built yet (mock seed fallback)
+    const report = await WeeklyReportService.generateWeeklyReport(contestId, legId);
+    res.json(report);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Get single weekly report by report ID
+router.get("/api/reports/:reportId", async (req: Request, res: Response) => {
+  try {
+    const { reportId } = req.params;
+    const report = await WeeklyReportService.getWeeklyReport(reportId);
+    if (!report) {
+      return res.status(404).json({ error: "Report not found" });
+    }
+    res.json(report);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST Generate weekly report for specified contest and leg
+router.post("/api/reports/:contestId/:legId/generate", async (req: Request, res: Response) => {
+  try {
+    const { contestId, legId } = req.params;
+    const config = req.body || {};
+    const report = await WeeklyReportService.generateWeeklyReport(contestId, legId, config);
+    res.status(201).json(report);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

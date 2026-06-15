@@ -496,6 +496,108 @@ export interface SimulationRun {
   created_at: string;
 }
 
+export interface WeeklyReportConfig {
+  include_simulation?: boolean;
+  strategy_preference?: 'safe' | 'balanced' | 'contrarian';
+  sample_size?: number;
+}
+
+export interface WeeklyReportPickSummary {
+  team_id: string;
+  team_name: string;
+  opponent_id: string;
+  opponent_name: string;
+  win_probability: number;
+  pick_popularity: number;
+  contest_equity_score: number;
+  leverage_score: number;
+  future_value_score: number;
+  risk_score: number;
+  confidence_tier: string;
+  rationale: string;
+}
+
+export interface WeeklyReportRiskSummary {
+  rest_risk: number;
+  injury_risk: number;
+  travel_risk: number;
+  weather_risk: number;
+  divisional_risk: number;
+  market_risk: number;
+  upset_probability: number;
+  confidence_tier: string;
+}
+
+export interface WeeklyReportInventorySummary {
+  used_teams: string[];
+  available_teams: string[];
+  remaining_elite_teams: string[];
+  thanksgiving_inventory: string[];
+  christmas_inventory: string[];
+  future_value_warning: string | null;
+}
+
+export interface WeeklyReportSimulationSummary {
+  entry_survival_probability: number;
+  portfolio_survival_probability: number;
+  concentrated_exposure_warnings: string[];
+  chalk_upset_scenario: ChalkUpsetScenario | null;
+  strategy_comparison: StrategyComparison | null;
+  future_inventory_projection: FutureInventoryProjection | null;
+}
+
+export interface WeeklyReportAuditMetadata {
+  report_version: number;
+  data_version: number;
+  feature_version: number;
+  inventory_version: number;
+  risk_version: number;
+  recommendation_version: number;
+  simulation_version: number;
+  policy_version: number;
+  model_version: string;
+  generated_at: string;
+  report_hash: string;
+}
+
+export interface WeeklyReportSection {
+  id: string;
+  title: string;
+  type: 'executive_summary' | 'recommended_picks' | 'risk_summary' | 'inventory_summary' | 'simulation_summary' | 'audit';
+  content_markdown: string;
+}
+
+export interface WeeklyReport {
+  id: string;
+  contest_id: string;
+  contest_leg_id: string;
+  week_number: number;
+  executive_summary: {
+    top_recommended_pick: { team_id: string; team_name: string };
+    alternate_picks: { team_id: string; team_name: string }[];
+    confidence_tier: string;
+    key_risk_warnings: string[];
+    key_inventory_warning: string | null;
+    strategy_recommendation: string;
+  };
+  recommended_picks: WeeklyReportPickSummary[];
+  risk_summary: WeeklyReportRiskSummary;
+  inventory_summary: WeeklyReportInventorySummary;
+  simulation_summary: WeeklyReportSimulationSummary | null;
+  audit_metadata: WeeklyReportAuditMetadata;
+  sections: WeeklyReportSection[];
+  created_at: string;
+}
+
+export interface WeeklyReportRun {
+  id: string;
+  report_id: string;
+  config: WeeklyReportConfig;
+  status: 'completed' | 'failed' | 'running';
+  error_message?: string;
+  created_at: string;
+}
+
 
 
 
