@@ -12,7 +12,12 @@ import {
   ScheduledWorkflowRun,
   IngestionSource,
   IngestionJob,
-  IngestionRun
+  IngestionRun,
+  ClientRepositoryValidationResult,
+  ClientMigrationValidationResult,
+  ClientConnectionValidationResult,
+  ClientPostgresValidationResult,
+  ClientSystemReadinessResult
 } from "../types/admin";
 
 export const adminApiService = {
@@ -184,6 +189,30 @@ export const adminApiService = {
   async fetchIngestionRuns(): Promise<IngestionRun[]> {
     const res = await fetch("/api/ingestion/runs");
     if (!res.ok) throw new Error("Failed to fetch recent ingestion run histories");
+    return res.json();
+  },
+
+  async fetchPostgresReadiness(): Promise<ClientSystemReadinessResult> {
+    const res = await fetch("/api/system/postgres-readiness");
+    if (!res.ok) throw new Error("Failed to fetch postgres readiness report");
+    return res.json();
+  },
+
+  async fetchPostgresEnvValidation(): Promise<ClientPostgresValidationResult> {
+    const res = await fetch("/api/system/postgres-validation");
+    if (!res.ok) throw new Error("Failed to fetch postgres env validation");
+    return res.json();
+  },
+
+  async fetchRepositoryValidation(): Promise<ClientRepositoryValidationResult> {
+    const res = await fetch("/api/system/repository-validation");
+    if (!res.ok) throw new Error("Failed to fetch repository validation report");
+    return res.json();
+  },
+
+  async fetchMigrationValidation(): Promise<ClientMigrationValidationResult> {
+    const res = await fetch("/api/system/migration-validation");
+    if (!res.ok) throw new Error("Failed to fetch migrations validation report");
     return res.json();
   }
 };

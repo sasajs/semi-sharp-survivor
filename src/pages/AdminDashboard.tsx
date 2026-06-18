@@ -7,6 +7,7 @@ import { ReportArtifactsPanel } from "../components/admin/ReportArtifactsPanel";
 import { ExportArtifactsPanel } from "../components/admin/ExportArtifactsPanel";
 import { ScheduledWorkflowsPanel } from "../components/admin/ScheduledWorkflowsPanel";
 import { DataIngestionPanel } from "../components/admin/DataIngestionPanel";
+import { PostgresReadinessPanel } from "../components/admin/PostgresReadinessPanel";
 import { ShieldCheck } from "lucide-react";
 
 export const AdminDashboard: React.FC = () => {
@@ -50,10 +51,18 @@ export const AdminDashboard: React.FC = () => {
           <DatabaseStatusPanel />
         </section>
 
+        {/* Section 2.5: PostgreSQL Cutover Readiness Validation */}
+        <section id="admin-section-postgres-readiness" className="space-y-3 font-sans">
+          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">03. PostgreSQL Cutover Readiness Validation</span>
+          </div>
+          <PostgresReadinessPanel />
+        </section>
+
         {/* Section 3: Manual Workflow Execution */}
         <section id="admin-section-workflow-exec" className="space-y-3">
           <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">03. Execution Controls</span>
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">04. Execution Controls</span>
           </div>
           <WorkflowExecutionPanel />
         </section>
@@ -61,7 +70,7 @@ export const AdminDashboard: React.FC = () => {
         {/* Section 3.5: Scheduled Workflows Engine */}
         <section id="admin-section-scheduled-workflows" className="space-y-3 font-sans">
           <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">04. Scheduled Automation Blueprints</span>
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">05. Scheduled Automation Blueprints</span>
           </div>
           <ScheduledWorkflowsPanel />
         </section>
@@ -69,7 +78,7 @@ export const AdminDashboard: React.FC = () => {
         {/* Section 3.8: Data Ingestion Framework */}
         <section id="admin-section-data-ingestion" className="space-y-3 font-sans">
           <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">05. Data Ingestion Architecture</span>
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">06. Data Ingestion Architecture</span>
           </div>
           <DataIngestionPanel />
         </section>
@@ -77,7 +86,7 @@ export const AdminDashboard: React.FC = () => {
         {/* Section 4: Workflow History */}
         <section id="admin-section-workflow-history" className="space-y-3">
           <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">06. Event Pipeline Logs</span>
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">07. Event Pipeline Logs</span>
           </div>
           <WorkflowHistoryPanel />
         </section>
@@ -85,7 +94,7 @@ export const AdminDashboard: React.FC = () => {
         {/* Section 5: Reports */}
         <section id="admin-section-reports" className="space-y-3">
           <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">07. Evaluation Artifacts</span>
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">08. Evaluation Artifacts</span>
           </div>
           <ReportArtifactsPanel />
         </section>
@@ -93,7 +102,7 @@ export const AdminDashboard: React.FC = () => {
         {/* Section 6: Exports */}
         <section id="admin-section-exports" className="space-y-3">
           <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">08. Documents and Audited Studies</span>
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">09. Documents and Audited Studies</span>
           </div>
           <ExportArtifactsPanel />
         </section>

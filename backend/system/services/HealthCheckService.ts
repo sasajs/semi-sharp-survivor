@@ -8,6 +8,7 @@ import { DatabaseHealthService } from "../../database/services/DatabaseHealthSer
 import { getSchedulerRepository } from "../../scheduler/services/ScheduleAuditService";
 import { getIngestionRepository, DataIngestionService } from "../../ingestion/services/DataIngestionService";
 import { AdapterRegistryService } from "../../ingestion/services/AdapterRegistryService";
+import { PostgresValidationService } from "../../postgres/services/PostgresValidationService";
 
 export class HealthCheckService {
   /**
@@ -132,6 +133,24 @@ export class HealthCheckService {
       ingestionMessage = `Data Ingestion Engine failure: ${err.message}`;
     }
 
+    // 8. Postgres Readiness Layer check
+    let postgresReadinessState: "HEALTHY" | "WARNING" | "FAILED" = "HEALTHY";
+    let postgresReadinessMessage: string | null = null;
+    try {
+      const vResult = PostgresValidationService.runValidation();
+      postgresReadinessState = vResult.overallStatus;
+      if (postgresReadinessState === "FAILED") {
+        postgresReadinessMessage = "PostgreSQL readiness failures flagged.";
+      } else if (postgresReadinessState === "WARNING") {
+        postgresReadinessMessage = "PostgreSQL validation has configuration warnings (e.g., using mock mode).";
+      } else {
+        postgresReadinessMessage = "Verify complete: platform is fully ready for PostgreSQL cutover.";
+      }
+    } catch (err: any) {
+      postgresReadinessState = "FAILED";
+      postgresReadinessMessage = `Validation pipeline execution crash: ${err.message}`;
+    }
+
     // Resolve overall health status
     let overallHealth = HealthState.HEALTHY;
 
@@ -160,7 +179,8 @@ export class HealthCheckService {
         weeklyReportEngine: { status: weeklyReportState, message: weeklyReportMessage },
         researchExportEngine: { status: researchExportState, message: researchExportMessage },
         schedulerLayer: { status: schedulerState, message: schedulerMessage },
-        ingestionLayer: { status: ingestionState, message: ingestionMessage }
+        ingestionLayer: { status: ingestionState, message: ingestionMessage },
+        postgresReadinessLayer: { status: postgresReadinessState, message: postgresReadinessMessage }
       },
       timestamp
     };

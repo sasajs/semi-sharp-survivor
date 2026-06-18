@@ -837,6 +837,7 @@ export interface HealthStatus {
     researchExportEngine: { status: HealthState; message: string | null };
     schedulerLayer?: { status: HealthState; message: string | null };
     ingestionLayer?: { status: HealthState; message: string | null };
+    postgresReadinessLayer?: { status: "HEALTHY" | "WARNING" | "FAILED"; message: string | null };
   };
   timestamp: string;
 }

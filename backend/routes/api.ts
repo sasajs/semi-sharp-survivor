@@ -28,6 +28,7 @@ import { WeeklyReportService } from "../reports/services/WeeklyReportService";
 import { DocxExportService } from "../exports/services/DocxExportService";
 import { HtmlExportService } from "../exports/services/HtmlExportService";
 import { ResearchArtifactService } from "../exports/services/ResearchArtifactService";
+import { PostgresValidationService } from "../postgres/services/PostgresValidationService";
 
 import { WorkflowOrchestratorService } from "../orchestration/services/WorkflowOrchestratorService";
 import { WorkflowStatusService } from "../orchestration/services/WorkflowStatusService";
@@ -768,6 +769,46 @@ router.get("/system/health", async (req: Request, res: Response) => {
   try {
     const health = await HealthCheckService.checkSystemHealth();
     res.json(health);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Full PostgreSQL Cutover Readiness System Report
+router.get("/system/postgres-readiness", (req: Request, res: Response) => {
+  try {
+    const report = PostgresValidationService.runValidation();
+    res.json(report);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Detailed Postgres Env Settings Verification Checks
+router.get("/system/postgres-validation", (req: Request, res: Response) => {
+  try {
+    const envAudit = PostgresValidationService.validateEnvironment();
+    res.json(envAudit);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Detailed Repository Factory and Interface Resolver Checks
+router.get("/system/repository-validation", (req: Request, res: Response) => {
+  try {
+    const repoAudit = PostgresValidationService.validateRepositories();
+    res.json(repoAudit);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Detailed Schema Migrations List File Checks
+router.get("/system/migration-validation", (req: Request, res: Response) => {
+  try {
+    const migrationAudit = PostgresValidationService.validateMigrationRegistry();
+    res.json(migrationAudit);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
