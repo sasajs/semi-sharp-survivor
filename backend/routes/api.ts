@@ -762,7 +762,7 @@ router.get("/api/orchestration/workflows/runs/:runId", async (req: Request, res:
  * ==================================================================== */
 
 // GET Dynamic live health check across service instances
-router.get("/api/system/health", async (req: Request, res: Response) => {
+router.get("/system/health", async (req: Request, res: Response) => {
   try {
     const health = await HealthCheckService.checkSystemHealth();
     res.json(health);
@@ -772,7 +772,7 @@ router.get("/api/system/health", async (req: Request, res: Response) => {
 });
 
 // GET Current general runtime state, validator feedback, and process uptime
-router.get("/api/system/status", async (req: Request, res: Response) => {
+router.get("/system/status", async (req: Request, res: Response) => {
   try {
     const status = ApplicationLifecycleService.getApplicationStatus();
     // Return precisely with "uptime" matching prompt requirements
@@ -790,7 +790,7 @@ router.get("/api/system/status", async (req: Request, res: Response) => {
 });
 
 // GET Expose current product versions
-router.get("/api/system/version", async (req: Request, res: Response) => {
+router.get("/system/version", async (req: Request, res: Response) => {
   try {
     const versions = BuildMetadataService.getVersions();
     res.json(versions);
@@ -800,7 +800,7 @@ router.get("/api/system/version", async (req: Request, res: Response) => {
 });
 
 // GET Expose physical build artifacts, git commits, and compile timestamps
-router.get("/api/system/build-info", async (req: Request, res: Response) => {
+router.get("/system/build-info", async (req: Request, res: Response) => {
   try {
     const info = BuildMetadataService.getBuildMetadata();
     res.json(info);
