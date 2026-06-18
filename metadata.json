@@ -1,0 +1,6 @@
+{
+  "name": "Semi-Sharp Survivor",
+  "description": "Circa Survivor NFL Pool Optimizer and Entry Manager with holiday legs optimization.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

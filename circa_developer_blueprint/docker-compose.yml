@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL Database Service - Source of Truth
+  db:
+    image: postgres:15-alpine
+    container_name: semisharp-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: circa_survivor
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql # Automatically seeds schema
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d circa_survivor"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. FastAPI Backend Service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: semisharp-backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://postgres:password123@db:5432/circa_survivor
+      - PORT=8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # 3. Next.js Frontend Service
+  frontend:
+    image: node:18-alpine
+    container_name: semisharp-frontend
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    command: npm run dev
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
