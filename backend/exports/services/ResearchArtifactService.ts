@@ -106,6 +106,13 @@ export class ResearchArtifactService {
   }
 
   /**
+   * Retrieves all compiled research artifacts across all contests.
+   */
+  static async getAllArtifacts(): Promise<ResearchArtifact[]> {
+    return this.artifacts;
+  }
+
+  /**
    * Retrieves an individual research artifact by id.
    */
   static async getResearchArtifact(artifactId: string): Promise<ResearchArtifact | null> {

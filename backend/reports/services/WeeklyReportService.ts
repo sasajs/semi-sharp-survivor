@@ -272,6 +272,13 @@ export class WeeklyReportService {
   }
 
   /**
+   * Lists all generated reports across all contests.
+   */
+  static async getAllReports(): Promise<WeeklyReport[]> {
+    return mockReports;
+  }
+
+  /**
    * Regenerates a weekly report accurately from snapshots to enforce complete reproducibility.
    */
   static async regenerateWeeklyReportFromHistory(reportId: string): Promise<WeeklyReport> {
