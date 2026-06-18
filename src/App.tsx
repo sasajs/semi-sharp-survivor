@@ -22,6 +22,7 @@ import { EntryTable } from "./components/EntryTable";
 import { InventoryTable } from "./components/InventoryTable";
 import { RecommendationTable } from "./components/RecommendationTable";
 import { HolidayInventoryPanel } from "./components/HolidayInventoryPanel";
+import { AdminDashboard } from "./pages/AdminDashboard";
 
 export default function App() {
   const {
@@ -142,6 +143,7 @@ export default function App() {
                 { id: "thanksgiving", label: "Thanksgiving Shield", icon: Flame, badge: "Leg 13" },
                 { id: "christmas", label: "Christmas Day Preservation", icon: Sparkles, badge: "Leg 18" },
                 { id: "reports", label: "Contest Equity Report", icon: FileText },
+                { id: "admin", label: "Admin Dashboard", icon: ShieldAlert, badge: "Secure" },
               ].map(tab => {
                 const Icon = tab.icon;
                 const isSelected = activeTab === tab.id;
@@ -831,6 +833,10 @@ export default function App() {
                   )}
 
                 </div>
+              )}
+
+              {activeTab === "admin" && (
+                <AdminDashboard />
               )}
 
             </>
