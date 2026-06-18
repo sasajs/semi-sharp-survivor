@@ -9,7 +9,10 @@ import {
   WeeklyReport,
   ResearchArtifact,
   ScheduledWorkflow,
-  ScheduledWorkflowRun
+  ScheduledWorkflowRun,
+  IngestionSource,
+  IngestionJob,
+  IngestionRun
 } from "../types/admin";
 
 export const adminApiService = {
@@ -142,6 +145,45 @@ export const adminApiService = {
   async fetchScheduleRuns(id: string): Promise<ScheduledWorkflowRun[]> {
     const res = await fetch(`/api/scheduler/schedules/${id}/runs`);
     if (!res.ok) throw new Error(`Failed to fetch runs for schedule: ${id}`);
+    return res.json();
+  },
+
+  async fetchIngestionSources(): Promise<IngestionSource[]> {
+    const res = await fetch("/api/ingestion/sources");
+    if (!res.ok) throw new Error("Failed to fetch data ingestion sources");
+    return res.json();
+  },
+
+  async enableIngestionSource(id: string): Promise<IngestionSource> {
+    const res = await fetch(`/api/ingestion/sources/${id}/enable`, { method: "POST" });
+    if (!res.ok) throw new Error(`Failed to enable source: ${id}`);
+    return res.json();
+  },
+
+  async disableIngestionSource(id: string): Promise<IngestionSource> {
+    const res = await fetch(`/api/ingestion/sources/${id}/disable`, { method: "POST" });
+    if (!res.ok) throw new Error(`Failed to disable source: ${id}`);
+    return res.json();
+  },
+
+  async fetchIngestionJobs(): Promise<IngestionJob[]> {
+    const res = await fetch("/api/ingestion/jobs");
+    if (!res.ok) throw new Error("Failed to fetch data ingestion jobs");
+    return res.json();
+  },
+
+  async triggerIngestionJob(id: string): Promise<IngestionRun> {
+    const res = await fetch(`/api/ingestion/jobs/${id}/run`, { method: "POST" });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || `Failed to trigger ingestion job runs: ${id}`);
+    }
+    return res.json();
+  },
+
+  async fetchIngestionRuns(): Promise<IngestionRun[]> {
+    const res = await fetch("/api/ingestion/runs");
+    if (!res.ok) throw new Error("Failed to fetch recent ingestion run histories");
     return res.json();
   }
 };

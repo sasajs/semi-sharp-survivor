@@ -177,3 +177,47 @@ export interface ScheduledWorkflowRun {
   errorMessage: string | null;
   metadata: Record<string, any>;
 }
+
+export interface IngestionSource {
+  id: string;
+  name: string;
+  description: string;
+  adapterType: string;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+  metadata: Record<string, any>;
+}
+
+export interface IngestionJob {
+  id: string;
+  name: string;
+  description: string;
+  importType: string;
+  sourceId: string;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+  metadata: Record<string, any>;
+}
+
+export interface IngestionRun {
+  id: string;
+  jobId: string;
+  importType: string;
+  status: "PENDING" | "RUNNING" | "SUCCEEDED" | "FAILED" | "PARTIAL_SUCCESS" | "CANCELLED";
+  startedAt: string;
+  completedAt: string | null;
+  recordsProcessed: number;
+  recordsImported: number;
+  recordsRejected: number;
+  errorMessage: string | null;
+  auditMetadata: {
+    processedBy: string;
+    validationIssuesCount: number;
+    connectionSuccess: boolean;
+    systemFingerprint: string;
+    customTrace?: Record<string, any>;
+  };
+}
+

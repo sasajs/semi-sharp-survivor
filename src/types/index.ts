@@ -836,6 +836,7 @@ export interface HealthStatus {
     weeklyReportEngine: { status: HealthState; message: string | null };
     researchExportEngine: { status: HealthState; message: string | null };
     schedulerLayer?: { status: HealthState; message: string | null };
+    ingestionLayer?: { status: HealthState; message: string | null };
   };
   timestamp: string;
 }

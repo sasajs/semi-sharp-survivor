@@ -6,6 +6,8 @@ import { WeeklyReportService } from "../../reports/services/WeeklyReportService"
 import { ResearchArtifactService } from "../../exports/services/ResearchArtifactService";
 import { DatabaseHealthService } from "../../database/services/DatabaseHealthService";
 import { getSchedulerRepository } from "../../scheduler/services/ScheduleAuditService";
+import { getIngestionRepository, DataIngestionService } from "../../ingestion/services/DataIngestionService";
+import { AdapterRegistryService } from "../../ingestion/services/AdapterRegistryService";
 
 export class HealthCheckService {
   /**
@@ -31,6 +33,9 @@ export class HealthCheckService {
 
     let schedulerState = HealthState.HEALTHY;
     let schedulerMessage: string | null = null;
+
+    let ingestionState = HealthState.HEALTHY;
+    let ingestionMessage: string | null = null;
 
     // 1. Repository check
     try {
@@ -107,6 +112,26 @@ export class HealthCheckService {
       schedulerMessage = `Scheduler system check failure: ${err.message}`;
     }
 
+    // 7. Ingestion Layer check
+    try {
+      const ingRepo = getIngestionRepository();
+      if (!ingRepo) {
+        throw new Error("Ingestion repository interface resolve failed.");
+      }
+      
+      const adapters = AdapterRegistryService.listAdapters();
+      if (!Array.isArray(adapters) || adapters.length === 0) {
+        throw new Error("Ingestion adapter registry returned empty or non-array collection.");
+      }
+
+      if (typeof DataIngestionService.listSources !== "function") {
+        throw new Error("DataIngestionService module services failed initialization.");
+      }
+    } catch (err: any) {
+      ingestionState = HealthState.UNHEALTHY;
+      ingestionMessage = `Data Ingestion Engine failure: ${err.message}`;
+    }
+
     // Resolve overall health status
     let overallHealth = HealthState.HEALTHY;
 
@@ -115,7 +140,8 @@ export class HealthCheckService {
       monteCarloState,
       weeklyReportState,
       researchExportState,
-      schedulerState
+      schedulerState,
+      ingestionState
     ].some(state => state === HealthState.UNHEALTHY);
 
     if (anyUnhealthy || dbHealth.status === "unhealthy") {
@@ -133,7 +159,8 @@ export class HealthCheckService {
         monteCarloEngine: { status: monteCarloState, message: monteCarloMessage },
         weeklyReportEngine: { status: weeklyReportState, message: weeklyReportMessage },
         researchExportEngine: { status: researchExportState, message: researchExportMessage },
-        schedulerLayer: { status: schedulerState, message: schedulerMessage }
+        schedulerLayer: { status: schedulerState, message: schedulerMessage },
+        ingestionLayer: { status: ingestionState, message: ingestionMessage }
       },
       timestamp
     };

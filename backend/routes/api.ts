@@ -38,6 +38,7 @@ import { ApplicationLifecycleService } from "../system/services/ApplicationLifec
 import { BuildMetadataService } from "../system/services/BuildMetadataService";
 import { DatabaseHealthService } from "../database/services/DatabaseHealthService";
 import { ScheduledWorkflowService } from "../scheduler/services/ScheduledWorkflowService";
+import { DataIngestionService } from "../ingestion/services/DataIngestionService";
 
 
 const router = Router();
@@ -958,6 +959,144 @@ router.get("/scheduler/schedules/:id/runs", async (req: Request, res: Response) 
     res.json(runs);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+/* ====================================================================
+ * DATA INGESTION FRAMEWORK ENDPOINTS
+ * ==================================================================== */
+
+// GET List sources
+router.get("/ingestion/sources", async (req: Request, res: Response) => {
+  try {
+    const list = await DataIngestionService.listSources();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Fetch individual source
+router.get("/ingestion/sources/:id", async (req: Request, res: Response) => {
+  try {
+    const source = await DataIngestionService.getSource(req.params.id);
+    res.json(source);
+  } catch (err: any) {
+    res.status(404).json({ error: err.message });
+  }
+});
+
+// POST Create data source
+router.post("/ingestion/sources", async (req: Request, res: Response) => {
+  try {
+    const { name, description, adapterType, metadata } = req.body;
+    const source = await DataIngestionService.createSource({
+      name,
+      description,
+      adapterType,
+      metadata
+    });
+    res.status(201).json(source);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// PATCH Update partial source fields
+router.patch("/ingestion/sources/:id", async (req: Request, res: Response) => {
+  try {
+    const source = await DataIngestionService.updateSource(req.params.id, req.body);
+    res.json(source);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST Enable source
+router.post("/ingestion/sources/:id/enable", async (req: Request, res: Response) => {
+  try {
+    const source = await DataIngestionService.enableSource(req.params.id);
+    res.json(source);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST Disable source
+router.post("/ingestion/sources/:id/disable", async (req: Request, res: Response) => {
+  try {
+    const source = await DataIngestionService.disableSource(req.params.id);
+    res.json(source);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// GET List ingestion jobs
+router.get("/ingestion/jobs", async (req: Request, res: Response) => {
+  try {
+    const list = await DataIngestionService.listJobs();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST Create new ingestion job
+router.post("/ingestion/jobs", async (req: Request, res: Response) => {
+  try {
+    const { name, description, importType, sourceId, metadata } = req.body;
+    const job = await DataIngestionService.createJob({
+      name,
+      description,
+      importType,
+      sourceId,
+      metadata
+    });
+    res.status(201).json(job);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// PATCH Update partial job attributes
+router.patch("/ingestion/jobs/:id", async (req: Request, res: Response) => {
+  try {
+    const job = await DataIngestionService.updateJob(req.params.id, req.body);
+    res.json(job);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST Run single ingestion job
+router.post("/ingestion/jobs/:id/run", async (req: Request, res: Response) => {
+  try {
+    const run = await DataIngestionService.runImport(req.params.id, "admin");
+    res.json(run);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Fetch multiple ingestion runs history log
+router.get("/ingestion/runs", async (req: Request, res: Response) => {
+  try {
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
+    const list = await DataIngestionService.listImportRuns(limit);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Fetch individual run log by ID
+router.get("/ingestion/runs/:id", async (req: Request, res: Response) => {
+  try {
+    const run = await DataIngestionService.getImportRun(req.params.id);
+    res.json(run);
+  } catch (err: any) {
+    res.status(404).json({ error: err.message });
   }
 });
 
