@@ -147,3 +147,33 @@ export interface ResearchArtifact {
     signatures: string[];
   };
 }
+
+export interface ScheduledWorkflow {
+  id: string;
+  name: string;
+  description: string;
+  workflowType: string;
+  season: string;
+  week: number;
+  scheduleExpression: string;
+  scheduleTimezone: string;
+  status: "ACTIVE" | "PAUSED" | "DISABLED" | "FAILED";
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+  lastRunAt: string | null;
+  nextRunAt: string | null;
+  metadata: Record<string, any>;
+}
+
+export interface ScheduledWorkflowRun {
+  id: string;
+  scheduledWorkflowId: string;
+  workflowRunId: string | null;
+  triggerType: "manual" | "cron" | "systemd_timer" | "github_actions" | "external";
+  status: "pending" | "running" | "completed" | "failed";
+  startedAt: string;
+  completedAt: string | null;
+  errorMessage: string | null;
+  metadata: Record<string, any>;
+}

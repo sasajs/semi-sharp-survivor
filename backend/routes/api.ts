@@ -37,6 +37,7 @@ import { HealthCheckService } from "../system/services/HealthCheckService";
 import { ApplicationLifecycleService } from "../system/services/ApplicationLifecycleService";
 import { BuildMetadataService } from "../system/services/BuildMetadataService";
 import { DatabaseHealthService } from "../database/services/DatabaseHealthService";
+import { ScheduledWorkflowService } from "../scheduler/services/ScheduledWorkflowService";
 
 
 const router = Router();
@@ -841,6 +842,120 @@ router.get(["/system/exports/artifacts", "/api/system/exports/artifacts"], async
   try {
     const artifacts = await ResearchArtifactService.getAllArtifacts();
     res.json(artifacts);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ====================================================================
+ * SCHEDULED WORKFLOW ENGINE ENDPOINTS
+ * ==================================================================== */
+
+// GET List all schedules
+router.get("/scheduler/schedules", async (req: Request, res: Response) => {
+  try {
+    const list = await ScheduledWorkflowService.listSchedules();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Fetch individual schedule by ID
+router.get("/scheduler/schedules/:id", async (req: Request, res: Response) => {
+  try {
+    const schedule = await ScheduledWorkflowService.getSchedule(req.params.id);
+    res.json(schedule);
+  } catch (err: any) {
+    res.status(404).json({ error: err.message });
+  }
+});
+
+// POST Create new schedule
+router.post("/scheduler/schedules", async (req: Request, res: Response) => {
+  try {
+    const { name, description, workflowType, season, week, scheduleExpression, scheduleTimezone, metadata } = req.body;
+    const schedule = await ScheduledWorkflowService.createSchedule({
+      name,
+      description,
+      workflowType,
+      season: String(season),
+      week: Number(week),
+      scheduleExpression,
+      scheduleTimezone,
+      metadata
+    }, "admin");
+    res.status(201).json(schedule);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// PATCH Update partial schedule attributes
+router.patch("/scheduler/schedules/:id", async (req: Request, res: Response) => {
+  try {
+    const { name, description, workflowType, season, week, scheduleExpression, scheduleTimezone, metadata } = req.body;
+    const schedule = await ScheduledWorkflowService.updateSchedule(req.params.id, {
+      name,
+      description,
+      workflowType,
+      season: season !== undefined ? String(season) : undefined,
+      week: week !== undefined ? Number(week) : undefined,
+      scheduleExpression,
+      scheduleTimezone,
+      metadata
+    }, "admin");
+    res.json(schedule);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST Enable schedule and calculate next run time
+router.post("/scheduler/schedules/:id/enable", async (req: Request, res: Response) => {
+  try {
+    const schedule = await ScheduledWorkflowService.enableSchedule(req.params.id, "admin");
+    res.json(schedule);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST Disable schedule
+router.post("/scheduler/schedules/:id/disable", async (req: Request, res: Response) => {
+  try {
+    const schedule = await ScheduledWorkflowService.disableSchedule(req.params.id, "admin");
+    res.json(schedule);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST Pause schedule
+router.post("/scheduler/schedules/:id/pause", async (req: Request, res: Response) => {
+  try {
+    const schedule = await ScheduledWorkflowService.pauseSchedule(req.params.id, "admin");
+    res.json(schedule);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST Manually execute scheduled workflow run
+router.post("/scheduler/schedules/:id/trigger", async (req: Request, res: Response) => {
+  try {
+    const run = await ScheduledWorkflowService.triggerScheduleManually(req.params.id, "admin");
+    res.json(run);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Extract all executions/runs belonging to this schedule
+router.get("/scheduler/schedules/:id/runs", async (req: Request, res: Response) => {
+  try {
+    const runs = await ScheduledWorkflowService.listScheduledRuns(req.params.id);
+    res.json(runs);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

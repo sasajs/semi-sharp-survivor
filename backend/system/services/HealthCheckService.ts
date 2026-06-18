@@ -5,6 +5,7 @@ import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloS
 import { WeeklyReportService } from "../../reports/services/WeeklyReportService";
 import { ResearchArtifactService } from "../../exports/services/ResearchArtifactService";
 import { DatabaseHealthService } from "../../database/services/DatabaseHealthService";
+import { getSchedulerRepository } from "../../scheduler/services/ScheduleAuditService";
 
 export class HealthCheckService {
   /**
@@ -27,6 +28,9 @@ export class HealthCheckService {
     
     let researchExportState = HealthState.HEALTHY;
     let researchExportMessage: string | null = null;
+
+    let schedulerState = HealthState.HEALTHY;
+    let schedulerMessage: string | null = null;
 
     // 1. Repository check
     try {
@@ -88,6 +92,21 @@ export class HealthCheckService {
       researchExportMessage = `Export Service error: ${err.message}`;
     }
 
+    // 6. Scheduler Layer check
+    try {
+      const schRepo = getSchedulerRepository();
+      if (!schRepo) {
+        throw new Error("Scheduler repository interface is uninitialized.");
+      }
+      const list = await schRepo.listSchedules();
+      if (!Array.isArray(list)) {
+        throw new Error("Database reference did not return a valid list of active schedules.");
+      }
+    } catch (err: any) {
+      schedulerState = HealthState.UNHEALTHY;
+      schedulerMessage = `Scheduler system check failure: ${err.message}`;
+    }
+
     // Resolve overall health status
     let overallHealth = HealthState.HEALTHY;
 
@@ -95,7 +114,8 @@ export class HealthCheckService {
       workflowEngineState,
       monteCarloState,
       weeklyReportState,
-      researchExportState
+      researchExportState,
+      schedulerState
     ].some(state => state === HealthState.UNHEALTHY);
 
     if (anyUnhealthy || dbHealth.status === "unhealthy") {
@@ -112,7 +132,8 @@ export class HealthCheckService {
         workflowEngine: { status: workflowEngineState, message: workflowEngineMessage },
         monteCarloEngine: { status: monteCarloState, message: monteCarloMessage },
         weeklyReportEngine: { status: weeklyReportState, message: weeklyReportMessage },
-        researchExportEngine: { status: researchExportState, message: researchExportMessage }
+        researchExportEngine: { status: researchExportState, message: researchExportMessage },
+        schedulerLayer: { status: schedulerState, message: schedulerMessage }
       },
       timestamp
     };

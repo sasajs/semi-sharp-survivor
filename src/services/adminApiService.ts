@@ -7,7 +7,9 @@ import {
   WorkflowRun,
   WorkflowSummaryResponse,
   WeeklyReport,
-  ResearchArtifact
+  ResearchArtifact,
+  ScheduledWorkflow,
+  ScheduledWorkflowRun
 } from "../types/admin";
 
 export const adminApiService = {
@@ -80,6 +82,66 @@ export const adminApiService = {
   async fetchArtifacts(): Promise<ResearchArtifact[]> {
     const res = await fetch("/api/system/exports/artifacts");
     if (!res.ok) throw new Error("Failed to fetch compiled export artifacts");
+    return res.json();
+  },
+
+  async fetchSchedules(): Promise<ScheduledWorkflow[]> {
+    const res = await fetch("/api/scheduler/schedules");
+    if (!res.ok) throw new Error("Failed to fetch scheduled workflows list");
+    return res.json();
+  },
+
+  async createSchedule(payload: {
+    name: string;
+    description: string;
+    workflowType: string;
+    season: string;
+    week: number;
+    scheduleExpression: string;
+    scheduleTimezone: string;
+  }): Promise<ScheduledWorkflow> {
+    const res = await fetch("/api/scheduler/schedules", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || "Failed to create new scheduled workflow");
+    }
+    return res.json();
+  },
+
+  async enableSchedule(id: string): Promise<ScheduledWorkflow> {
+    const res = await fetch(`/api/scheduler/schedules/${id}/enable`, { method: "POST" });
+    if (!res.ok) throw new Error(`Failed to enable schedule: ${id}`);
+    return res.json();
+  },
+
+  async disableSchedule(id: string): Promise<ScheduledWorkflow> {
+    const res = await fetch(`/api/scheduler/schedules/${id}/disable`, { method: "POST" });
+    if (!res.ok) throw new Error(`Failed to disable schedule: ${id}`);
+    return res.json();
+  },
+
+  async pauseSchedule(id: string): Promise<ScheduledWorkflow> {
+    const res = await fetch(`/api/scheduler/schedules/${id}/pause`, { method: "POST" });
+    if (!res.ok) throw new Error(`Failed to pause schedule: ${id}`);
+    return res.json();
+  },
+
+  async triggerSchedule(id: string): Promise<ScheduledWorkflowRun> {
+    const res = await fetch(`/api/scheduler/schedules/${id}/trigger`, { method: "POST" });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || `Failed to manually trigger schedule: ${id}`);
+    }
+    return res.json();
+  },
+
+  async fetchScheduleRuns(id: string): Promise<ScheduledWorkflowRun[]> {
+    const res = await fetch(`/api/scheduler/schedules/${id}/runs`);
+    if (!res.ok) throw new Error(`Failed to fetch runs for schedule: ${id}`);
     return res.json();
   }
 };

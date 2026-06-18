@@ -1097,6 +1097,7 @@ export interface HealthStatusDTO {
     monteCarloEngine: ServiceCheckDTO;
     weeklyReportEngine: ServiceCheckDTO;
     researchExportEngine: ServiceCheckDTO;
+    schedulerLayer?: ServiceCheckDTO;
   };
   timestamp: string;
 }
