@@ -36,6 +36,7 @@ import { workflowRunRepo } from "../repositories/index";
 import { HealthCheckService } from "../system/services/HealthCheckService";
 import { ApplicationLifecycleService } from "../system/services/ApplicationLifecycleService";
 import { BuildMetadataService } from "../system/services/BuildMetadataService";
+import { DatabaseHealthService } from "../database/services/DatabaseHealthService";
 
 
 const router = Router();
@@ -761,7 +762,7 @@ router.get("/api/orchestration/workflows/runs/:runId", async (req: Request, res:
  * ==================================================================== */
 
 // GET Dynamic live health check across service instances
-router.get("/system/health", async (req: Request, res: Response) => {
+router.get("/api/system/health", async (req: Request, res: Response) => {
   try {
     const health = await HealthCheckService.checkSystemHealth();
     res.json(health);
@@ -771,7 +772,7 @@ router.get("/system/health", async (req: Request, res: Response) => {
 });
 
 // GET Current general runtime state, validator feedback, and process uptime
-router.get("/system/status", async (req: Request, res: Response) => {
+router.get("/api/system/status", async (req: Request, res: Response) => {
   try {
     const status = ApplicationLifecycleService.getApplicationStatus();
     // Return precisely with "uptime" matching prompt requirements
@@ -789,7 +790,7 @@ router.get("/system/status", async (req: Request, res: Response) => {
 });
 
 // GET Expose current product versions
-router.get("/system/version", async (req: Request, res: Response) => {
+router.get("/api/system/version", async (req: Request, res: Response) => {
   try {
     const versions = BuildMetadataService.getVersions();
     res.json(versions);
@@ -799,10 +800,27 @@ router.get("/system/version", async (req: Request, res: Response) => {
 });
 
 // GET Expose physical build artifacts, git commits, and compile timestamps
-router.get("/system/build-info", async (req: Request, res: Response) => {
+router.get("/api/system/build-info", async (req: Request, res: Response) => {
   try {
     const info = BuildMetadataService.getBuildMetadata();
     res.json(info);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Expose real-time relational database health, connectivity status, latency and pool metrics
+router.get("/system/database", async (req: Request, res: Response) => {
+  try {
+    const health = await DatabaseHealthService.checkHealth();
+    res.json({
+      connected: health.mode === "mock" || health.connection.status === "online",
+      databaseType: health.mode,
+      poolActive: health.pool.totalConnections - health.pool.idleConnections,
+      poolIdle: health.pool.idleConnections,
+      migrationVersion: health.migrations.activeVersion,
+      healthy: health.status === "healthy"
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

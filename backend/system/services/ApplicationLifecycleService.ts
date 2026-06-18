@@ -7,6 +7,7 @@ import { StartupValidationService } from "./StartupValidationService";
 import { BuildMetadataService } from "./BuildMetadataService";
 import { workflowRunRepo } from "../../repositories";
 import { WorkflowStatus } from "../../orchestration/models";
+import { PostgresConnectionManager } from "../../database/connection/PostgresConnectionManager";
 
 export class ApplicationLifecycleService {
   private static currentState: ApplicationState = ApplicationState.STARTING;
@@ -106,6 +107,13 @@ export class ApplicationLifecycleService {
         }
       } else {
         console.log("[Lifecycle Engine] No active workflows are performing calculations. Safe for immediate exit.");
+      }
+
+      // 2. Shut down database connections
+      try {
+        await PostgresConnectionManager.getInstance().closePool();
+      } catch (poolErr: any) {
+        console.error("[Lifecycle Engine] Error shutting down database pool connection layer:", poolErr.message);
       }
 
       this.currentState = ApplicationState.STOPPED;

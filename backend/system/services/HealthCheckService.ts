@@ -4,6 +4,7 @@ import { WorkflowStatusService } from "../../orchestration/services/WorkflowStat
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
 import { WeeklyReportService } from "../../reports/services/WeeklyReportService";
 import { ResearchArtifactService } from "../../exports/services/ResearchArtifactService";
+import { DatabaseHealthService } from "../../database/services/DatabaseHealthService";
 
 export class HealthCheckService {
   /**
@@ -38,12 +39,19 @@ export class HealthCheckService {
       repositoryMessage = `Database/Repository failure: ${err.message}`;
     }
 
+    // 1b. Real Database Health Check
+    let dbHealth;
+    try {
+      dbHealth = await DatabaseHealthService.checkHealth();
+    } catch (err: any) {
+      dbHealth = { status: "unhealthy", mode: "postgres", connection: { status: "offline", error: err.message } };
+    }
+
     // 2. Workflow Orchestration Engine check
     try {
       if (typeof WorkflowStatusService.getWorkflowExecutionSummaries !== "function") {
         throw new Error("Workflow services are uninitialized in runtime.");
       }
-      // Simple lookup test
       await WorkflowStatusService.getWorkflowExecutionSummaries();
     } catch (err: any) {
       workflowEngineState = HealthState.UNHEALTHY;
@@ -90,9 +98,9 @@ export class HealthCheckService {
       researchExportState
     ].some(state => state === HealthState.UNHEALTHY);
 
-    if (anyUnhealthy) {
+    if (anyUnhealthy || dbHealth.status === "unhealthy") {
       overallHealth = HealthState.UNHEALTHY;
-    } else if (repositoryState === HealthState.DEGRADED) {
+    } else if (repositoryState === HealthState.DEGRADED || dbHealth.status === "degraded") {
       overallHealth = HealthState.DEGRADED;
     }
 
@@ -100,6 +108,7 @@ export class HealthCheckService {
       overallHealth,
       serviceChecks: {
         repositoryLayer: { status: repositoryState, message: repositoryMessage },
+        databaseLayer: dbHealth as any, // Integrated subordinate dependency metric
         workflowEngine: { status: workflowEngineState, message: workflowEngineMessage },
         monteCarloEngine: { status: monteCarloState, message: monteCarloMessage },
         weeklyReportEngine: { status: weeklyReportState, message: weeklyReportMessage },

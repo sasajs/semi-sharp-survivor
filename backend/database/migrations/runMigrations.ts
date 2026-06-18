@@ -1,25 +1,15 @@
-import fs from "fs";
-import path from "path";
-import { query } from "../connection";
+import { MigrationRunner } from "./MigrationRunner";
 
-export async function runMigrations() {
-  console.log("[Migration] Executing migration schema...");
-  
+/**
+ * Global migration orchestrator called by the application boots sequence.
+ */
+export async function runMigrations(): Promise<void> {
+  console.log("[Migration Engine] Starting schema migration verification sequence...");
   try {
-    // Read the schema.sql which is the source of truth
-    const schemaPath = path.join(process.cwd(), "circa_developer_blueprint", "schema.sql");
-    if (!fs.existsSync(schemaPath)) {
-      throw new Error(`schema.sql not found at ${schemaPath}`);
-    }
-
-    const schemaSql = fs.readFileSync(schemaPath, "utf-8");
-
-    // We can run the raw SQL file directly in a single query block
-    // split the commands or run as one because pg supports multiple statements
-    await query(schemaSql);
-    console.log("[Migration] Database schema migrated successfully!");
-  } catch (err) {
-    console.error("[Migration] Error running database migrations:", err);
+    const activeSchema = await MigrationRunner.runAllPending();
+    console.log(`[Migration Engine] Schema migration checks verified. Running on schema version: ${activeSchema}`);
+  } catch (err: any) {
+    console.error("[Migration Engine] FATAL: Schema migration has failed:", err.message);
     throw err;
   }
 }

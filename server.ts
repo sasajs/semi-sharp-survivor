@@ -7,34 +7,51 @@ import { useMock } from "./backend/repositories/index";
 import { runMigrations } from "./backend/database/migrations/runMigrations";
 import { seedDatabase } from "./backend/database/seed/seedData";
 import { ApplicationLifecycleService } from "./backend/system/services/ApplicationLifecycleService";
+import { PostgresConnectionManager } from "./backend/database/connection/PostgresConnectionManager";
 
 const app = express();
 app.use(express.json());
 const PORT = 3000;
 
-// Seed the mock database layers with default NFL teams and week parameters on launch!
-if (useMock) {
-  buildAndSeedMockState();
-} else {
-  console.log("[Semi-Sharp V2 Server] Running in PostgreSQL mode. Initializing database schema...");
-  runMigrations()
-    .then(() => seedDatabase())
-    .then(() => {
-      console.log("[Database] PostgreSQL schema migration and seeding complete.");
-    })
-    .catch((err) => {
-      console.warn("[Database Warning] Graceful startup note: PostgreSQL failed to connect on boot. This is expected if the container/service is starting. Details:", err.message);
-    });
+async function bootstrapDatabase() {
+  if (useMock) {
+    console.log("[Semi-Sharp V2 Server] Running in memory-mock mode. Seeding defaults...");
+    buildAndSeedMockState();
+  } else {
+    console.log("[Semi-Sharp V2 Server] Running in PostgreSQL mode. Testing connection & running migrations...");
+    try {
+      // 1. Connectivity test - fails fast if DB is down
+      const manager = PostgresConnectionManager.getInstance();
+      const connected = await manager.testConnection();
+      if (!connected) {
+        throw new Error("Unable to establish communication with target PostgreSQL database.");
+      }
+
+      // 2. Run migrations
+      await runMigrations();
+
+      // 3. Seed configurations
+      await seedDatabase();
+      console.log("[Database] PostgreSQL connection, migrations, and seeding completed successfully.");
+    } catch (err: any) {
+      console.error("[Database Fatal] Startup SQL initializations have failed:", err.message);
+      console.error("[Database Fatal] Halting application server execution per strict persistence constraints.");
+      process.exit(1);
+    }
+  }
+
+  // Initialize Application Lifecycle tracking
+  try {
+    await ApplicationLifecycleService.initializeLifecycle();
+  } catch (err) {
+    console.error("[Lifecycle Init Warning] Failed to initialize system lifecycle:", err);
+  }
 }
 
-// Initialize Application Lifecycle tracking and perform startup validation checks
-ApplicationLifecycleService.initializeLifecycle()
-  .catch(err => {
-    console.error("[Lifecycle Init Warning] Failed to initialize system lifecycle:", err);
-  });
+// Kickstart database and lifecycle setup
+bootstrapDatabase();
 
 // Bind API routing structure
-
 app.use("/api", apiRouter);
 
 // ==========================================

@@ -830,6 +830,7 @@ export interface HealthStatus {
   overallHealth: HealthState;
   serviceChecks: {
     repositoryLayer: { status: HealthState; message: string | null };
+    databaseLayer?: any;
     workflowEngine: { status: HealthState; message: string | null };
     monteCarloEngine: { status: HealthState; message: string | null };
     weeklyReportEngine: { status: HealthState; message: string | null };
