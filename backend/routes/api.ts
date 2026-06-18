@@ -692,7 +692,7 @@ router.get("/api/exports/contests/:contestId/artifacts", async (req: Request, re
  * ==================================================================== */
 
 // POST Start or register a workflow run
-router.post("/api/orchestration/workflows/execute", async (req: Request, res: Response) => {
+router.post("/orchestration/workflows/execute", async (req: Request, res: Response) => {
   try {
     const payload = req.body || {};
     const run = await WorkflowOrchestratorService.startWorkflowExecution(payload);
@@ -703,7 +703,7 @@ router.post("/api/orchestration/workflows/execute", async (req: Request, res: Re
 });
 
 // GET Fetch all/recent workflows logs/history
-router.get("/api/orchestration/workflows/runs", async (req: Request, res: Response) => {
+router.get("/orchestration/workflows/runs", async (req: Request, res: Response) => {
   try {
     const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
     const runs = await WorkflowStatusService.listRecentWorkflowRuns(limit);
@@ -714,7 +714,7 @@ router.get("/api/orchestration/workflows/runs", async (req: Request, res: Respon
 });
 
 // GET Fetch overall statistics and execution KPI summaries
-router.get("/api/orchestration/workflows/summaries", async (req: Request, res: Response) => {
+router.get("/orchestration/workflows/summaries", async (req: Request, res: Response) => {
   try {
     const summary = await WorkflowStatusService.getWorkflowExecutionSummaries();
     res.json(summary);
@@ -724,7 +724,7 @@ router.get("/api/orchestration/workflows/summaries", async (req: Request, res: R
 });
 
 // GET Lookup workflow progress and step statuses by identifier
-router.get("/api/orchestration/workflows/runs/:runId/status", async (req: Request, res: Response) => {
+router.get("/orchestration/workflows/runs/:runId/status", async (req: Request, res: Response) => {
   try {
     const { runId } = req.params;
     const status = await WorkflowStatusService.lookupWorkflowStatus(runId);
@@ -738,7 +738,7 @@ router.get("/api/orchestration/workflows/runs/:runId/status", async (req: Reques
 });
 
 // GET Fetch complete raw run data by identifier
-router.get("/api/orchestration/workflows/runs/:runId", async (req: Request, res: Response) => {
+router.get("/orchestration/workflows/runs/:runId", async (req: Request, res: Response) => {
   try {
     const { runId } = req.params;
     const run = await workflowRunRepo.getRunById(runId);
