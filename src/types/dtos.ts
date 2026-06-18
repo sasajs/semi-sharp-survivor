@@ -1047,6 +1047,61 @@ export interface WorkflowExecutionResultDTO {
   errorMessage?: string;
 }
 
+export type ApplicationStateDTO = 'STARTING' | 'RUNNING' | 'STOPPING' | 'STOPPED' | 'FAILED';
+export type HealthStateDTO = 'HEALTHY' | 'DEGRADED' | 'UNHEALTHY';
+
+export interface BuildMetadataDTO {
+  applicationVersion: string;
+  gitCommit: string;
+  buildTimestamp: string;
+  environment: string;
+}
+
+export interface StartupValidationResultDTO {
+  initialized: boolean;
+  timestamp: string;
+  components: {
+    repositories: boolean;
+    workflowEngine: boolean;
+    reportEngine: boolean;
+    exportEngine: boolean;
+  };
+  details: string[];
+}
+
+export interface SystemMetricsDTO {
+  cpuUsage: number;
+  memoryUsageBytes: number;
+  freeMemoryBytes: number;
+  totalMemoryBytes: number;
+}
+
+export interface ApplicationStatusDTO {
+  applicationState: ApplicationStateDTO;
+  uptimeSeconds: number;
+  startedAt: string | null;
+  environment: string;
+  validation: StartupValidationResultDTO | null;
+}
+
+export interface ServiceCheckDTO {
+  status: HealthStateDTO;
+  message: string | null;
+}
+
+export interface HealthStatusDTO {
+  overallHealth: HealthStateDTO;
+  serviceChecks: {
+    repositoryLayer: ServiceCheckDTO;
+    workflowEngine: ServiceCheckDTO;
+    monteCarloEngine: ServiceCheckDTO;
+    weeklyReportEngine: ServiceCheckDTO;
+    researchExportEngine: ServiceCheckDTO;
+  };
+  timestamp: string;
+}
+
+
 
 
 

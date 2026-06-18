@@ -6,6 +6,7 @@ import { buildAndSeedMockState } from "./backend/services/mockSeeder";
 import { useMock } from "./backend/repositories/index";
 import { runMigrations } from "./backend/database/migrations/runMigrations";
 import { seedDatabase } from "./backend/database/seed/seedData";
+import { ApplicationLifecycleService } from "./backend/system/services/ApplicationLifecycleService";
 
 const app = express();
 app.use(express.json());
@@ -26,7 +27,14 @@ if (useMock) {
     });
 }
 
+// Initialize Application Lifecycle tracking and perform startup validation checks
+ApplicationLifecycleService.initializeLifecycle()
+  .catch(err => {
+    console.error("[Lifecycle Init Warning] Failed to initialize system lifecycle:", err);
+  });
+
 // Bind API routing structure
+
 app.use("/api", apiRouter);
 
 // ==========================================

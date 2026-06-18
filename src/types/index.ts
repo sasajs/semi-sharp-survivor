@@ -778,6 +778,67 @@ export interface WorkflowExecutionResult {
   errorMessage?: string;
 }
 
+export enum ApplicationState {
+  STARTING = 'STARTING',
+  RUNNING = 'RUNNING',
+  STOPPING = 'STOPPING',
+  STOPPED = 'STOPPED',
+  FAILED = 'FAILED'
+}
+
+export enum HealthState {
+  HEALTHY = 'HEALTHY',
+  DEGRADED = 'DEGRADED',
+  UNHEALTHY = 'UNHEALTHY'
+}
+
+export interface BuildMetadata {
+  applicationVersion: string;
+  gitCommit: string;
+  buildTimestamp: string;
+  environment: string;
+}
+
+export interface StartupValidationResult {
+  initialized: boolean;
+  timestamp: string;
+  components: {
+    repositories: boolean;
+    workflowEngine: boolean;
+    reportEngine: boolean;
+    exportEngine: boolean;
+  };
+  details: string[];
+}
+
+export interface SystemMetrics {
+  cpuUsage: number;
+  memoryUsageBytes: number;
+  freeMemoryBytes: number;
+  totalMemoryBytes: number;
+}
+
+export interface ApplicationStatus {
+  applicationState: ApplicationState;
+  uptimeSeconds: number;
+  startedAt: string | null;
+  environment: string;
+  validation: StartupValidationResult | null;
+}
+
+export interface HealthStatus {
+  overallHealth: HealthState;
+  serviceChecks: {
+    repositoryLayer: { status: HealthState; message: string | null };
+    workflowEngine: { status: HealthState; message: string | null };
+    monteCarloEngine: { status: HealthState; message: string | null };
+    weeklyReportEngine: { status: HealthState; message: string | null };
+    researchExportEngine: { status: HealthState; message: string | null };
+  };
+  timestamp: string;
+}
+
+
 
 
 

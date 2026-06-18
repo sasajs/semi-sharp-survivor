@@ -33,6 +33,11 @@ import { WorkflowOrchestratorService } from "../orchestration/services/WorkflowO
 import { WorkflowStatusService } from "../orchestration/services/WorkflowStatusService";
 import { workflowRunRepo } from "../repositories/index";
 
+import { HealthCheckService } from "../system/services/HealthCheckService";
+import { ApplicationLifecycleService } from "../system/services/ApplicationLifecycleService";
+import { BuildMetadataService } from "../system/services/BuildMetadataService";
+
+
 const router = Router();
 
 
@@ -692,7 +697,7 @@ router.get("/api/exports/contests/:contestId/artifacts", async (req: Request, re
  * ==================================================================== */
 
 // POST Start or register a workflow run
-router.post("/orchestration/workflows/execute", async (req: Request, res: Response) => {
+router.post("/api/orchestration/workflows/execute", async (req: Request, res: Response) => {
   try {
     const payload = req.body || {};
     const run = await WorkflowOrchestratorService.startWorkflowExecution(payload);
@@ -703,7 +708,7 @@ router.post("/orchestration/workflows/execute", async (req: Request, res: Respon
 });
 
 // GET Fetch all/recent workflows logs/history
-router.get("/orchestration/workflows/runs", async (req: Request, res: Response) => {
+router.get("/api/orchestration/workflows/runs", async (req: Request, res: Response) => {
   try {
     const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
     const runs = await WorkflowStatusService.listRecentWorkflowRuns(limit);
@@ -714,7 +719,7 @@ router.get("/orchestration/workflows/runs", async (req: Request, res: Response) 
 });
 
 // GET Fetch overall statistics and execution KPI summaries
-router.get("/orchestration/workflows/summaries", async (req: Request, res: Response) => {
+router.get("/api/orchestration/workflows/summaries", async (req: Request, res: Response) => {
   try {
     const summary = await WorkflowStatusService.getWorkflowExecutionSummaries();
     res.json(summary);
@@ -724,7 +729,7 @@ router.get("/orchestration/workflows/summaries", async (req: Request, res: Respo
 });
 
 // GET Lookup workflow progress and step statuses by identifier
-router.get("/orchestration/workflows/runs/:runId/status", async (req: Request, res: Response) => {
+router.get("/api/orchestration/workflows/runs/:runId/status", async (req: Request, res: Response) => {
   try {
     const { runId } = req.params;
     const status = await WorkflowStatusService.lookupWorkflowStatus(runId);
@@ -738,7 +743,7 @@ router.get("/orchestration/workflows/runs/:runId/status", async (req: Request, r
 });
 
 // GET Fetch complete raw run data by identifier
-router.get("/orchestration/workflows/runs/:runId", async (req: Request, res: Response) => {
+router.get("/api/orchestration/workflows/runs/:runId", async (req: Request, res: Response) => {
   try {
     const { runId } = req.params;
     const run = await workflowRunRepo.getRunById(runId);
@@ -751,4 +756,57 @@ router.get("/orchestration/workflows/runs/:runId", async (req: Request, res: Res
   }
 });
 
+/* ====================================================================
+ * APPLICATION LIFECYCLE & LIVE HEALTH CHECK ENDPOINTS
+ * ==================================================================== */
+
+// GET Dynamic live health check across service instances
+router.get("/api/system/health", async (req: Request, res: Response) => {
+  try {
+    const health = await HealthCheckService.checkSystemHealth();
+    res.json(health);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Current general runtime state, validator feedback, and process uptime
+router.get("/api/system/status", async (req: Request, res: Response) => {
+  try {
+    const status = ApplicationLifecycleService.getApplicationStatus();
+    // Return precisely with "uptime" matching prompt requirements
+    res.json({
+      applicationState: status.applicationState,
+      uptime: status.uptimeSeconds, // "uptime" requirement
+      uptimeSeconds: status.uptimeSeconds, // fallback
+      startedAt: status.startedAt,
+      environment: status.environment,
+      validation: status.validation
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Expose current product versions
+router.get("/api/system/version", async (req: Request, res: Response) => {
+  try {
+    const versions = BuildMetadataService.getVersions();
+    res.json(versions);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Expose physical build artifacts, git commits, and compile timestamps
+router.get("/api/system/build-info", async (req: Request, res: Response) => {
+  try {
+    const info = BuildMetadataService.getBuildMetadata();
+    res.json(info);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;
+

@@ -1,0 +1,20 @@
+[Unit]
+Description=Semi-Sharp V2 Application Service
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=semisharp
+Group=semisharp
+WorkingDirectory=/opt/semisharp
+EnvironmentFile=/opt/semisharp/.env
+ExecStart=/usr/bin/npm run start
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=semisharp
+
+[Install]
+WantedBy=multi-user.target

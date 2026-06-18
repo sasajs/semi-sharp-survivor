@@ -1,0 +1,20 @@
+[Unit]
+Description=Semi-Sharp V2 Worker Service (Scheduled Jobs, Ingestion, & Workflows)
+After=network.target semisharp.service
+Requires=semisharp.service
+
+[Service]
+Type=simple
+User=semisharp
+Group=semisharp
+WorkingDirectory=/opt/semisharp
+EnvironmentFile=/opt/semisharp/.env
+ExecStart=/usr/bin/npm run worker:start
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=semisharp-worker
+
+[Install]
+WantedBy=multi-user.target
