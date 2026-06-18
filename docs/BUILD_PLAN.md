@@ -100,6 +100,14 @@ Each phase must complete its acceptance criteria before proceeding.
 
 ---
 
+### Status
+✔ Completed on 2026-01-16
+
+- Immutable history tables enforced at the database level
+- UPDATE / DELETE prohibited via triggers
+- Schema committed to git (`aa3109e`)
+
+
 ## 6. Phase 2 – End-to-End Thin Slice
 
 ### Objectives
