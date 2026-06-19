@@ -8,6 +8,7 @@ import { ExportArtifactsPanel } from "../components/admin/ExportArtifactsPanel";
 import { ScheduledWorkflowsPanel } from "../components/admin/ScheduledWorkflowsPanel";
 import { DataIngestionPanel } from "../components/admin/DataIngestionPanel";
 import { PostgresReadinessPanel } from "../components/admin/PostgresReadinessPanel";
+import { PreseasonReadinessPanel } from "../components/admin/PreseasonReadinessPanel";
 import { ShieldCheck } from "lucide-react";
 
 export const AdminDashboard: React.FC = () => {
@@ -57,6 +58,14 @@ export const AdminDashboard: React.FC = () => {
             <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">03. PostgreSQL Cutover Readiness Validation</span>
           </div>
           <PostgresReadinessPanel />
+        </section>
+
+        {/* Section 2.7: Preseason Readiness Testing Framework */}
+        <section id="admin-section-preseason-readiness" className="space-y-3 font-sans">
+          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">03.5. Preseason Readiness Testing Framework</span>
+          </div>
+          <PreseasonReadinessPanel />
         </section>
 
         {/* Section 3: Manual Workflow Execution */}

@@ -40,6 +40,7 @@ import { BuildMetadataService } from "../system/services/BuildMetadataService";
 import { DatabaseHealthService } from "../database/services/DatabaseHealthService";
 import { ScheduledWorkflowService } from "../scheduler/services/ScheduledWorkflowService";
 import { DataIngestionService } from "../ingestion/services/DataIngestionService";
+import { ReadinessTestingService } from "../testing/services/ReadinessTestingService";
 
 
 const router = Router();
@@ -1138,6 +1139,64 @@ router.get("/ingestion/runs/:id", async (req: Request, res: Response) => {
     res.json(run);
   } catch (err: any) {
     res.status(404).json({ error: err.message });
+  }
+});
+
+/* ====================================================================
+ * PRESEASON READINESS TESTING FRAMEWORK ENDPOINTS
+ * ==================================================================== */
+
+router.get("/testing/readiness", async (req: Request, res: Response) => {
+  try {
+    const scorecard = await ReadinessTestingService.runFullCertification();
+    res.json(scorecard);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/testing/workflows", async (req: Request, res: Response) => {
+  try {
+    const result = await ReadinessTestingService.runWorkflowTests();
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/testing/scheduler", async (req: Request, res: Response) => {
+  try {
+    const result = await ReadinessTestingService.runSchedulerTests();
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/testing/ingestion", async (req: Request, res: Response) => {
+  try {
+    const result = await ReadinessTestingService.runIngestionTests();
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/testing/reporting", async (req: Request, res: Response) => {
+  try {
+    const result = await ReadinessTestingService.runReportingTests();
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/testing/exports", async (req: Request, res: Response) => {
+  try {
+    const result = await ReadinessTestingService.runExportTests();
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 });
 

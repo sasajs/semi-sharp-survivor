@@ -9,6 +9,7 @@ import { getSchedulerRepository } from "../../scheduler/services/ScheduleAuditSe
 import { getIngestionRepository, DataIngestionService } from "../../ingestion/services/DataIngestionService";
 import { AdapterRegistryService } from "../../ingestion/services/AdapterRegistryService";
 import { PostgresValidationService } from "../../postgres/services/PostgresValidationService";
+import { ReadinessTestingService } from "../../testing/services/ReadinessTestingService";
 
 export class HealthCheckService {
   /**
@@ -151,6 +152,26 @@ export class HealthCheckService {
       postgresReadinessMessage = `Validation pipeline execution crash: ${err.message}`;
     }
 
+    // 9. Preseason Readiness Validation check
+    let preseasonStatus: "HEALTHY" | "WARNING" | "FAILED" = "HEALTHY";
+    let preseasonMessage: string | null = null;
+    try {
+      const scorecard = await ReadinessTestingService.runFullCertification();
+      if (scorecard.overallStatus === "READY") {
+        preseasonStatus = "HEALTHY";
+        preseasonMessage = `Readiness certification PASSED with a score of ${scorecard.overallScore}/100. READY for 2026 Season.`;
+      } else if (scorecard.overallStatus === "NEEDS_ATTENTION") {
+        preseasonStatus = "WARNING";
+        preseasonMessage = `Readiness certification flagged: NEEDS_ATTENTION with a score of ${scorecard.overallScore}/100.`;
+      } else {
+        preseasonStatus = "FAILED";
+        preseasonMessage = `Readiness certification FAILED. NOT_READY for the season (Score: ${scorecard.overallScore}/100).`;
+      }
+    } catch (err: any) {
+      preseasonStatus = "FAILED";
+      preseasonMessage = `Preseason certification calculation crashed: ${err.message}`;
+    }
+
     // Resolve overall health status
     let overallHealth = HealthState.HEALTHY;
 
@@ -163,9 +184,9 @@ export class HealthCheckService {
       ingestionState
     ].some(state => state === HealthState.UNHEALTHY);
 
-    if (anyUnhealthy || dbHealth.status === "unhealthy") {
+    if (anyUnhealthy || dbHealth.status === "unhealthy" || preseasonStatus === "FAILED") {
       overallHealth = HealthState.UNHEALTHY;
-    } else if (repositoryState === HealthState.DEGRADED || dbHealth.status === "degraded") {
+    } else if (repositoryState === HealthState.DEGRADED || dbHealth.status === "degraded" || preseasonStatus === "WARNING") {
       overallHealth = HealthState.DEGRADED;
     }
 
@@ -180,7 +201,8 @@ export class HealthCheckService {
         researchExportEngine: { status: researchExportState, message: researchExportMessage },
         schedulerLayer: { status: schedulerState, message: schedulerMessage },
         ingestionLayer: { status: ingestionState, message: ingestionMessage },
-        postgresReadinessLayer: { status: postgresReadinessState, message: postgresReadinessMessage }
+        postgresReadinessLayer: { status: postgresReadinessState, message: postgresReadinessMessage },
+        preseasonReadinessLayer: { status: preseasonStatus, message: preseasonMessage }
       },
       timestamp
     };

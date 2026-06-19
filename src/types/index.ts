@@ -838,6 +838,7 @@ export interface HealthStatus {
     schedulerLayer?: { status: HealthState; message: string | null };
     ingestionLayer?: { status: HealthState; message: string | null };
     postgresReadinessLayer?: { status: "HEALTHY" | "WARNING" | "FAILED"; message: string | null };
+    preseasonReadinessLayer?: { status: "HEALTHY" | "WARNING" | "FAILED"; message: string | null };
   };
   timestamp: string;
 }
