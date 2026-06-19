@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { adminApiService } from "../../services/adminApiService";
 import { SystemHealthResponse, SystemStatusResponse } from "../../types/admin";
+import { safeDate } from "../../utils/safeFormat";
 import { Activity, ShieldAlert, CheckCircle, RefreshCw, Clock, Server, Monitor, FileText } from "lucide-react";
+
 
 export const SystemHealthPanel: React.FC = () => {
   const [health, setHealth] = useState<SystemHealthResponse | null>(null);
@@ -114,7 +116,7 @@ export const SystemHealthPanel: React.FC = () => {
           <div className="mt-4 pt-3 border-t border-slate-200/50 flex items-center justify-between text-xs text-slate-500">
             <span>Started At</span>
             <span className="font-mono text-[10px] text-slate-600">
-              {status?.startedAt ? new Date(status.startedAt).toLocaleTimeString() : "—"}
+              {status?.startedAt ? safeDate(status.startedAt) : "—"}
             </span>
           </div>
         </div>
@@ -137,7 +139,7 @@ export const SystemHealthPanel: React.FC = () => {
           <div className="mt-4 pt-3 border-t border-slate-200/50 flex items-center justify-between text-xs text-slate-500">
             <span>Last Diagnostics Check</span>
             <span className="font-mono text-[10px] text-slate-600">
-              {health?.timestamp ? new Date(health.timestamp).toLocaleTimeString() : "Pending"}
+              {health?.timestamp ? safeDate(health.timestamp) : "Pending"}
             </span>
           </div>
         </div>

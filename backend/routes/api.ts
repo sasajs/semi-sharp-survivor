@@ -45,6 +45,7 @@ import { HistoricalReplayService } from "../replay/services/HistoricalReplayServ
 import { ReplayReportService } from "../replay/services/ReplayReportService";
 import { WeeklyPipelineService } from "../pipeline/services/WeeklyPipelineService";
 import { PipelineExecutionService } from "../pipeline/services/PipelineExecutionService";
+import { AuthService } from "../auth/services/AuthService";
 
 
 const router = Router();
@@ -1342,5 +1343,66 @@ router.get("/pipeline/executions/:id", async (req: Request, res: Response) => {
   }
 });
 
+/* ====================================================================
+ * SECURE ADMIN ACCESS ENDPOINTS
+ * ==================================================================== */
+
+const getAdminToken = (req: Request): string | undefined => {
+  const customHeader = req.headers["x-admin-token"];
+  if (typeof customHeader === "string") return customHeader;
+
+  const authHeader = req.headers["authorization"];
+  if (typeof authHeader === "string" && authHeader.toLowerCase().startsWith("bearer ")) {
+    return authHeader.substring(7);
+  }
+
+  // Fallback to checking query params or cookies if present
+  if (typeof req.query.token === "string" && req.query.token) {
+    return req.query.token;
+  }
+
+  return undefined;
+};
+
+// GET /auth/status
+router.get("/auth/status", async (req: Request, res: Response) => {
+  try {
+    const token = getAdminToken(req);
+    const status = AuthService.getAuthStatus(token);
+    res.json(status);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /auth/login
+router.post("/auth/login", async (req: Request, res: Response) => {
+  try {
+    const { password } = req.body || {};
+    const result = AuthService.createSession(password);
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(401).json(result);
+    }
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /auth/logout
+router.post("/auth/logout", async (req: Request, res: Response) => {
+  try {
+    const token = getAdminToken(req);
+    if (token) {
+      AuthService.destroySession(token);
+    }
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;
+
 

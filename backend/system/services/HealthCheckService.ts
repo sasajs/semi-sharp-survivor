@@ -12,6 +12,7 @@ import { PostgresValidationService } from "../../postgres/services/PostgresValid
 import { ReadinessTestingService } from "../../testing/services/ReadinessTestingService";
 import { HistoricalReplayService } from "../../replay/services/HistoricalReplayService";
 import { WeeklyPipelineService } from "../../pipeline/services/WeeklyPipelineService";
+import { AuthService } from "../../auth/services/AuthService";
 
 export class HealthCheckService {
   /**
@@ -208,6 +209,29 @@ export class HealthCheckService {
       weeklyPipelineMessage = `Weekly pipeline engine check failed: ${err.message}`;
     }
 
+    // 12. Administrative Access Layer check
+    let authState: "HEALTHY" | "DISABLED" | "WARNING" | "FAILED" = "DISABLED";
+    let authMessage: string | null = null;
+    try {
+      const enabled = AuthService.isAuthEnabled();
+      if (!enabled) {
+        authState = "DISABLED";
+        authMessage = "Administrative access authentication is disabled (AUTH_ENABLED=false).";
+      } else {
+        const configuredPassword = process.env.ADMIN_PASSWORD;
+        if (configuredPassword && configuredPassword !== "admin_test_password") {
+          authState = "HEALTHY";
+          authMessage = "Administrative access enabled and secured via custom password.";
+        } else if (configuredPassword === "admin_test_password" || !configuredPassword) {
+          authState = "WARNING";
+          authMessage = "Administrative authentication is enabled, but utilizing default or empty credentials.";
+        }
+      }
+    } catch (err: any) {
+      authState = "FAILED";
+      authMessage = `Auth Layer check failed: ${err.message}`;
+    }
+
     // Resolve overall health status
     let overallHealth = HealthState.HEALTHY;
 
@@ -220,9 +244,23 @@ export class HealthCheckService {
       ingestionState
     ].some(state => state === HealthState.UNHEALTHY);
 
-    if (anyUnhealthy || dbHealth.status === "unhealthy" || preseasonStatus === "FAILED" || historicalReplayState === "FAILED" || weeklyPipelineState === "FAILED") {
+    if (
+      anyUnhealthy ||
+      dbHealth.status === "unhealthy" ||
+      preseasonStatus === "FAILED" ||
+      historicalReplayState === "FAILED" ||
+      weeklyPipelineState === "FAILED" ||
+      authState === "FAILED"
+    ) {
       overallHealth = HealthState.UNHEALTHY;
-    } else if (repositoryState === HealthState.DEGRADED || dbHealth.status === "degraded" || preseasonStatus === "WARNING" || historicalReplayState === "WARNING" || weeklyPipelineState === "WARNING") {
+    } else if (
+      repositoryState === HealthState.DEGRADED ||
+      dbHealth.status === "degraded" ||
+      preseasonStatus === "WARNING" ||
+      historicalReplayState === "WARNING" ||
+      weeklyPipelineState === "WARNING" ||
+      authState === "WARNING"
+    ) {
       overallHealth = HealthState.DEGRADED;
     }
 
@@ -240,7 +278,8 @@ export class HealthCheckService {
         postgresReadinessLayer: { status: postgresReadinessState, message: postgresReadinessMessage },
         preseasonReadinessLayer: { status: preseasonStatus, message: preseasonMessage },
         historicalReplayLayer: { status: historicalReplayState, message: historicalReplayMessage },
-        weeklyPipelineLayer: { status: weeklyPipelineState, message: weeklyPipelineMessage }
+        weeklyPipelineLayer: { status: weeklyPipelineState, message: weeklyPipelineMessage },
+        authLayer: { status: authState, message: authMessage }
       },
       timestamp
     };

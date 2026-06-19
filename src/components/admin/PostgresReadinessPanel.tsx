@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { adminApiService } from "../../services/adminApiService";
 import { ClientSystemReadinessResult } from "../../types/admin";
+import { safeDate, safeArray, safeStatus } from "../../utils/safeFormat";
 import {
   Database,
   CheckCircle,
@@ -147,7 +148,7 @@ export const PostgresReadinessPanel: React.FC = () => {
                 {getStatusIcon(report.repositoryValidation.status)}
               </div>
               <div className="text-xl font-bold font-mono tracking-tight text-slate-800">
-                {report.repositoryValidation.resolvedRepositories.filter(r => r.resolved).length} / {report.repositoryValidation.resolvedRepositories.length}
+                {safeArray(report.repositoryValidation?.resolvedRepositories).filter((r: any) => r?.resolved).length} / {safeArray(report.repositoryValidation?.resolvedRepositories).length}
               </div>
               <p className="text-[10px] text-slate-500 mt-1">Interfaces resolved cleanly through RepositoryFactory</p>
             </div>
@@ -162,7 +163,7 @@ export const PostgresReadinessPanel: React.FC = () => {
                 {getStatusIcon(report.migrationValidation.status)}
               </div>
               <div className="text-sm font-bold font-mono text-slate-800 flex items-center space-x-1">
-                <span>{report.migrationValidation.migrations.length} Migration(s)</span>
+                <span>{safeArray(report.migrationValidation?.migrations).length} Migration(s)</span>
               </div>
               <p className="text-[10px] text-slate-500 mt-1">V001 Initial schema loaded cleanly on verified path</p>
             </div>
@@ -230,7 +231,7 @@ export const PostgresReadinessPanel: React.FC = () => {
             >
               <span className="flex items-center space-x-1">
                 <Sparkles className="w-3 h-3 text-indigo-500" />
-                <span>Recommendations ({report.recommendations.length})</span>
+                <span>Recommendations ({safeArray(report.recommendations).length})</span>
               </span>
             </button>
           </div>
@@ -286,11 +287,11 @@ export const PostgresReadinessPanel: React.FC = () => {
               </div>
 
               {/* Warnings List */}
-              {report.warnings.length > 0 && (
+              {safeArray(report.warnings).length > 0 && (
                 <div className="space-y-2">
                   <h5 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Validation System Warnings</h5>
                   <div className="space-y-1.5">
-                    {report.warnings.map((warning, idx) => (
+                    {safeArray(report.warnings).map((warning, idx) => (
                       <div key={idx} className="flex items-start space-x-2 text-xs text-amber-800 bg-amber-50/50 border border-amber-100 rounded-lg p-2.5">
                         <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
                         <span>{warning}</span>
@@ -312,14 +313,14 @@ export const PostgresReadinessPanel: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {report.repositoryValidation.resolvedRepositories.map((repo, idx) => (
+                {safeArray(report.repositoryValidation?.resolvedRepositories).map((repo: any, idx) => (
                   <div key={idx} className="border border-slate-100 rounded-xl p-4 bg-white hover:border-slate-200 transition-colors">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h5 className="text-xs font-bold text-slate-800 font-mono">{repo.name}</h5>
+                        <h5 className="text-xs font-bold text-slate-800 font-mono">{repo?.name}</h5>
                         <div className="flex items-center space-x-2 mt-1.5">
                           <span className="text-[9px] font-bold uppercase tracking-wider font-mono bg-slate-50 text-slate-500 border border-slate-150 px-1 py-0.5 rounded">
-                            Client Type: {repo.type.toUpperCase()}
+                            Client Type: {safeStatus(repo?.type)}
                           </span>
                         </div>
                       </div>
@@ -348,7 +349,7 @@ export const PostgresReadinessPanel: React.FC = () => {
               </div>
 
               <div className="space-y-3">
-                {report.migrationValidation.migrations.map((mig, idx) => (
+                {safeArray(report.migrationValidation?.migrations).map((mig: any, idx) => (
                   <div key={idx} className="border border-slate-100 rounded-xl p-4 bg-white">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                       <div>
@@ -417,7 +418,7 @@ export const PostgresReadinessPanel: React.FC = () => {
               <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Dynamic Recommendations & Roadmap checklist</h4>
 
               <div className="space-y-2.5">
-                {report.recommendations.map((rec, idx) => (
+                {safeArray(report.recommendations).map((rec, idx) => (
                   <div key={idx} className="flex items-start space-x-3 border border-slate-100 rounded-xl p-3.5 bg-white shadow-3xs">
                     <div className="p-1.5 bg-indigo-50 rounded-lg text-indigo-600 shrink-0 mt-0.5">
                       <Zap className="w-3.5 h-3.5 text-indigo-500" />
@@ -434,7 +435,7 @@ export const PostgresReadinessPanel: React.FC = () => {
           {/* Generated timestamp indication */}
           <div className="flex items-center space-x-1 justify-end text-[10px] text-slate-400 pt-4 border-t border-slate-50 font-mono">
             <span>Report compile timestamp:</span>
-            <span>{new Date(report.generatedAt).toLocaleString()}</span>
+            <span>{safeDate(report.generatedAt)}</span>
           </div>
         </div>
       )}

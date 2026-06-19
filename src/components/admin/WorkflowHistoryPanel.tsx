@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { adminApiService } from "../../services/adminApiService";
 import { WorkflowRun, WorkflowSummaryResponse } from "../../types/admin";
+import { safeArray, safeString, safeDate, safeReplace } from "../../utils/safeFormat";
 import { History, RefreshCw, CheckCircle, XCircle, Loader2, Filter, Settings, Activity } from "lucide-react";
 
 export const WorkflowHistoryPanel: React.FC = () => {
@@ -73,9 +74,9 @@ export const WorkflowHistoryPanel: React.FC = () => {
     return `${(ms / 1000).toFixed(1)}s`;
   };
 
-  const filteredRuns = runs.filter((run) => {
-    if (selectedFilter === "all") return true;
-    return run.status === selectedFilter;
+  const filteredRuns = safeArray(runs).filter((run: any) => {
+    if (selectedFilter === "all" || !selectedFilter) return true;
+    return run?.status === selectedFilter;
   });
 
   return (
@@ -117,21 +118,21 @@ export const WorkflowHistoryPanel: React.FC = () => {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           <div className="bg-slate-50/50 p-4 border border-slate-100 rounded-xl">
             <span className="text-[10px] text-slate-400 font-mono block mb-1">TOTAL EXECUTIONS</span>
-            <span className="text-xl font-bold font-mono text-slate-800">{summary.totalRuns}</span>
+            <span className="text-xl font-bold font-mono text-slate-800">{summary?.totalRuns ?? 0}</span>
           </div>
           <div className="bg-slate-50/50 p-4 border border-slate-100 rounded-xl">
             <span className="text-[10px] text-emerald-600 font-mono block mb-1">SUCCESS RATE</span>
             <span className="text-xl font-bold font-mono text-emerald-600">
-              {summary.totalRuns > 0 ? `${Math.round((summary.successCount / summary.totalRuns) * 100)}%` : "0%"}
+              {(summary?.totalRuns ?? 0) > 0 ? `${Math.round(((summary?.successCount ?? 0) / summary.totalRuns) * 100)}%` : "0%"}
             </span>
           </div>
           <div className="bg-slate-50/50 p-4 border border-slate-100 rounded-xl">
             <span className="text-[10px] text-rose-600 font-mono block mb-1">FAILURE COUNT</span>
-            <span className="text-xl font-bold font-mono text-rose-600">{summary.failureCount}</span>
+            <span className="text-xl font-bold font-mono text-rose-600">{summary?.failureCount ?? 0}</span>
           </div>
           <div className="bg-slate-50/50 p-4 border border-slate-100 rounded-xl">
             <span className="text-[10px] text-indigo-600 font-mono block mb-1">IN-FLIGHT RUNNING</span>
-            <span className="text-xl font-bold font-mono text-indigo-600">{summary.runningCount}</span>
+            <span className="text-xl font-bold font-mono text-indigo-600">{summary?.runningCount ?? 0}</span>
           </div>
         </div>
       )}
@@ -160,23 +161,23 @@ export const WorkflowHistoryPanel: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 text-xs text-slate-600">
-              {filteredRuns.map((run) => (
-                <tr key={run.id} className="hover:bg-slate-50/30 transition-colors">
-                  <td className="py-3 pl-3 font-mono font-medium text-slate-900">{run.id.slice(0, 12)}...</td>
-                  <td className="py-3 font-sans capitalize">{(run.type ?? run.workflowType ?? "UNKNOWN").replace(/_/g, " ")}</td>
+              {safeArray(filteredRuns).map((run: any) => (
+                <tr key={run?.id} className="hover:bg-slate-50/30 transition-colors">
+                  <td className="py-3 pl-3 font-mono font-medium text-slate-900">{safeString(run?.id).slice(0, 12)}...</td>
+                  <td className="py-3 font-sans capitalize">{safeReplace(run?.type ?? run?.workflowType, /_/g, " ", "UNKNOWN")}</td>
                   <td className="py-3 font-mono text-[10px] text-slate-500">
-                    Contest ID: {run.context?.contestId?.slice(0, 8)}... <br />
-                    Leg ID: {run.context?.legId?.slice(0, 8)}...
+                    Contest ID: {safeString(run?.context?.contestId).slice(0, 8)}... <br />
+                    Leg ID: {safeString(run?.context?.legId).slice(0, 8)}...
                   </td>
                   <td className="py-3 font-mono">{calculateDuration(run)}</td>
                   <td className="py-3 font-sans">
-                    {run.steps?.length ?? 0} steps (
-                    {run.steps?.filter(s => s.status === "completed").length ?? 0} Completed)
+                    {safeArray(run?.steps).length} steps (
+                    {safeArray(run?.steps).filter((s: any) => s?.status === "completed").length} Completed)
                   </td>
                   <td className="py-3 font-sans text-slate-500">
-                    {run.created_at ? new Date(run.created_at).toLocaleString() : "—"}
+                    {safeDate(run?.created_at)}
                   </td>
-                  <td className="py-3 pr-3">{getStatusBadge(run.status)}</td>
+                  <td className="py-3 pr-3">{getStatusBadge(run?.status)}</td>
                 </tr>
               ))}
             </tbody>

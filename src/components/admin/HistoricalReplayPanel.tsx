@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { safeDate, safeArray, safeString } from "../../utils/safeFormat";
 import { 
   Play, 
   RotateCcw, 
@@ -18,7 +19,7 @@ import {
 } from "lucide-react";
 
 const renderMarkdownLog = (text: string) => {
-  const lines = text.split("\n");
+  const lines = safeString(text).split("\n");
   return lines.map((line, idx) => {
     const trimmed = line.trim();
     if (!trimmed) return <div key={idx} className="h-1" />;
@@ -222,7 +223,7 @@ export const HistoricalReplayPanel: React.FC = () => {
     }
   };
 
-  const selectedSeasonMeta = seasons.find(s => s.season === selectedSeason);
+  const selectedSeasonMeta = safeArray(seasons).find((s: any) => s?.season === selectedSeason);
 
   return (
     <div id="historical-replay-panel-root" className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden font-sans">
@@ -375,17 +376,17 @@ export const HistoricalReplayPanel: React.FC = () => {
             </div>
             
             <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
-              {executions.length === 0 ? (
+              {safeArray(executions).length === 0 ? (
                 <p className="text-xs text-slate-400 italic text-center py-4 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
                   No completed historical replays stored. Trigger your first run!
                 </p>
               ) : (
-                executions.map((item) => (
+                safeArray(executions).map((item: any) => (
                   <div
-                    key={item.id}
-                    onClick={() => selectExecution(item.id)}
+                    key={item?.id}
+                    onClick={() => selectExecution(item?.id)}
                     className={`p-3 border rounded-xl cursor-pointer transition flex items-center justify-between text-xs ${
-                      activeExecId === item.id 
+                      activeExecId === item?.id 
                         ? "bg-slate-50 border-indigo-400 font-bold shadow-sm" 
                         : "bg-white border-slate-200 hover:border-slate-300"
                     }`}
@@ -393,14 +394,14 @@ export const HistoricalReplayPanel: React.FC = () => {
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5">
                         <span className="font-extrabold text-slate-800">
-                          NFL {item.configuration.season}
+                          NFL {item?.configuration?.season}
                         </span>
                         <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 capitalize">
-                          {item.configuration.strategyPreference}
+                          {item?.configuration?.strategyPreference}
                         </span>
                       </div>
                       <p className="text-[10px] text-slate-400 font-mono font-normal">
-                        Weeks: {item.configuration.startWeek}-{item.configuration.endWeek} | {new Date(item.generatedAt).toLocaleTimeString()}
+                        Weeks: {item?.configuration?.startWeek}-{item?.configuration?.endWeek} | {safeDate(item?.generatedAt)}
                       </p>
                     </div>
                     <div className="text-right">
@@ -501,28 +502,28 @@ export const HistoricalReplayPanel: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {activeExecDetails.results.weeklyResults.map((wk, idx) => (
+                        {safeArray(activeExecDetails.results?.weeklyResults).map((wk: any, idx) => (
                           <tr key={idx} className="hover:bg-slate-50/50">
                             <td className="py-2 px-3 font-semibold text-slate-500 font-mono">
-                              Wk {wk.weekNumber}
+                              Wk {wk?.weekNumber}
                             </td>
                             <td className="py-2 px-3 font-extrabold text-slate-900">
-                              {wk.selectedPick}
+                              {wk?.selectedPick}
                             </td>
                             <td className="py-2 px-3 text-center">
                               <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold border ${
-                                wk.outcome === "SURVIVED" 
+                                wk?.outcome === "SURVIVED" 
                                   ? "bg-emerald-50 text-emerald-800 border-emerald-100" 
                                   : "bg-rose-50 text-rose-800 border-rose-100"
                               }`}>
-                                {wk.outcome}
+                                {wk?.outcome}
                               </span>
                             </td>
                             <td className="py-2 px-3 text-center font-mono text-slate-600">
-                              {wk.outcome === "SURVIVED" ? `+${wk.pointsScored} pts` : "--"}
+                              {wk?.outcome === "SURVIVED" ? `+${wk?.pointsScored} pts` : "--"}
                             </td>
-                            <td className="py-2 px-3 text-slate-400 text-[10px] max-w-[120px] truncate" title={wk.inventorySpent.join(", ")}>
-                              {wk.inventorySpent.join(", ")}
+                            <td className="py-2 px-3 text-slate-400 text-[10px] max-w-[120px] truncate" title={safeArray(wk?.inventorySpent).join(", ")}>
+                              {safeArray(wk?.inventorySpent).join(", ")}
                             </td>
                           </tr>
                         ))}

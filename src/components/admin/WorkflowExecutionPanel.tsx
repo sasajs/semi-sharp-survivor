@@ -3,6 +3,7 @@ import { adminApiService } from "../../services/adminApiService";
 import { apiService } from "../../services/apiService";
 import { WorkflowRun } from "../../types/admin";
 import { Contest, ContestLeg } from "../../types";
+import { safeArray, safeString, safeReplace } from "../../utils/safeFormat";
 import { Play, CheckCircle2, XCircle, Loader2, ChevronRight, RefreshCw, Terminal, Search } from "lucide-react";
 
 interface WorkflowExecutionPanelProps {
@@ -145,12 +146,12 @@ export const WorkflowExecutionPanel: React.FC<WorkflowExecutionPanelProps> = ({ 
               className="w-full text-sm rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-sans"
               disabled={triggering}
             >
-              {contests.length === 0 ? (
+              {safeArray(contests).length === 0 ? (
                 <option value="">No Contests Available</option>
               ) : (
-                contests.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.year || 2026})
+                safeArray(contests).map((c: any) => (
+                  <option key={c?.id} value={c?.id}>
+                    {c?.name} ({c?.year || 2026})
                   </option>
                 ))
               )}
@@ -168,12 +169,12 @@ export const WorkflowExecutionPanel: React.FC<WorkflowExecutionPanelProps> = ({ 
               className="w-full text-sm rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono"
               disabled={triggering}
             >
-              {legs.length === 0 ? (
+              {safeArray(legs).length === 0 ? (
                 <option value="">No Legs Available</option>
               ) : (
-                legs.map((l) => (
-                  <option key={l.id} value={l.id}>
-                    Week {l.nfl_week} — {l.leg_type.toUpperCase()}
+                safeArray(legs).map((l: any) => (
+                  <option key={l?.id} value={l?.id}>
+                    Week {l?.nfl_week} — {safeString(l?.leg_type).toUpperCase()}
                   </option>
                 ))
               )}
@@ -232,7 +233,7 @@ export const WorkflowExecutionPanel: React.FC<WorkflowExecutionPanelProps> = ({ 
             </span>
             {activeRun && (
               <span className="text-[10px] font-mono bg-slate-200 px-1.5 py-0.5 rounded text-slate-600">
-                Run: {activeRun.id.slice(0, 8)}
+                Run: {safeString(activeRun?.id).slice(0, 8)}
               </span>
             )}
           </div>
@@ -249,15 +250,15 @@ export const WorkflowExecutionPanel: React.FC<WorkflowExecutionPanelProps> = ({ 
                 <div className="space-y-2">
                   <h4 className="text-xs font-semibold font-sans text-slate-500 uppercase tracking-wider">Sequential Process Steps</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {activeRun.steps.map((sk, index) => (
+                    {safeArray(activeRun?.steps).map((sk: any, index) => (
                       <div
-                        key={sk.name}
-                        className={`flex items-center space-x-3 p-2.5 border rounded-lg text-xs font-sans transition-all ${getStepBg(sk.status)}`}
+                        key={sk?.name}
+                        className={`flex items-center space-x-3 p-2.5 border rounded-lg text-xs font-sans transition-all ${getStepBg(sk?.status)}`}
                       >
-                        {getStepIcon(sk.status)}
+                        {getStepIcon(sk?.status)}
                         <div className="min-w-0">
-                          <p className="font-semibold text-slate-800 truncate capitalize">{sk.name.replace(/_/g, " ")}</p>
-                          <p className="text-[10px] text-slate-400 capitalize">{sk.status}</p>
+                          <p className="font-semibold text-slate-800 truncate capitalize">{safeReplace(sk?.name, /_/g, " ", "UNKNOWN")}</p>
+                          <p className="text-[10px] text-slate-400 capitalize">{sk?.status}</p>
                         </div>
                       </div>
                     ))}
@@ -268,10 +269,10 @@ export const WorkflowExecutionPanel: React.FC<WorkflowExecutionPanelProps> = ({ 
                 <div className="space-y-1.5">
                   <h4 className="text-xs font-semibold font-sans text-slate-500 uppercase tracking-wider">Output Stream Logs</h4>
                   <div className="bg-slate-900 rounded-lg p-3 font-mono text-[10px] text-zinc-300 h-28 overflow-y-auto space-y-1">
-                    {activeRun.logs.length === 0 ? (
+                    {safeArray(activeRun?.logs).length === 0 ? (
                       <p className="text-zinc-500 italic">Initializing runtime streams...</p>
                     ) : (
-                      activeRun.logs.map((logStr, i) => (
+                      safeArray(activeRun?.logs).map((logStr: any, i) => (
                         <p key={i} className="leading-relaxed">
                           <span className="text-zinc-500">[{new Date().toLocaleTimeString()}]</span> {logStr}
                         </p>

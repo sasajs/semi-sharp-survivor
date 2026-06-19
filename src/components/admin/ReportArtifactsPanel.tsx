@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { adminApiService } from "../../services/adminApiService";
 import { WeeklyReport } from "../../types/admin";
+import { safeArray, safeString, safeDate } from "../../utils/safeFormat";
 import { FileText, RefreshCw, Calendar, Eye, Hash, ShieldCheck, HelpCircle } from "lucide-react";
 
 export const ReportArtifactsPanel: React.FC = () => {
@@ -53,25 +54,25 @@ export const ReportArtifactsPanel: React.FC = () => {
         <div className="p-4 bg-rose-50 border border-rose-100 rounded-lg text-rose-800 text-xs">
           {error}
         </div>
-      ) : reports.length === 0 ? (
+      ) : safeArray(reports).length === 0 ? (
         <div className="text-center py-12 border border-dashed border-slate-200 rounded-lg text-slate-400">
           <p className="text-sm font-medium">No strategy reports compiled yet</p>
           <p className="text-xs mt-1">Generate a report via the manual trigger console or simulation panels</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {reports.map((rep) => (
+          {safeArray(reports).map((rep: any) => (
             <div
-              key={rep.id}
+              key={rep?.id}
               className="border border-slate-100 rounded-xl p-5 hover:border-indigo-100 hover:shadow-xs transition-all flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-[10px] bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded uppercase font-mono">
-                    NFL Week {rep.week_number} Evaluation
+                    NFL Week {rep?.week_number} Evaluation
                   </span>
                   <span className="text-[10px] text-slate-400 font-mono">
-                    ID: {rep.id.slice(-10)}
+                    ID: {safeString(rep?.id).slice(-10)}
                   </span>
                 </div>
 
@@ -86,16 +87,16 @@ export const ReportArtifactsPanel: React.FC = () => {
                     <Eye className="w-3.5 h-3.5 text-slate-400" />
                     <span>Top Recommendation: </span>
                     <span className="font-semibold text-indigo-600 bg-indigo-50/40 px-1.5 py-0.5 rounded">
-                      {rep.executive_summary?.top_recommended_pick?.team_name || "None"}
+                      {rep?.executive_summary?.top_recommended_pick?.team_name || "None"}
                     </span>
                   </div>
 
-                  {rep.audit_metadata?.hash && (
+                  {rep?.audit_metadata?.hash && (
                     <div className="flex items-center space-x-2 text-xs text-slate-700">
                       <Hash className="w-3.5 h-3.5 text-slate-400" />
                       <span>Security SHA Hash: </span>
                       <span className="font-mono text-[10px] text-emerald-700 bg-emerald-50/50 px-1.5 py-0.5 rounded font-bold break-all">
-                        {rep.audit_metadata.hash.slice(0, 16)}...
+                        {safeString(rep?.audit_metadata?.hash).slice(0, 16)}...
                       </span>
                     </div>
                   )}
@@ -108,7 +109,7 @@ export const ReportArtifactsPanel: React.FC = () => {
                   <span>Immutable Audit Locked</span>
                 </span>
                 <span>
-                  {rep.created_at ? new Date(rep.created_at).toLocaleString() : "Date Standby"}
+                  {safeDate(rep?.created_at)}
                 </span>
               </div>
             </div>

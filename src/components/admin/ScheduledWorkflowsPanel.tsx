@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { adminApiService } from "../../services/adminApiService";
 import { ScheduledWorkflow, ScheduledWorkflowRun } from "../../types/admin";
+import { safeDate, safeArray, safeReplace } from "../../utils/safeFormat";
 import { 
   Calendar, 
   Play, 
@@ -217,7 +218,7 @@ export const ScheduledWorkflowsPanel: React.FC = () => {
   const getWorkflowTypeBadge = (wt: string) => {
     return (
       <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded font-mono uppercase border border-indigo-100">
-        {wt.replace(/_/, " ")}
+        {safeReplace(wt, /_/, " ", "UNKNOWN")}
       </span>
     );
   };
@@ -413,15 +414,15 @@ export const ScheduledWorkflowsPanel: React.FC = () => {
       )}
 
       {/* Main Lists Section */}
-      {schedules.length === 0 ? (
+      {safeArray(schedules).length === 0 ? (
         <div className="text-center py-12 border border-dashed border-slate-200 rounded-lg text-slate-400">
           <p className="text-sm font-medium">No scheduled playbooks configured</p>
           <p className="text-xs mt-1">Use the "Create Schedule" controls above to define automated workflows</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {schedules.map((sch) => {
-            const isSelected = selectedScheduleId === sch.id;
+          {safeArray(schedules).map((sch: any) => {
+            const isSelected = selectedScheduleId === sch?.id;
             return (
               <div
                 key={sch.id}
@@ -500,19 +501,19 @@ export const ScheduledWorkflowsPanel: React.FC = () => {
                   <div>
                     <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">Last executed run</span>
                     <span className="font-sans font-medium text-slate-700">
-                      {sch.lastRunAt ? new Date(sch.lastRunAt).toLocaleString() : "Never launched"}
+                      {safeDate(sch?.lastRunAt, "Never launched")}
                     </span>
                   </div>
                   <div>
                     <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">Next automatic trigger</span>
                     <span className="font-sans font-medium text-indigo-600">
-                      {sch.nextRunAt ? new Date(sch.nextRunAt).toLocaleString() : "Standby/Paused"}
+                      {safeDate(sch?.nextRunAt, "Standby/Paused")}
                     </span>
                   </div>
                   <div>
                     <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">ID REF</span>
                     <span className="font-mono text-[10px] text-slate-500">
-                      {sch.id}
+                      {sch?.id}
                     </span>
                   </div>
                   <div className="flex items-center justify-end text-slate-400">
@@ -547,43 +548,43 @@ export const ScheduledWorkflowsPanel: React.FC = () => {
                       <div className="text-center py-4 text-xs text-slate-400">
                         Querying run trace logs...
                       </div>
-                    ) : scheduleRuns.length === 0 ? (
+                    ) : safeArray(scheduleRuns).length === 0 ? (
                       <p className="text-xs text-slate-400 italic">No manual or scheduled traces exist for this blueprint</p>
                     ) : (
                       <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                        {scheduleRuns.map((run) => (
+                        {safeArray(scheduleRuns).map((run: any) => (
                           <div 
-                            key={run.id}
+                            key={run?.id}
                             className="bg-white border border-slate-150 p-2.5 rounded-lg flex items-center justify-between text-[11px] hover:border-slate-200 transition-colors"
                           >
                             <div className="space-y-0.5">
                               <p className="font-mono font-medium text-slate-800">
-                                Run: {run.id}
-                                {run.workflowRunId && <span className="ml-2 text-[10px] text-slate-400">Ref: {run.workflowRunId}</span>}
+                                Run: {run?.id}
+                                {run?.workflowRunId && <span className="ml-2 text-[10px] text-slate-400">Ref: {run?.workflowRunId}</span>}
                               </p>
                               <p className="text-[10px] text-slate-500">
-                                Type: <span className="capitalize font-mono">{run.triggerType}</span> | Launched: {new Date(run.startedAt).toLocaleString()}
+                                Type: <span className="capitalize font-mono">{run?.triggerType}</span> | Launched: {safeDate(run?.startedAt)}
                               </p>
-                              {run.errorMessage && (
-                                <p className="text-[10px] text-rose-600 font-sans font-medium">Error: {run.errorMessage}</p>
+                              {run?.errorMessage && (
+                                <p className="text-[10px] text-rose-600 font-sans font-medium">Error: {run?.errorMessage}</p>
                               )}
                             </div>
                             <div>
-                              {run.status === "completed" ? (
+                              {run?.status === "completed" ? (
                                 <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 font-bold font-mono text-[9px] uppercase border border-emerald-100 rounded">
                                   Succeeded
                                 </span>
-                              ) : run.status === "running" ? (
+                              ) : run?.status === "running" ? (
                                 <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 font-bold font-mono text-[9px] uppercase border border-indigo-100 rounded animate-pulse">
                                   Running
                                 </span>
-                              ) : run.status === "failed" ? (
+                              ) : run?.status === "failed" ? (
                                 <span className="px-1.5 py-0.5 bg-rose-50 text-rose-700 font-bold font-mono text-[9px] uppercase border border-rose-100 rounded">
                                   Failed
                                 </span>
                               ) : (
                                 <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 font-bold font-mono text-[9px] uppercase rounded">
-                                  {run.status}
+                                  {run?.status}
                                 </span>
                               )}
                             </div>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { SystemHealthPanel } from "../components/admin/SystemHealthPanel";
 import { DatabaseStatusPanel } from "../components/admin/DatabaseStatusPanel";
 import { WorkflowExecutionPanel } from "../components/admin/WorkflowExecutionPanel";
@@ -11,30 +11,120 @@ import { PostgresReadinessPanel } from "../components/admin/PostgresReadinessPan
 import { PreseasonReadinessPanel } from "../components/admin/PreseasonReadinessPanel";
 import { HistoricalReplayPanel } from "../components/admin/HistoricalReplayPanel";
 import { WeeklyPipelinePanel } from "../components/admin/WeeklyPipelinePanel";
-import { ShieldCheck } from "lucide-react";
+import { AdminErrorBoundary } from "../components/admin/AdminErrorBoundary";
+import { AdminLoginPanel } from "../components/admin/AdminLoginPanel";
+import { AuthStatus } from "../types/auth";
+import { ShieldCheck, LogOut, Loader2 } from "lucide-react";
 
 export const AdminDashboard: React.FC = () => {
-  return (
-    <div id="admin-dashboard-container" className="space-y-8 animate-fade-in w-full">
-      {/* Page Header */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-indigo-600" />
-            <h2 className="text-2xl font-black text-slate-950 tracking-tight">
-              Semi-Sharp Admin Dashboard
-            </h2>
-          </div>
-          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-            Operational control panel for research workflows, health checks, database status, and artifacts.
-          </p>
-        </div>
-        <div className="shrink-0">
-          <span className="text-[10px] bg-indigo-50 text-indigo-700 font-bold px-3 py-1.5 rounded-full uppercase tracking-wider font-mono border border-indigo-100">
-            Secure Admin Session
-          </span>
-        </div>
+  const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(localStorage.getItem("admin_token"));
+
+  const fetchAuthStatus = async (chkToken: string | null) => {
+    try {
+      const headers: Record<string, string> = {};
+      if (chkToken) {
+        headers["x-admin-token"] = chkToken;
+      }
+      const res = await fetch("/api/auth/status", { headers });
+      if (res.ok) {
+        const data: AuthStatus = await res.json();
+        setAuthStatus(data);
+        if (!data.authenticated) {
+          // If expired or invalid, clear token
+          localStorage.removeItem("admin_token");
+          setToken(null);
+        }
+      } else {
+        // Fallback if API fails
+        setAuthStatus({ enabled: false, authenticated: true, session: null });
+      }
+    } catch {
+      setAuthStatus({ enabled: false, authenticated: true, session: null });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAuthStatus(token);
+  }, [token]);
+
+  const handleLoginSuccess = (newToken: string) => {
+    setToken(newToken);
+  };
+
+  const handleLogout = async () => {
+    try {
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["x-admin-token"] = token;
+      }
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers
+      });
+    } catch (err) {
+      console.error("Logout request failure", err);
+    } finally {
+      localStorage.removeItem("admin_token");
+      setToken(null);
+      setAuthStatus(prev => prev ? { ...prev, authenticated: false, session: null } : null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-3 font-sans">
+        <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+        <p className="text-xs text-slate-500">Retrieving security posture from node...</p>
       </div>
+    );
+  }
+
+  const isEnabled = authStatus?.enabled ?? false;
+  const isAuthenticated = authStatus?.authenticated ?? true;
+
+  if (isEnabled && !isAuthenticated) {
+    return (
+      <AdminErrorBoundary>
+        <AdminLoginPanel onLoginSuccess={handleLoginSuccess} />
+      </AdminErrorBoundary>
+    );
+  }
+
+  return (
+    <AdminErrorBoundary>
+      <div id="admin-dashboard-container" className="space-y-8 animate-fade-in w-full">
+        {/* Page Header */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-indigo-600" />
+              <h2 className="text-2xl font-black text-slate-950 tracking-tight">
+                Semi-Sharp Admin Dashboard
+              </h2>
+            </div>
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              Operational control panel for research workflows, health checks, database status, and artifacts.
+            </p>
+          </div>
+          <div className="shrink-0 flex items-center gap-3">
+            {isEnabled && (
+              <button
+                onClick={handleLogout}
+                className="text-xs font-bold text-slate-600 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 border border-slate-200 py-2 px-3 rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Sign Out
+              </button>
+            )}
+            <span className="text-[10px] bg-indigo-50 text-indigo-700 font-bold px-3 py-1.5 rounded-full uppercase tracking-wider font-mono border border-indigo-100">
+              Secure Admin Session
+            </span>
+          </div>
+        </div>
 
       {/* Grid of panels for organized operational visual hierarchy */}
       <div className="space-y-8">
@@ -135,5 +225,6 @@ export const AdminDashboard: React.FC = () => {
         </section>
       </div>
     </div>
+    </AdminErrorBoundary>
   );
 };

@@ -841,6 +841,7 @@ export interface HealthStatus {
     preseasonReadinessLayer?: { status: "HEALTHY" | "WARNING" | "FAILED"; message: string | null };
     historicalReplayLayer?: { status: "HEALTHY" | "WARNING" | "FAILED"; message: string | null };
     weeklyPipelineLayer?: { status: "HEALTHY" | "WARNING" | "FAILED"; message: string | null };
+    authLayer?: { status: "HEALTHY" | "DISABLED" | "WARNING" | "FAILED"; message: string | null };
   };
   timestamp: string;
 }

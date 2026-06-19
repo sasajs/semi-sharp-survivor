@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { safeDate, safeArray, safeReplace } from "../../utils/safeFormat";
 import { 
   Play, 
   RotateCcw, 
@@ -171,7 +172,7 @@ export const WeeklyPipelinePanel: React.FC = () => {
   };
 
   const formatStageLabel = (stage: string) => {
-    return stage.replace(/_/g, " ").toLowerCase();
+    return safeReplace(stage, /_/g, " ", "UNKNOWN").toLowerCase();
   };
 
   const activeLayerResult = activeRun ? activeRun.validation[selectedLayerTab] : null;
@@ -244,7 +245,7 @@ export const WeeklyPipelinePanel: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-[10px] text-slate-400">Duration</p>
-                  <p className="font-extrabold text-slate-800">{(summary.durationMs / 1000).toFixed(2)}s</p>
+                  <p className="font-extrabold text-slate-800">{((summary?.durationMs ?? 0) / 1000).toFixed(2)}s</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-slate-400">Matchups</p>
@@ -274,39 +275,39 @@ export const WeeklyPipelinePanel: React.FC = () => {
             </div>
 
             <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-              {history.length === 0 ? (
+              {safeArray(history).length === 0 ? (
                 <p className="text-[11px] text-slate-400 italic text-center py-6 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
                   No automated pipeline executions found. Trigger an orchestration cycle!
                 </p>
               ) : (
-                history.map((run) => (
+                safeArray(history).map((run: any) => (
                   <div
-                    key={run.id}
+                    key={run?.id}
                     onClick={() => {
-                      setActiveRunId(run.id);
-                      loadExecutionDetails(run.id);
+                      setActiveRunId(run?.id);
+                      loadExecutionDetails(run?.id);
                     }}
                     className={`p-3 border rounded-xl cursor-pointer transition flex items-center justify-between text-xs ${
-                      activeRunId === run.id 
+                      activeRunId === run?.id 
                         ? "bg-slate-50 border-indigo-500 font-bold shadow-sm" 
                         : "bg-white border-slate-200 hover:border-slate-300"
                     }`}
                   >
                     <div className="space-y-1">
-                      <p className="font-black text-slate-800 truncate max-w-[140px]" title={run.id}>
-                        {run.id}
+                      <p className="font-black text-slate-800 truncate max-w-[140px]" title={run?.id}>
+                        {run?.id}
                       </p>
                       <p className="text-[9px] text-slate-400 font-mono font-normal">
-                        {new Date(run.createdAt).toLocaleTimeString()} | {(run.durationMs / 1000).toFixed(2)}s
+                        {safeDate(run?.createdAt)} | {((run?.durationMs ?? 0) / 1000).toFixed(2)}s
                       </p>
                     </div>
                     <div className="text-right">
                       <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded border ${
-                        run.status === "COMPLETED" 
+                        run?.status === "COMPLETED" 
                           ? "bg-emerald-50 text-emerald-700 border-emerald-100" 
                           : "bg-rose-50 text-rose-700 border-rose-100"
                       }`}>
-                        {run.status}
+                        {run?.status}
                       </span>
                     </div>
                   </div>
@@ -384,10 +385,10 @@ export const WeeklyPipelinePanel: React.FC = () => {
                   <span className="text-[8px] text-indigo-400 font-bold uppercase">System Console</span>
                 </div>
                 <div className="space-y-1.5 max-h-[140px] overflow-y-auto">
-                  {activeRun.stageResults.map((r, i) => (
+                  {safeArray(activeRun.stageResults).map((r: any, i) => (
                     <div key={i} className="flex gap-2">
-                      <span className="text-indigo-400 font-black">[{formatStageLabel(r.stage).toUpperCase()}]</span>
-                      <span className="text-slate-300">{r.outputSummary || r.errorMessage}</span>
+                      <span className="text-indigo-400 font-black">[{formatStageLabel(r?.stage).toUpperCase()}]</span>
+                      <span className="text-slate-300">{r?.outputSummary || r?.errorMessage}</span>
                     </div>
                   ))}
                 </div>
@@ -404,7 +405,7 @@ export const WeeklyPipelinePanel: React.FC = () => {
                 {/* Layer Tabs */}
                 <div className="flex flex-wrap border-b border-slate-200 gap-1 text-[11px] font-bold">
                   {(["ingestion", "workflow", "reporting", "export", "replay", "readiness"] as const).map(layerKey => {
-                    const lRes = activeRun.validation[layerKey];
+                    const lRes = activeRun.validation?.[layerKey] || { isValid: false, score: 0 };
                     return (
                       <button
                         key={layerKey}
@@ -448,7 +449,7 @@ export const WeeklyPipelinePanel: React.FC = () => {
                     <div className="space-y-2">
                       <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Validation Measures Checked</p>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {activeLayerResult.details.map((detail, idx) => (
+                        {safeArray(activeLayerResult.details).map((detail: any, idx) => (
                           <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-slate-50/50 border border-slate-100">
                             <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
                             <p className="text-[11px] text-slate-700 leading-relaxed font-normal">{detail}</p>
@@ -456,15 +457,15 @@ export const WeeklyPipelinePanel: React.FC = () => {
                         ))}
                       </div>
                     </div>
-
-                    {activeLayerResult.warnings.length > 0 && (
+ 
+                    {safeArray(activeLayerResult.warnings).length > 0 && (
                       <div className="bg-amber-50/40 border border-amber-200 rounded-lg p-3 text-[11px] text-amber-800 space-y-1 font-normal leading-relaxed">
                         <p className="font-bold flex items-center gap-1">
                           <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                           Sub-Service Warnings Compiled
                         </p>
                         <ul className="list-disc list-inside space-y-0.5 pl-0 text-amber-900 text-[10px]">
-                          {activeLayerResult.warnings.map((warn, i) => (
+                          {safeArray(activeLayerResult.warnings).map((warn: any, i) => (
                             <li key={i}>{warn}</li>
                           ))}
                         </ul>

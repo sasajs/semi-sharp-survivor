@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { safeDate, safeArray } from "../../utils/safeFormat";
 import { 
   RefreshCw, 
   CheckCircle2, 
@@ -175,13 +176,13 @@ export const PreseasonReadinessPanel: React.FC = () => {
             <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 flex flex-col space-y-2.5">
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1 text-slate-500">
                 <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                Triggered Warnings ({scorecard.warnings.length})
+                Triggered Warnings ({safeArray(scorecard.warnings).length})
               </span>
               <div className="flex-1 overflow-y-auto max-h-[110px] space-y-1.5 pr-1">
-                {scorecard.warnings.length === 0 ? (
+                {safeArray(scorecard.warnings).length === 0 ? (
                   <p className="text-xs text-slate-500 italic mt-1">No active system warnings triggered.</p>
                 ) : (
-                  scorecard.warnings.map((warn, idx) => (
+                  safeArray(scorecard.warnings).map((warn, idx) => (
                     <div key={idx} className="flex gap-1.5 text-[11px] text-amber-800 leading-relaxed items-start bg-amber-50/55 p-1.5 rounded-lg border border-amber-100/40">
                       <span className="font-extrabold">•</span>
                       <span>{warn}</span>
@@ -195,10 +196,10 @@ export const PreseasonReadinessPanel: React.FC = () => {
             <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 flex flex-col space-y-2.5">
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1 text-indigo-500">
                 <Info className="w-3.5 h-3.5" />
-                Operational Recommendations ({scorecard.recommendations.length})
+                Operational Recommendations ({safeArray(scorecard.recommendations).length})
               </span>
               <div className="flex-1 overflow-y-auto max-h-[110px] space-y-1.5 pr-1">
-                {scorecard.recommendations.map((rec, idx) => (
+                {safeArray(scorecard.recommendations).map((rec, idx) => (
                   <div key={idx} className="flex gap-1.5 text-[11px] text-indigo-800 leading-relaxed items-start bg-indigo-50/50 p-1.5 rounded-lg border border-indigo-100/40">
                     <ArrowRight className="w-3 h-3 mt-0.5 text-indigo-500 shrink-0" />
                     <span>{rec}</span>
@@ -334,9 +335,9 @@ export const PreseasonReadinessPanel: React.FC = () => {
               <div className="space-y-1 max-h-[300px] overflow-y-auto">
                 {selectedSubsystem === "workflow" && (
                   <>
-                    <p className="text-slate-400">Subsystem Score: {scorecard.workflowScore}% | Status: {scorecard.workflowResult.status}</p>
-                    {scorecard.workflowResult.errorMessage && <p className="text-rose-400 font-bold">Error: {scorecard.workflowResult.errorMessage}</p>}
-                    {scorecard.workflowResult.details.map((log, i) => (
+                    <p className="text-slate-400">Subsystem Score: {scorecard.workflowScore}% | Status: {scorecard.workflowResult?.status}</p>
+                    {scorecard.workflowResult?.errorMessage && <p className="text-rose-400 font-bold">Error: {scorecard.workflowResult.errorMessage}</p>}
+                    {safeArray(scorecard.workflowResult?.details).map((log, i) => (
                       <p key={i} className={log.includes("SUCCESS") ? "text-emerald-400" : log.includes("CRITICAL") ? "text-rose-400" : "text-slate-300"}>
                         {log}
                       </p>
@@ -345,9 +346,9 @@ export const PreseasonReadinessPanel: React.FC = () => {
                 )}
                 {selectedSubsystem === "scheduler" && (
                   <>
-                    <p className="text-slate-400">Subsystem Score: {scorecard.schedulerScore}% | Status: {scorecard.schedulerResult.status}</p>
-                    {scorecard.schedulerResult.errorMessage && <p className="text-rose-400 font-bold">Error: {scorecard.schedulerResult.errorMessage}</p>}
-                    {scorecard.schedulerResult.details.map((log, i) => (
+                    <p className="text-slate-400">Subsystem Score: {scorecard.schedulerScore}% | Status: {scorecard.schedulerResult?.status}</p>
+                    {scorecard.schedulerResult?.errorMessage && <p className="text-rose-400 font-bold">Error: {scorecard.schedulerResult.errorMessage}</p>}
+                    {safeArray(scorecard.schedulerResult?.details).map((log, i) => (
                       <p key={i} className={log.includes("SUCCESS") ? "text-emerald-400" : log.includes("CRITICAL") ? "text-rose-400" : "text-slate-300"}>
                         {log}
                       </p>
@@ -356,9 +357,9 @@ export const PreseasonReadinessPanel: React.FC = () => {
                 )}
                 {selectedSubsystem === "ingestion" && (
                   <>
-                    <p className="text-slate-400">Subsystem Score: {scorecard.ingestionScore}% | Status: {scorecard.ingestionResult.status}</p>
-                    {scorecard.ingestionResult.errorMessage && <p className="text-rose-400 font-bold">Error: {scorecard.ingestionResult.errorMessage}</p>}
-                    {scorecard.ingestionResult.details.map((log, i) => (
+                    <p className="text-slate-400">Subsystem Score: {scorecard.ingestionScore}% | Status: {scorecard.ingestionResult?.status}</p>
+                    {scorecard.ingestionResult?.errorMessage && <p className="text-rose-400 font-bold">Error: {scorecard.ingestionResult.errorMessage}</p>}
+                    {safeArray(scorecard.ingestionResult?.details).map((log, i) => (
                       <p key={i} className={log.includes("SUCCESS") ? "text-emerald-400" : log.includes("CRITICAL") ? "text-rose-400" : "text-slate-300"}>
                         {log}
                       </p>
@@ -367,9 +368,9 @@ export const PreseasonReadinessPanel: React.FC = () => {
                 )}
                 {selectedSubsystem === "reporting" && (
                   <>
-                    <p className="text-slate-400">Subsystem Score: {scorecard.reportingScore}% | Status: {scorecard.reportingResult.status}</p>
-                    {scorecard.reportingResult.errorMessage && <p className="text-rose-400 font-bold">Error: {scorecard.reportingResult.errorMessage}</p>}
-                    {scorecard.reportingResult.details.map((log, i) => (
+                    <p className="text-slate-400">Subsystem Score: {scorecard.reportingScore}% | Status: {scorecard.reportingResult?.status}</p>
+                    {scorecard.reportingResult?.errorMessage && <p className="text-rose-400 font-bold">Error: {scorecard.reportingResult.errorMessage}</p>}
+                    {safeArray(scorecard.reportingResult?.details).map((log, i) => (
                       <p key={i} className={log.includes("SUCCESS") ? "text-emerald-400" : log.includes("CRITICAL") ? "text-rose-400" : "text-slate-300"}>
                         {log}
                       </p>
@@ -378,9 +379,9 @@ export const PreseasonReadinessPanel: React.FC = () => {
                 )}
                 {selectedSubsystem === "export" && (
                   <>
-                    <p className="text-slate-400">Subsystem Score: {scorecard.exportScore}% | Status: {scorecard.exportResult.status}</p>
-                    {scorecard.exportResult.errorMessage && <p className="text-rose-400 font-bold">Error: {scorecard.exportResult.errorMessage}</p>}
-                    {scorecard.exportResult.details.map((log, i) => (
+                    <p className="text-slate-400">Subsystem Score: {scorecard.exportScore}% | Status: {scorecard.exportResult?.status}</p>
+                    {scorecard.exportResult?.errorMessage && <p className="text-rose-400 font-bold">Error: {scorecard.exportResult.errorMessage}</p>}
+                    {safeArray(scorecard.exportResult?.details).map((log, i) => (
                       <p key={i} className={log.includes("SUCCESS") ? "text-emerald-400" : log.includes("CRITICAL") ? "text-rose-400" : "text-slate-300"}>
                         {log}
                       </p>
@@ -398,7 +399,7 @@ export const PreseasonReadinessPanel: React.FC = () => {
           {/* Verification timestamp */}
           <div className="flex justify-between items-center text-[10px] text-slate-400 font-mono border-t border-slate-100 pt-3">
             <span>Certification Authority Layer (Secured)</span>
-            <span>Generated: {new Date(scorecard.generatedAt).toLocaleString()}</span>
+            <span>Generated: {safeDate(scorecard.generatedAt)}</span>
           </div>
         </div>
       )}

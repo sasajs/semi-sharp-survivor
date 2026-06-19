@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { adminApiService } from "../../services/adminApiService";
 import { IngestionSource, IngestionJob, IngestionRun } from "../../types/admin";
+import { safeDate, safeArray } from "../../utils/safeFormat";
 import { 
   Database, 
   Workflow, 
@@ -191,7 +192,7 @@ export const DataIngestionPanel: React.FC = () => {
         >
           <span className="flex items-center space-x-1.5">
             <Server className="w-3.5 h-3.5" />
-            <span>Data Sources ({sources.length})</span>
+            <span>Data Sources ({safeArray(sources).length})</span>
           </span>
         </button>
         <button
@@ -200,7 +201,7 @@ export const DataIngestionPanel: React.FC = () => {
         >
           <span className="flex items-center space-x-1.5">
             <Workflow className="w-3.5 h-3.5" />
-            <span>Ingestion Jobs ({jobs.length})</span>
+            <span>Ingestion Jobs ({safeArray(jobs).length})</span>
           </span>
         </button>
         <button
@@ -209,7 +210,7 @@ export const DataIngestionPanel: React.FC = () => {
         >
           <span className="flex items-center space-x-1.5">
             <History className="w-3.5 h-3.5" />
-            <span>Recent Run Traces ({runs.length})</span>
+            <span>Recent Run Traces ({safeArray(runs).length})</span>
           </span>
         </button>
       </div>
@@ -217,15 +218,15 @@ export const DataIngestionPanel: React.FC = () => {
       {/* Sources list */}
       {activeTab === "sources" && (
         <div className="space-y-4">
-          {sources.length === 0 ? (
+          {safeArray(sources).length === 0 ? (
             <div className="text-center py-12 border border-dashed border-slate-200 rounded-lg text-slate-400">
               <p className="text-sm font-medium">No external source providers configured</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {sources.map((src) => (
+              {safeArray(sources).map((src: any) => (
                 <div 
-                  key={src.id}
+                  key={src?.id}
                   className="border border-slate-100 rounded-xl p-5 hover:border-slate-200 transition-all bg-white"
                 >
                   <div className="flex items-start justify-between">
@@ -242,27 +243,27 @@ export const DataIngestionPanel: React.FC = () => {
                     </div>
 
                     <button
-                      onClick={() => handleToggleSource(src.id, src.enabled)}
-                      disabled={togglingSourceId === src.id}
+                      onClick={() => handleToggleSource(src?.id, src?.enabled)}
+                      disabled={togglingSourceId === src?.id}
                       className="ml-4 p-1 rounded-lg text-slate-500 hover:text-slate-800 transition-colors disabled:opacity-50 cursor-pointer"
-                      title={src.enabled ? "Disable provider stream" : "Enable provider stream"}
+                      title={src?.enabled ? "Disable provider stream" : "Enable provider stream"}
                     >
-                      {src.enabled ? (
+                      {src?.enabled ? (
                         <ToggleRight className="w-7 h-7 text-indigo-600" />
                       ) : (
                         <ToggleLeft className="w-7 h-7 text-slate-400" />
                       )}
                     </button>
                   </div>
-
+ 
                   <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-50 text-[11px] text-slate-500 font-mono">
                     <div>
                       <span className="text-[10px] text-slate-400 font-sans block uppercase">Driver Profile</span>
-                      <span className="font-semibold text-slate-700">{src.adapterType}</span>
+                      <span className="font-semibold text-slate-700">{src?.adapterType}</span>
                     </div>
                     <div>
                       <span className="text-[10px] text-slate-400 font-sans block uppercase">Identifier REF</span>
-                      <span className="text-slate-600 block truncate">{src.id}</span>
+                      <span className="text-slate-600 block truncate">{src?.id}</span>
                     </div>
                   </div>
                 </div>
@@ -275,49 +276,49 @@ export const DataIngestionPanel: React.FC = () => {
       {/* Jobs list */}
       {activeTab === "jobs" && (
         <div className="space-y-4">
-          {jobs.length === 0 ? (
+          {safeArray(jobs).length === 0 ? (
             <div className="text-center py-12 border border-dashed border-slate-200 rounded-lg text-slate-400">
               <p className="text-sm font-medium">No ingest jobs mapped</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {jobs.map((job) => {
-                const parentSource = sources.find(s => s.id === job.sourceId);
-                const isExecutable = job.enabled && (parentSource ? parentSource.enabled : false);
+              {safeArray(jobs).map((job: any) => {
+                const parentSource = safeArray(sources).find((s: any) => s.id === job?.sourceId);
+                const isExecutable = job?.enabled && (parentSource ? parentSource.enabled : false);
 
                 return (
                   <div 
-                    key={job.id}
+                    key={job?.id}
                     className={`border rounded-xl p-5 hover:bg-slate-50/20 transition-all ${isExecutable ? "border-slate-100 bg-white" : "border-slate-100 bg-slate-50/40 opacity-75"}`}
                   >
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2">
-                          <h4 className="font-sans font-semibold text-slate-900 text-sm">{job.name}</h4>
+                          <h4 className="font-sans font-semibold text-slate-900 text-sm">{job?.name}</h4>
                           <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded font-mono border border-indigo-100 uppercase">
-                            {job.importType}
+                            {job?.importType}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500 leading-relaxed max-w-2xl">{job.description}</p>
+                        <p className="text-xs text-slate-500 leading-relaxed max-w-2xl">{job?.description}</p>
                         
                         <div className="flex items-center space-x-3 text-[11px] text-slate-400 pt-1">
                           <span className="flex items-center space-x-1">
                             <Server className="w-3.5 h-3.5" />
-                            <span>Source: <strong>{parentSource?.name || job.sourceId}</strong></span>
+                            <span>Source: <strong>{parentSource?.name || job?.sourceId}</strong></span>
                           </span>
                           <span>•</span>
-                          <span>Job ID: <strong className="font-mono">{job.id}</strong></span>
+                          <span>Job ID: <strong className="font-mono">{job?.id}</strong></span>
                         </div>
                       </div>
-
+ 
                       <div className="shrink-0">
                         <button
-                          onClick={() => handleRunImport(job.id)}
-                          disabled={runningJobId === job.id || !isExecutable}
+                          onClick={() => handleRunImport(job?.id)}
+                          disabled={runningJobId === job?.id || !isExecutable}
                           className="flex items-center space-x-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-500 text-white text-xs font-bold rounded-lg transition-all shadow-xs cursor-pointer"
                         >
                           <Play className="w-3.5 h-3.5 fill-current text-white shrink-0" />
-                          <span>{runningJobId === job.id ? "Processing Ingest..." : "Run Import"}</span>
+                          <span>{runningJobId === job?.id ? "Processing Ingest..." : "Run Import"}</span>
                         </button>
                         {!isExecutable && (
                           <span className="text-[10px] text-slate-400 block text-center mt-1">Provider disabled</span>
@@ -370,17 +371,17 @@ export const DataIngestionPanel: React.FC = () => {
                   <div className="flex items-center gap-4 shrink-0 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
                     <div className="text-center min-w-16">
                       <span className="text-[9px] text-slate-400 font-bold block uppercase font-mono tracking-wide">Processed</span>
-                      <span className="font-mono text-sm font-bold text-slate-800">{run.recordsProcessed}</span>
+                      <span className="font-mono text-sm font-bold text-slate-800">{run?.recordsProcessed ?? 0}</span>
                     </div>
                     <div className="border-l border-slate-200 h-6"></div>
                     <div className="text-center min-w-16">
                       <span className="text-[9px] text-slate-400 font-bold block uppercase font-mono tracking-wide text-emerald-600">Imported</span>
-                      <span className="font-mono text-sm font-bold text-emerald-600">{run.recordsImported}</span>
+                      <span className="font-mono text-sm font-bold text-emerald-600">{run?.recordsImported ?? 0}</span>
                     </div>
                     <div className="border-l border-slate-200 h-6"></div>
                     <div className="text-center min-w-16">
                       <span className="text-[9px] text-slate-400 font-bold block uppercase font-mono tracking-wide text-rose-600">Rejected</span>
-                      <span className="font-mono text-sm font-bold text-rose-600">{run.recordsRejected}</span>
+                      <span className="font-mono text-sm font-bold text-rose-600">{run?.recordsRejected ?? 0}</span>
                     </div>
                   </div>
                 </div>
