@@ -163,7 +163,7 @@ export const WorkflowHistoryPanel: React.FC = () => {
               {filteredRuns.map((run) => (
                 <tr key={run.id} className="hover:bg-slate-50/30 transition-colors">
                   <td className="py-3 pl-3 font-mono font-medium text-slate-900">{run.id.slice(0, 12)}...</td>
-                  <td className="py-3 font-sans capitalize">{(run.type ?? run.workflowType ?? "UNKNOWN").replace(/_/g, " ")}</td>
+                  <td className="py-3 font-sans capitalize">{run.type.replace(/_/g, " ")}</td>
                   <td className="py-3 font-mono text-[10px] text-slate-500">
                     Contest ID: {run.context?.contestId?.slice(0, 8)}... <br />
                     Leg ID: {run.context?.legId?.slice(0, 8)}...

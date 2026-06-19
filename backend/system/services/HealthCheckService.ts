@@ -10,6 +10,8 @@ import { getIngestionRepository, DataIngestionService } from "../../ingestion/se
 import { AdapterRegistryService } from "../../ingestion/services/AdapterRegistryService";
 import { PostgresValidationService } from "../../postgres/services/PostgresValidationService";
 import { ReadinessTestingService } from "../../testing/services/ReadinessTestingService";
+import { HistoricalReplayService } from "../../replay/services/HistoricalReplayService";
+import { WeeklyPipelineService } from "../../pipeline/services/WeeklyPipelineService";
 
 export class HealthCheckService {
   /**
@@ -172,6 +174,40 @@ export class HealthCheckService {
       preseasonMessage = `Preseason certification calculation crashed: ${err.message}`;
     }
 
+    // 10. Historical Replay Layer check
+    let historicalReplayState: "HEALTHY" | "WARNING" | "FAILED" = "HEALTHY";
+    let historicalReplayMessage: string | null = null;
+    try {
+      const seasons = HistoricalReplayService.getAvailableSeasons();
+      if (seasons.length > 0) {
+        historicalReplayState = "HEALTHY";
+        historicalReplayMessage = `Historical Replay engine active with ${seasons.length} seasons seeded for backtesting.`;
+      } else {
+        historicalReplayState = "WARNING";
+        historicalReplayMessage = "Historical Replay engine active but find no seeded seasons.";
+      }
+    } catch (err: any) {
+      historicalReplayState = "FAILED";
+      historicalReplayMessage = `Historical Replay engine failed diagnostics: ${err.message}`;
+    }
+
+    // 11. Automated Weekly Research Pipeline check
+    let weeklyPipelineState: "HEALTHY" | "WARNING" | "FAILED" = "HEALTHY";
+    let weeklyPipelineMessage: string | null = null;
+    try {
+      const history = WeeklyPipelineService.getPipelineHistory();
+      if (history.length > 0) {
+        weeklyPipelineState = "HEALTHY";
+        weeklyPipelineMessage = `Pipeline engine fully functional. ${history.length} runs recorded in memory.`;
+      } else {
+        weeklyPipelineState = "WARNING";
+        weeklyPipelineMessage = "Pipeline engine active with no historical execution runs recorded.";
+      }
+    } catch (err: any) {
+      weeklyPipelineState = "FAILED";
+      weeklyPipelineMessage = `Weekly pipeline engine check failed: ${err.message}`;
+    }
+
     // Resolve overall health status
     let overallHealth = HealthState.HEALTHY;
 
@@ -184,9 +220,9 @@ export class HealthCheckService {
       ingestionState
     ].some(state => state === HealthState.UNHEALTHY);
 
-    if (anyUnhealthy || dbHealth.status === "unhealthy" || preseasonStatus === "FAILED") {
+    if (anyUnhealthy || dbHealth.status === "unhealthy" || preseasonStatus === "FAILED" || historicalReplayState === "FAILED" || weeklyPipelineState === "FAILED") {
       overallHealth = HealthState.UNHEALTHY;
-    } else if (repositoryState === HealthState.DEGRADED || dbHealth.status === "degraded" || preseasonStatus === "WARNING") {
+    } else if (repositoryState === HealthState.DEGRADED || dbHealth.status === "degraded" || preseasonStatus === "WARNING" || historicalReplayState === "WARNING" || weeklyPipelineState === "WARNING") {
       overallHealth = HealthState.DEGRADED;
     }
 
@@ -202,7 +238,9 @@ export class HealthCheckService {
         schedulerLayer: { status: schedulerState, message: schedulerMessage },
         ingestionLayer: { status: ingestionState, message: ingestionMessage },
         postgresReadinessLayer: { status: postgresReadinessState, message: postgresReadinessMessage },
-        preseasonReadinessLayer: { status: preseasonStatus, message: preseasonMessage }
+        preseasonReadinessLayer: { status: preseasonStatus, message: preseasonMessage },
+        historicalReplayLayer: { status: historicalReplayState, message: historicalReplayMessage },
+        weeklyPipelineLayer: { status: weeklyPipelineState, message: weeklyPipelineMessage }
       },
       timestamp
     };

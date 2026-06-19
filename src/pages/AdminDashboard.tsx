@@ -9,6 +9,8 @@ import { ScheduledWorkflowsPanel } from "../components/admin/ScheduledWorkflowsP
 import { DataIngestionPanel } from "../components/admin/DataIngestionPanel";
 import { PostgresReadinessPanel } from "../components/admin/PostgresReadinessPanel";
 import { PreseasonReadinessPanel } from "../components/admin/PreseasonReadinessPanel";
+import { HistoricalReplayPanel } from "../components/admin/HistoricalReplayPanel";
+import { WeeklyPipelinePanel } from "../components/admin/WeeklyPipelinePanel";
 import { ShieldCheck } from "lucide-react";
 
 export const AdminDashboard: React.FC = () => {
@@ -66,6 +68,22 @@ export const AdminDashboard: React.FC = () => {
             <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">03.5. Preseason Readiness Testing Framework</span>
           </div>
           <PreseasonReadinessPanel />
+        </section>
+
+        {/* Section 2.9: Historical Replay & Strategy Backtesting */}
+        <section id="admin-section-historical-replay" className="space-y-3 font-sans">
+          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">03.7. Historical Replay & Strategy Backtesting</span>
+          </div>
+          <HistoricalReplayPanel />
+        </section>
+
+        {/* Section 2.10: Automated Weekly Research Pipeline */}
+        <section id="admin-section-weekly-pipeline" className="space-y-3 font-sans">
+          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">03.8. Automated Weekly Research Pipeline</span>
+          </div>
+          <WeeklyPipelinePanel />
         </section>
 
         {/* Section 3: Manual Workflow Execution */}

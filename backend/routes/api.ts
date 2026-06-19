@@ -41,6 +41,10 @@ import { DatabaseHealthService } from "../database/services/DatabaseHealthServic
 import { ScheduledWorkflowService } from "../scheduler/services/ScheduledWorkflowService";
 import { DataIngestionService } from "../ingestion/services/DataIngestionService";
 import { ReadinessTestingService } from "../testing/services/ReadinessTestingService";
+import { HistoricalReplayService } from "../replay/services/HistoricalReplayService";
+import { ReplayReportService } from "../replay/services/ReplayReportService";
+import { WeeklyPipelineService } from "../pipeline/services/WeeklyPipelineService";
+import { PipelineExecutionService } from "../pipeline/services/PipelineExecutionService";
 
 
 const router = Router();
@@ -1195,6 +1199,144 @@ router.get("/testing/exports", async (req: Request, res: Response) => {
   try {
     const result = await ReadinessTestingService.runExportTests();
     res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ====================================================================
+ * HISTORICAL REPLAY ENGINE ENDPOINTS
+ * ==================================================================== */
+
+// GET /replay/seasons
+router.get("/replay/seasons", async (req: Request, res: Response) => {
+  try {
+    const seasons = HistoricalReplayService.getAvailableSeasons();
+    res.json(seasons);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /replay/seasons/:season
+router.get("/replay/seasons/:season", async (req: Request, res: Response) => {
+  try {
+    const season = HistoricalReplayService.getSeason(req.params.season);
+    res.json(season);
+  } catch (err: any) {
+    res.status(404).json({ error: `Season ${req.params.season} not found: ${err.message}` });
+  }
+});
+
+// POST /replay/execute
+router.post("/replay/execute", async (req: Request, res: Response) => {
+  try {
+    const { season, strategyPreference, startWeek, endWeek } = req.body;
+    
+    const config = {
+      season: season || "2023",
+      strategyPreference: strategyPreference || "safe",
+      startWeek: parseInt(startWeek) || 1,
+      endWeek: parseInt(endWeek) || 18
+    };
+
+    const execution = await HistoricalReplayService.executeReplay(config);
+    res.status(201).json(execution);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /replay/executions
+router.get("/replay/executions", async (req: Request, res: Response) => {
+  try {
+    const executions = HistoricalReplayService.getExecutions();
+    res.json(executions);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /replay/executions/:id
+router.get("/replay/executions/:id", async (req: Request, res: Response) => {
+  try {
+    const execution = HistoricalReplayService.getExecutionById(req.params.id);
+    if (!execution) {
+      return res.status(404).json({ error: `Replay execution with ID ${req.params.id} not found.` });
+    }
+    
+    const markdownReport = ReplayReportService.generateMarkdownReport(execution);
+    res.json({
+      ...execution,
+      markdownReport
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ====================================================================
+ * AUTOMATED WEEKLY PIPELINE ENDPOINTS
+ * ==================================================================== */
+
+// GET /pipeline/status
+router.get("/pipeline/status", async (req: Request, res: Response) => {
+  try {
+    const runs = PipelineExecutionService.getExecutions();
+    if (runs.length === 0) {
+      return res.json({ status: "IDLE", latestExecution: null });
+    }
+    const latest = runs[runs.length - 1];
+    res.json({
+      status: latest.status === "RUNNING" ? "RUNNING" : "IDLE",
+      latestExecution: latest
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /pipeline/history
+router.get("/pipeline/history", async (req: Request, res: Response) => {
+  try {
+    const history = WeeklyPipelineService.getPipelineHistory();
+    res.json(history);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /pipeline/summary
+router.get("/pipeline/summary", async (req: Request, res: Response) => {
+  try {
+    const summary = WeeklyPipelineService.getPipelineSummary();
+    if (!summary) {
+      return res.status(404).json({ error: "No completed pipeline execution summarized yet." });
+    }
+    res.json(summary);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /pipeline/execute
+router.post("/pipeline/execute", async (req: Request, res: Response) => {
+  try {
+    const newExecution = await WeeklyPipelineService.executeWeeklyPipeline();
+    res.status(201).json(newExecution);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /pipeline/executions/:id
+router.get("/pipeline/executions/:id", async (req: Request, res: Response) => {
+  try {
+    const run = PipelineExecutionService.getExecutionById(req.params.id);
+    if (!run) {
+      return res.status(404).json({ error: `Pipeline execution Run with ID ${req.params.id} not found.` });
+    }
+    res.json(run);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
