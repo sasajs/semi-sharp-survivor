@@ -13,6 +13,7 @@ import { ReadinessTestingService } from "../../testing/services/ReadinessTesting
 import { HistoricalReplayService } from "../../replay/services/HistoricalReplayService";
 import { WeeklyPipelineService } from "../../pipeline/services/WeeklyPipelineService";
 import { AuthService } from "../../auth/services/AuthService";
+import { RemoteAccessStatusService } from "./RemoteAccessStatusService";
 
 export class HealthCheckService {
   /**
@@ -232,6 +233,23 @@ export class HealthCheckService {
       authMessage = `Auth Layer check failed: ${err.message}`;
     }
 
+    // 13. Remote Access Layer check
+    let remoteAccessState: "DISABLED" | "READY" | "WARNING" | "FAILED" = "DISABLED";
+    let remoteAccessMessage: string | null = null;
+    try {
+      const remoteStatus = RemoteAccessStatusService.getStatus();
+      if (remoteStatus.cloudflareTunnelConfigured || remoteStatus.tailscaleConfigured) {
+        remoteAccessState = "READY";
+        remoteAccessMessage = "Secure remote access tunnel active and configured.";
+      } else {
+        remoteAccessState = "WARNING";
+        remoteAccessMessage = "Remote access is not configured. The system is only accessible locally or via LAN.";
+      }
+    } catch (err: any) {
+      remoteAccessState = "WARNING";
+      remoteAccessMessage = `Failed to resolve remote access status: ${err.message}`;
+    }
+
     // Resolve overall health status
     let overallHealth = HealthState.HEALTHY;
 
@@ -279,7 +297,8 @@ export class HealthCheckService {
         preseasonReadinessLayer: { status: preseasonStatus, message: preseasonMessage },
         historicalReplayLayer: { status: historicalReplayState, message: historicalReplayMessage },
         weeklyPipelineLayer: { status: weeklyPipelineState, message: weeklyPipelineMessage },
-        authLayer: { status: authState, message: authMessage }
+        authLayer: { status: authState, message: authMessage },
+        remoteAccessLayer: { status: remoteAccessState, message: remoteAccessMessage }
       },
       timestamp
     };

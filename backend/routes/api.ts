@@ -35,6 +35,7 @@ import { WorkflowStatusService } from "../orchestration/services/WorkflowStatusS
 import { workflowRunRepo } from "../repositories/index";
 
 import { HealthCheckService } from "../system/services/HealthCheckService";
+import { RemoteAccessStatusService } from "../system/services/RemoteAccessStatusService";
 import { ApplicationLifecycleService } from "../system/services/ApplicationLifecycleService";
 import { BuildMetadataService } from "../system/services/BuildMetadataService";
 import { DatabaseHealthService } from "../database/services/DatabaseHealthService";
@@ -775,6 +776,16 @@ router.get("/system/health", async (req: Request, res: Response) => {
   try {
     const health = await HealthCheckService.checkSystemHealth();
     res.json(health);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Remote access status and deployment configuration metrics
+router.get("/system/remote-access", (req: Request, res: Response) => {
+  try {
+    const status = RemoteAccessStatusService.getStatus();
+    res.json(status);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

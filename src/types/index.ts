@@ -842,8 +842,21 @@ export interface HealthStatus {
     historicalReplayLayer?: { status: "HEALTHY" | "WARNING" | "FAILED"; message: string | null };
     weeklyPipelineLayer?: { status: "HEALTHY" | "WARNING" | "FAILED"; message: string | null };
     authLayer?: { status: "HEALTHY" | "DISABLED" | "WARNING" | "FAILED"; message: string | null };
+    remoteAccessLayer?: { status: "DISABLED" | "READY" | "WARNING" | "FAILED"; message: string | null };
   };
   timestamp: string;
+}
+
+export interface RemoteAccessStatus {
+  lanUrl: string;
+  localPort: number;
+  recommendedPublicAccess: string;
+  httpsRequired: boolean;
+  authRecommended: boolean;
+  cloudflareTunnelConfigured: boolean;
+  tailscaleConfigured: boolean;
+  warnings: string[];
+  nextSteps: string[];
 }
 
 

@@ -9,7 +9,8 @@ export type {
   BuildMetadataDTO,
   StartupValidationResultDTO,
   SystemMetricsDTO,
-  ServiceCheckDTO
+  ServiceCheckDTO,
+  RemoteAccessStatus
 } from "../../../src/types";
 
 export {

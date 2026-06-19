@@ -17,7 +17,8 @@ import {
   ClientMigrationValidationResult,
   ClientConnectionValidationResult,
   ClientPostgresValidationResult,
-  ClientSystemReadinessResult
+  ClientSystemReadinessResult,
+  RemoteAccessStatus
 } from "../types/admin";
 
 export const adminApiService = {
@@ -213,6 +214,12 @@ export const adminApiService = {
   async fetchMigrationValidation(): Promise<ClientMigrationValidationResult> {
     const res = await fetch("/api/system/migration-validation");
     if (!res.ok) throw new Error("Failed to fetch migrations validation report");
+    return res.json();
+  },
+
+  async fetchRemoteAccess(): Promise<RemoteAccessStatus> {
+    const res = await fetch("/api/system/remote-access");
+    if (!res.ok) throw new Error("Failed to fetch remote access configuration");
     return res.json();
   }
 };
