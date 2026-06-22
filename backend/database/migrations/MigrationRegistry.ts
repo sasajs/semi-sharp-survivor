@@ -26,5 +26,10 @@ export const migrationRegistry: Migration[] = [
     version: "V029",
     description: "Entry Strategy Profiles Foundation: entry_metadata and entry_strategy_profiles audit records and tables.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "029_entry_strategy_profiles.sql")
+  },
+  {
+    version: "V030",
+    description: "Entry Metadata and Explainability Refinement.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "030_entry_metadata_and_explainability.sql")
   }
 ];

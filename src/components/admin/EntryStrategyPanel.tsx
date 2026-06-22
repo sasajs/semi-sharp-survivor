@@ -42,6 +42,10 @@ export const EntryStrategyPanel: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  // Glossary Definitions State
+  const [strategyDefs, setStrategyDefs] = useState<Record<string, { name: string; description: string }>>({});
+  const [metricDefs, setMetricDefs] = useState<Record<string, string>>({});
+
   // Active Selected Entry for Configuration/Inspection Form
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
   const selectedEntry = entries.find(e => e.id === selectedEntryId);
@@ -65,6 +69,9 @@ export const EntryStrategyPanel: React.FC = () => {
   const [activeGroupAnalysis, setActiveGroupAnalysis] = useState<string | null>(null);
   const [analysisData, setAnalysisData] = useState<DiversificationAnalysis | null>(null);
   const [analyzing, setAnalyzing] = useState<boolean>(false);
+
+  // Glossary tab state
+  const [glossaryTab, setGlossaryTab] = useState<"strategies" | "metrics">("strategies");
 
   const fetchEntries = async () => {
     try {
@@ -171,6 +178,26 @@ export const EntryStrategyPanel: React.FC = () => {
 
   useEffect(() => {
     fetchEntries();
+
+    const fetchDefinitions = async () => {
+      try {
+        const [resS, resM] = await Promise.all([
+          fetch("/api/entries/strategy-definitions"),
+          fetch("/api/system/dashboard-definitions")
+        ]);
+        if (resS.ok) {
+          const sData = await resS.json();
+          setStrategyDefs(sData);
+        }
+        if (resM.ok) {
+          const mData = await resM.json();
+          setMetricDefs(mData);
+        }
+      } catch (err) {
+        console.error("Failed to load strategy or metrics glossary definitions", err);
+      }
+    };
+    fetchDefinitions();
   }, []);
 
   const getStrategyBadgeColor = (type: StrategyType) => {
@@ -228,7 +255,27 @@ export const EntryStrategyPanel: React.FC = () => {
             Resolving entry registry...
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="space-y-6">
+            
+            {/* Informational Mode Status Indicator */}
+            <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 flex items-start gap-3">
+              <div className="bg-amber-100 p-1.5 rounded-lg text-amber-800 self-start shrink-0">
+                <Info className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                  <h4 className="text-xs font-extrabold text-amber-900 uppercase tracking-wide">
+                    Current Strategy Mode: Informational Only
+                  </h4>
+                </div>
+                <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
+                  Strategy profiles, owner goals, and joint diversification analysis are active for visualization, audit tracking, and layout explainability. The core recommendation engine operates on baseline contest equity parameters; strategy-aware recommendation models will be wired in a subsequent milestone. Do not overtrust placeholder strategy labels.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
             {/* Column 1: Strategic Entries List (Left) */}
             <div className="lg:col-span-5 space-y-4">
@@ -340,6 +387,75 @@ export const EntryStrategyPanel: React.FC = () => {
                           Analysis completed for portfolio members: <span className="font-semibold">{analysisData.memberNames.join(", ")}</span>
                         </div>
                       </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Survival Decision Intelligence Definitions Glossary */}
+              <div id="glossary-panel" className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
+                <div className="flex justify-between items-center pb-2 border-b border-slate-200">
+                  <div className="flex items-center gap-2">
+                    <Info className="w-4 h-4 text-indigo-600 animate-pulse" />
+                    <span className="text-xs font-black text-slate-900 uppercase tracking-tight">Intelligence Glossary</span>
+                  </div>
+                  <div className="flex bg-slate-200 rounded-lg p-0.5 text-[10px] font-bold">
+                    <button
+                      type="button"
+                      onClick={() => setGlossaryTab("strategies")}
+                      className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
+                        glossaryTab === "strategies" ? "bg-white text-indigo-700 shadow-3xs" : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      Strategies
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGlossaryTab("metrics")}
+                      className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
+                        glossaryTab === "metrics" ? "bg-white text-indigo-700 shadow-3xs" : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      Metrics
+                    </button>
+                  </div>
+                </div>
+
+                {glossaryTab === "strategies" ? (
+                  <div className="space-y-3.5 max-h-[300px] overflow-y-auto pr-1">
+                    {Object.entries(strategyDefs).map(([key, def]: [string, any]) => (
+                      <div key={key} className="bg-white p-3 rounded-xl border border-slate-200 shadow-3xs hover:border-slate-300 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-black text-slate-900 uppercase tracking-wide">
+                            {def.name}
+                          </span>
+                          <span className="bg-slate-100 font-mono text-[9px] text-slate-500 font-bold px-1.5 py-0.5 rounded">
+                            {key}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                          {def.description}
+                        </p>
+                      </div>
+                    ))}
+                    {Object.keys(strategyDefs).length === 0 && (
+                      <p className="text-[11px] text-slate-400 italic">Failed to resolve active strategy blueprints.</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3.5 max-h-[300px] overflow-y-auto pr-1">
+                    {Object.entries(metricDefs).map(([key, value]) => (
+                      <div key={key} className="bg-white p-3 rounded-xl border border-slate-200 shadow-3xs hover:border-slate-300 transition-colors">
+                        <h6 className="text-[11px] font-black text-slate-900 uppercase tracking-wide">
+                          {key.replace(/_/g, " ")}
+                        </h6>
+                        <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                          {value}
+                        </p>
+                      </div>
+                    ))}
+                    {Object.keys(metricDefs).length === 0 && (
+                      <p className="text-[11px] text-slate-400 italic">No available dashboard glossary mappings.</p>
                     )}
                   </div>
                 )}
@@ -552,8 +668,9 @@ export const EntryStrategyPanel: React.FC = () => {
             </div>
 
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
 
     </div>
   );

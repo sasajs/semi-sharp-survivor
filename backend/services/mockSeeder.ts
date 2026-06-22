@@ -64,42 +64,13 @@ export const initialLegs: ContestLeg[] = [
 ];
 
 export const initialEntries: SurvivorEntry[] = [
-  { id: "entry-1", name: "Semi-Sharp #1", status: "alive", notes: "Aggressive visual asset path, conserving KC/SF for Christmas", created_at: new Date().toISOString() },
-  { id: "entry-2", name: "Semi-Sharp #2", status: "alive", notes: "Conservative safety play, saving DET/DAL for Thanksgiving", created_at: new Date().toISOString() },
-  { id: "entry-3", name: "High Leverage entry", status: "alive", notes: "Upset-heavy targeting, aiming to maximize early leverage", created_at: new Date().toISOString() },
-  { id: "entry-4", name: "Faded Entry", status: "eliminated", notes: "Eliminated in Week 2 (selected ARI - tie occurred vs LAR, tie constitutes loss)", created_at: new Date().toISOString() },
   { id: "UWOSH-1", name: "UWOSH-1", status: "alive", notes: "Steve's Entry 1 (Championship EV maximized)", created_at: new Date().toISOString() },
   { id: "UWOSH-2", name: "UWOSH-2", status: "alive", notes: "Steve's Entry 2 (Joint portfolio optimization)", created_at: new Date().toISOString() },
   { id: "UWOSH-3", name: "UWOSH-3", status: "alive", notes: "Cameron's Entry (Marketplace survival to mid-season)", created_at: new Date().toISOString() },
   { id: "UWOSH-4", name: "UWOSH-4", status: "alive", notes: "UW Oshkosh Group Entry (Group consensus survival model)", created_at: new Date().toISOString() },
 ];
 
-export const initialPicks: SurvivorPick[] = [
-  // For Entry 1
-  { id: "p1-1", entry_id: "entry-1", contest_leg_id: "leg-1", team_id: "bal", pick_status: "won", created_at: new Date().toISOString() },
-  { id: "p1-2", entry_id: "entry-1", contest_leg_id: "leg-2", team_id: "phi", pick_status: "won", created_at: new Date().toISOString() },
-  { id: "p1-3", entry_id: "entry-1", contest_leg_id: "leg-3", team_id: "buf", pick_status: "won", created_at: new Date().toISOString() },
-  { id: "p1-4", entry_id: "entry-1", contest_leg_id: "leg-4", team_id: "dal", pick_status: "won", created_at: new Date().toISOString() },
-  { id: "p1-5", entry_id: "entry-1", contest_leg_id: "leg-5", team_id: "lac", pick_status: "pending", created_at: new Date().toISOString() },
-
-  // For Entry 2
-  { id: "p2-1", entry_id: "entry-2", contest_leg_id: "leg-1", team_id: "buf", pick_status: "won", created_at: new Date().toISOString() },
-  { id: "p2-2", entry_id: "entry-2", contest_leg_id: "leg-2", team_id: "kc",  pick_status: "won", created_at: new Date().toISOString() },
-  { id: "p2-3", entry_id: "entry-2", contest_leg_id: "leg-3", team_id: "phi", pick_status: "won", created_at: new Date().toISOString() },
-  { id: "p2-4", entry_id: "entry-2", contest_leg_id: "leg-4", team_id: "sf",  pick_status: "won", created_at: new Date().toISOString() },
-  { id: "p2-5", entry_id: "entry-2", contest_leg_id: "leg-5", team_id: "det", pick_status: "pending", created_at: new Date().toISOString() },
-
-  // For Entry 3
-  { id: "p3-1", entry_id: "entry-3", contest_leg_id: "leg-1", team_id: "sea", pick_status: "won", created_at: new Date().toISOString() },
-  { id: "p3-2", entry_id: "entry-3", contest_leg_id: "leg-2", team_id: "det", pick_status: "won", created_at: new Date().toISOString() },
-  { id: "p3-3", entry_id: "entry-3", contest_leg_id: "leg-3", team_id: "cin", pick_status: "won", created_at: new Date().toISOString() },
-  { id: "p3-4", entry_id: "entry-3", contest_leg_id: "leg-4", team_id: "nyj", pick_status: "won", created_at: new Date().toISOString() },
-  { id: "p3-5", entry_id: "entry-3", contest_leg_id: "leg-5", team_id: "bal", pick_status: "pending", created_at: new Date().toISOString() },
-
-  // For Entry 4
-  { id: "p4-1", entry_id: "entry-4", contest_leg_id: "leg-1", team_id: "phi", pick_status: "won", created_at: new Date().toISOString() },
-  { id: "p4-2", entry_id: "entry-4", contest_leg_id: "leg-2", team_id: "ari", pick_status: "lost", created_at: new Date().toISOString() },
-];
+export const initialPicks: SurvivorPick[] = [];
 
 export function buildAndSeedMockState() {
   const games: Game[] = [];

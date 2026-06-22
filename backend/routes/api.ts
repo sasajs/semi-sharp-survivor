@@ -53,7 +53,9 @@ import { PipelineExecutionService } from "../pipeline/services/PipelineExecution
 import { AuthService } from "../auth/services/AuthService";
 import { AuthenticationMiddleware, RoleMiddleware } from "../auth/middleware/AuthMiddleware";
 import { SecurityStatusService } from "../auth/services/SecurityStatusService";
+import { EntryStrategyService } from "../services/EntryStrategyService";
 
+const entryStrategyService = new EntryStrategyService();
 
 const router = Router();
 
@@ -112,7 +114,13 @@ router.get("/teams", async (req: Request, res: Response) => {
 router.get("/entries", async (req: Request, res: Response) => {
   try {
     const entries = await entryRepo.getAll();
-    res.json(entries);
+    const metadataList = await entryStrategyService.getMetadata();
+    // Filter out inactive entries (where active_flag === false)
+    const activeEntries = entries.filter((entry: any) => {
+      const meta = metadataList.find(m => m.entry_id === entry.id);
+      return !meta || meta.active_flag !== false;
+    });
+    res.json(activeEntries);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -1551,8 +1559,6 @@ router.get("/auth/status", async (req: Request, res: Response) => {
 /* ====================================================================
  * ENTRY STRATEGY PROFILES FOUNDATION ENDPOINTS
  * ==================================================================== */
-import { EntryStrategyService } from "../services/EntryStrategyService";
-const entryStrategyService = new EntryStrategyService();
 
 // GET all strategic entries with profiles/metadata combined
 router.get("/api/strategies/entries", async (req: Request, res: Response) => {
@@ -1626,6 +1632,113 @@ router.get("/api/strategies/portfolio/analyze/:groupName", async (req: Request, 
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
+});
+
+/* ====================================================================
+ * SURVIVOR DECISION INTELLIGENCE STRATEGY & METRIC DEFINITIONS API
+ * ==================================================================== */
+
+// GET /api/entries/profiles (combined list of strategic entries)
+router.get("/api/entries/profiles", async (req: Request, res: Response) => {
+  try {
+    const list = await entryStrategyService.getAllStrategicEntries();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/entries/strategies (alias/fallback support)
+router.get("/api/entries/strategies", async (req: Request, res: Response) => {
+  try {
+    const list = await entryStrategyService.getAllStrategicEntries();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/entries/profile (idempotent updater for profile and metadata)
+router.put("/api/entries/profile", async (req: Request, res: Response) => {
+  try {
+    const { 
+      entry_id, 
+      owner_name, 
+      entry_description, 
+      entry_notes,
+      primary_goal, 
+      secondary_goal, 
+      active_flag,
+      strategy_type,
+      objective,
+      risk_tolerance,
+      diversification_group,
+      marketplace_target,
+      notes
+    } = req.body;
+
+    if (!entry_id) {
+      return res.status(400).json({ error: "entry_id is required" });
+    }
+
+    // Save/Update Metadata
+    const metadata = await entryStrategyService.saveMetadata({
+      entry_id,
+      owner_name: owner_name || "Steve",
+      entry_description: entry_description || "",
+      entry_notes: entry_notes || "",
+      primary_goal: primary_goal || "Maximize championship expected value",
+      secondary_goal: secondary_goal || "",
+      active_flag: active_flag !== false
+    });
+
+    // Save/Update Strategy Profile
+    const profile = await entryStrategyService.saveProfile({
+      entry_id,
+      strategy_type: strategy_type || "CHAMPIONSHIP_EV",
+      objective: objective || "Maximize championship expected value.",
+      risk_tolerance: risk_tolerance || "MEDIUM",
+      diversification_group: diversification_group || "",
+      marketplace_target: marketplace_target || "NONE",
+      notes: notes || ""
+    });
+
+    res.json({ success: true, metadata, profile });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/entries/strategy-definitions
+router.get("/api/entries/strategy-definitions", async (req: Request, res: Response) => {
+  res.json({
+    CHAMPIONSHIP_EV: {
+      name: "Championship EV Strategy",
+      description: "Maximize extreme late-stage expected value. High risk tolerance. Holds premium teams (e.g. KC, SF, BUF) for maximum leverage on seasonal key legs."
+    },
+    PORTFOLIO_EV: {
+      name: "Portfolio EV Strategy",
+      description: "Performs joint portfolio optimization across multiple owned entries to avoid duplicate picks, lower correlation, and maximize combined expected value."
+    },
+    MARKETPLACE_SURVIVAL: {
+      name: "Marketplace Survival",
+      description: "Focuses on high-probability survival through mid-season to increase entry resale value in secondary marketplaces (e.g., Splash / Circa marketplace). Minimizes risk early."
+    },
+    GROUP_SURVIVAL: {
+      name: "Group Survival",
+      description: "Designed for department pools or multi-owner entries. Emphasizes group consensus, absolute safest paths, and extremely low volatility."
+    }
+  });
+});
+
+// GET /api/system/dashboard-definitions
+router.get("/api/system/dashboard-definitions", async (req: Request, res: Response) => {
+  res.json({
+    CONTEST_STRATEGY_EQUITY: "Contest Strategy Equity combines win probability with pick leverage and future value constraints to evaluate the overall value of a particular choice.",
+    FUTURE_VALUE_LOOKUPS: "Future Value ratings analyze the subsequent value of each NFL team across the remaining legs. Lower numbers mean the team is safe to burn now; higher numbers signify premium teams that should be preserved for key future weeks.",
+    THANKSGIVING_SLATE: "The Thanksgiving holiday. A three-game special slate requiring precise, dedicated team selections. A key milestone for mid-season survival profiles.",
+    NEXT_PLAYOFF_LEG: "Upcoming tournament legs or Christmas premium legs. Strategy-aware recommendation engines reserve top-shelf assets to protect this high-leverage slate."
+  });
 });
 
 // POST /auth/login

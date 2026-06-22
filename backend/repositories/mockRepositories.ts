@@ -172,7 +172,7 @@ const defaultMetadata: EntryMetadata[] = [
   {
     entry_id: "UWOSH-1",
     owner_name: "Steve",
-    entry_description: "UWOSH-1 Steve Entry",
+    entry_description: "Steve personal entry #1",
     entry_notes: "High Priority",
     primary_goal: "Maximize championship expected value",
     secondary_goal: "ROI optimization",
@@ -181,28 +181,28 @@ const defaultMetadata: EntryMetadata[] = [
   {
     entry_id: "UWOSH-2",
     owner_name: "Steve",
-    entry_description: "UWOSH-2 Steve Entry",
+    entry_description: "Steve personal entry #2",
     entry_notes: "Portfolio entry",
-    primary_goal: "Portfolio diversification",
+    primary_goal: "Diversify from UWOSH-1 and maximize combined portfolio EV",
     secondary_goal: "Jointly optimize with UWOSH-1",
     active_flag: true
   },
   {
     entry_id: "UWOSH-3",
     owner_name: "Cameron",
-    entry_description: "UWOSH-3 Cameron Entry",
+    entry_description: "Cameron personal entry",
     entry_notes: "Marketplace resale focus",
-    primary_goal: "Survive into mid-season",
+    primary_goal: "Survive past mid-season and preserve marketplace resale value",
     secondary_goal: "Increase marketplace resale value",
     active_flag: true
   },
   {
     entry_id: "UWOSH-4",
-    owner_name: "UW Oshkosh Group Entry",
-    entry_description: "9 total participants.",
+    owner_name: "UW Oshkosh IS Group",
+    entry_description: "Group entry for 9 people including Steve, Cameron, and 7 UW Oshkosh IS department participants",
     entry_notes: "Low risk focus",
-    primary_goal: "Maximize survival probability",
-    secondary_goal: "Avoid aggressive strategies",
+    primary_goal: "Maximize group survival probability and reduce volatility",
+    secondary_goal: "Reduce risk",
     active_flag: true
   }
 ];
@@ -224,7 +224,7 @@ const defaultProfiles: EntryStrategyProfile[] = [
     strategy_type: StrategyType.PORTFOLIO_EV,
     objective: "Optimize jointly with UWOSH-1. Avoid unnecessary duplicate selections. Maximize combined portfolio EV.",
     risk_tolerance: "MEDIUM",
-    diversification_group: "UWOSH_GROUP",
+    diversification_group: "Steve Portfolio",
     marketplace_target: "NONE",
     notes: "Steve second entry (portfolio logic)"
   },
