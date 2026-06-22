@@ -5,9 +5,11 @@ import {
 } from "../models";
 import { StartupValidationService } from "./StartupValidationService";
 import { BuildMetadataService } from "./BuildMetadataService";
-import { workflowRunRepo } from "../../repositories";
+import { workflowRunRepo, systemMetadataRepo, operationsEventsRepo } from "../../repositories";
 import { WorkflowStatus } from "../../orchestration/models";
 import { PostgresConnectionManager } from "../../database/connection/PostgresConnectionManager";
+import os from "os";
+import { databaseConfig } from "../../config/database";
 
 export class ApplicationLifecycleService {
   private static currentState: ApplicationState = ApplicationState.STARTING;
@@ -33,6 +35,52 @@ export class ApplicationLifecycleService {
       if (validation.initialized) {
         this.currentState = ApplicationState.RUNNING;
         console.log("[Lifecycle Engine] Application successfully validated and transitioned to RUNNING state.");
+
+        // Record startup system metadata & insert operations log event
+        try {
+          let dbName = "mock-sandbox";
+          if (!databaseConfig.useMock) {
+            try {
+              const urlParts = new URL(databaseConfig.databaseUrl);
+              dbName = urlParts.pathname.substring(1) || "postgres";
+            } catch {
+              dbName = "postgres";
+            }
+          }
+
+          const hostname = os.hostname();
+          const currentVersion = "v0.27";
+          const branch = process.env.GIT_BRANCH || "main";
+          const tag = process.env.GIT_TAG || "v0.27-project-memory-foundation";
+
+          console.log(`[Lifecycle Engine] Writing operational system metadata [Host: ${hostname}, DB: ${dbName}]`);
+          await systemMetadataRepo.save({
+            systemName: "Semi-Sharp",
+            currentVersion,
+            currentGitBranch: branch,
+            currentGitTag: tag,
+            deploymentEnvironment: databaseConfig.useMock ? "production-mock" : (process.env.NODE_ENV || "production"),
+            serverHostname: hostname,
+            databaseName: dbName,
+            lastStartupTimestamp: this.startedAt || new Date().toISOString()
+          });
+
+          await operationsEventsRepo.create({
+            eventType: "Application Startup",
+            severity: "INFO",
+            source: "system-lifecycle",
+            description: `Application boot completed successfully in ${databaseConfig.useMock ? "MOCK" : "POSTGRES"} mode under version ${currentVersion}.`,
+            metadataJson: {
+              version: currentVersion,
+              hostname,
+              mode: databaseConfig.useMock ? "mock" : "postgres",
+              startedAt: this.startedAt,
+              validation: validation.components
+            }
+          });
+        } catch (metadataErr: any) {
+          console.error(`[Lifecycle Engine] Non-blocking exception writing system metadata or startup event: ${metadataErr.message}`);
+        }
       } else {
         this.currentState = ApplicationState.FAILED;
         console.warn("[Lifecycle Engine] Application is running in a degraded/failed initial state.");

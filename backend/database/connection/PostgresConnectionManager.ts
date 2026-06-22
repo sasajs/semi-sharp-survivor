@@ -7,6 +7,7 @@ export class PostgresConnectionManager {
   private static instance: PostgresConnectionManager | null = null;
   private pool: pg.Pool | null = null;
   private isInitialized = false;
+  private fallbackMode = false;
 
   private constructor() {}
 
@@ -21,9 +22,40 @@ export class PostgresConnectionManager {
   }
 
   /**
+   * Check if Postgres is in fallback mode.
+   */
+  public isFallbackMode(): boolean {
+    return this.fallbackMode;
+  }
+
+  /**
+   * Enable or disable fallback mode.
+   */
+  public setFallbackMode(enabled: boolean): void {
+    this.fallbackMode = enabled;
+  }
+
+  /**
    * Instantiates the raw pg Pool.
    */
   public initialize(): pg.Pool {
+    if (databaseConfig.useMock) {
+      if (!this.pool) {
+        console.log("[PostgresConnectionManager] Mock mode is active. Skipping physical PostgreSQL connection pool initialization.");
+        this.pool = {
+          query: async () => { throw new Error("Pool query called in mock mode"); },
+          connect: async () => { throw new Error("Pool connect called in mock mode"); },
+          on: () => {},
+          end: async () => {},
+          totalCount: 0,
+          idleCount: 0,
+          waitingCount: 0,
+        } as unknown as pg.Pool;
+        this.isInitialized = true;
+      }
+      return this.pool;
+    }
+
     if (this.pool) {
       return this.pool;
     }
@@ -76,6 +108,9 @@ export class PostgresConnectionManager {
    * Primary query execution helper support with automatic retry loops.
    */
   public async query<T = any>(queryText: string, params?: any[], retryCount = 1): Promise<T[]> {
+    if (databaseConfig.useMock) {
+      throw new Error("[Database Error] Relational query execution attempted while the application is in Mock Mode.");
+    }
     this.initialize();
     let lastError: any = null;
 
@@ -94,6 +129,16 @@ export class PostgresConnectionManager {
         lastError = err;
         console.warn(`[Database Retry] Query execution attempt ${attempt} failed: ${err.message}`);
         
+        const isConnectionError = 
+          err.message?.includes("ECONNREFUSED") || 
+          err.message?.includes("connection") || 
+          err.code === "ECONNREFUSED" || 
+          err.message?.includes("pool");
+        
+        if (isConnectionError) {
+          this.fallbackMode = true;
+        }
+
         if (attempt <= retryCount) {
           // Delay next attempt proportionally
           await new Promise(resolve => setTimeout(resolve, 300 * attempt));
@@ -108,11 +153,16 @@ export class PostgresConnectionManager {
    * Connectivity test routine.
    */
   public async testConnection(): Promise<boolean> {
+    if (databaseConfig.useMock) {
+      console.log("[PostgresConnectionManager] Skipping physical PostgreSQL connectivity test in mock mode.");
+      return false;
+    }
     try {
       const res = await this.query("SELECT 1 AS ok");
       return res && res.length > 0 && res[0].ok === 1;
-    } catch (err) {
+    } catch (err: any) {
       console.error("[PostgresConnectionManager] Connectivity verification failed:", err);
+      this.fallbackMode = true;
       return false;
     }
   }

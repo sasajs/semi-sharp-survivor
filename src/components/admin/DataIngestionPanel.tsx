@@ -283,7 +283,7 @@ export const DataIngestionPanel: React.FC = () => {
           ) : (
             <div className="space-y-3">
               {safeArray(jobs).map((job: any) => {
-                const parentSource = safeArray(sources).find((s: any) => s.id === job?.sourceId);
+                const parentSource = safeArray(sources).find((s: any) => s.id === job?.sourceId) as any;
                 const isExecutable = job?.enabled && (parentSource ? parentSource.enabled : false);
 
                 return (

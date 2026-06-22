@@ -18,7 +18,12 @@ import {
   ClientConnectionValidationResult,
   ClientPostgresValidationResult,
   ClientSystemReadinessResult,
-  RemoteAccessStatus
+  RemoteAccessStatus,
+  SecurityStatus,
+  SystemMetadata,
+  ApplicationVersion,
+  ProjectDecision,
+  ProjectMemoryResponse
 } from "../types/admin";
 
 export const adminApiService = {
@@ -220,6 +225,53 @@ export const adminApiService = {
   async fetchRemoteAccess(): Promise<RemoteAccessStatus> {
     const res = await fetch("/api/system/remote-access");
     if (!res.ok) throw new Error("Failed to fetch remote access configuration");
+    return res.json();
+  },
+
+  async fetchSecurityStatus(): Promise<SecurityStatus> {
+    const token = localStorage.getItem("admin_token");
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    const res = await fetch("/api/admin/security/status", { headers });
+    if (!res.ok) throw new Error("Failed to fetch administrative security posture");
+    return res.json();
+  },
+
+  async fetchProjectMemory(): Promise<ProjectMemoryResponse> {
+    const token = localStorage.getItem("admin_token");
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["x-admin-token"] = token;
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    const res = await fetch("/api/system/project-memory", { headers });
+    if (!res.ok) throw new Error("Failed to fetch project diagnostic memory");
+    return res.json();
+  },
+
+  async fetchApplicationVersions(): Promise<ApplicationVersion[]> {
+    const token = localStorage.getItem("admin_token");
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["x-admin-token"] = token;
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    const res = await fetch("/api/system/versions", { headers });
+    if (!res.ok) throw new Error("Failed to fetch application release logs");
+    return res.json();
+  },
+
+  async fetchDecisions(): Promise<ProjectDecision[]> {
+    const token = localStorage.getItem("admin_token");
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["x-admin-token"] = token;
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    const res = await fetch("/api/system/decisions", { headers });
+    if (!res.ok) throw new Error("Failed to fetch active architectural context");
     return res.json();
   }
 };

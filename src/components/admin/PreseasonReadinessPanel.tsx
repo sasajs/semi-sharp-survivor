@@ -337,7 +337,7 @@ export const PreseasonReadinessPanel: React.FC = () => {
                   <>
                     <p className="text-slate-400">Subsystem Score: {scorecard.workflowScore}% | Status: {scorecard.workflowResult?.status}</p>
                     {scorecard.workflowResult?.errorMessage && <p className="text-rose-400 font-bold">Error: {scorecard.workflowResult.errorMessage}</p>}
-                    {safeArray(scorecard.workflowResult?.details).map((log, i) => (
+                    {safeArray(scorecard.workflowResult?.details).map((log: any, i) => (
                       <p key={i} className={log.includes("SUCCESS") ? "text-emerald-400" : log.includes("CRITICAL") ? "text-rose-400" : "text-slate-300"}>
                         {log}
                       </p>
@@ -348,7 +348,7 @@ export const PreseasonReadinessPanel: React.FC = () => {
                   <>
                     <p className="text-slate-400">Subsystem Score: {scorecard.schedulerScore}% | Status: {scorecard.schedulerResult?.status}</p>
                     {scorecard.schedulerResult?.errorMessage && <p className="text-rose-400 font-bold">Error: {scorecard.schedulerResult.errorMessage}</p>}
-                    {safeArray(scorecard.schedulerResult?.details).map((log, i) => (
+                    {safeArray(scorecard.schedulerResult?.details).map((log: any, i) => (
                       <p key={i} className={log.includes("SUCCESS") ? "text-emerald-400" : log.includes("CRITICAL") ? "text-rose-400" : "text-slate-300"}>
                         {log}
                       </p>
@@ -359,7 +359,7 @@ export const PreseasonReadinessPanel: React.FC = () => {
                   <>
                     <p className="text-slate-400">Subsystem Score: {scorecard.ingestionScore}% | Status: {scorecard.ingestionResult?.status}</p>
                     {scorecard.ingestionResult?.errorMessage && <p className="text-rose-400 font-bold">Error: {scorecard.ingestionResult.errorMessage}</p>}
-                    {safeArray(scorecard.ingestionResult?.details).map((log, i) => (
+                    {safeArray(scorecard.ingestionResult?.details).map((log: any, i) => (
                       <p key={i} className={log.includes("SUCCESS") ? "text-emerald-400" : log.includes("CRITICAL") ? "text-rose-400" : "text-slate-300"}>
                         {log}
                       </p>
@@ -370,7 +370,7 @@ export const PreseasonReadinessPanel: React.FC = () => {
                   <>
                     <p className="text-slate-400">Subsystem Score: {scorecard.reportingScore}% | Status: {scorecard.reportingResult?.status}</p>
                     {scorecard.reportingResult?.errorMessage && <p className="text-rose-400 font-bold">Error: {scorecard.reportingResult.errorMessage}</p>}
-                    {safeArray(scorecard.reportingResult?.details).map((log, i) => (
+                    {safeArray(scorecard.reportingResult?.details).map((log: any, i) => (
                       <p key={i} className={log.includes("SUCCESS") ? "text-emerald-400" : log.includes("CRITICAL") ? "text-rose-400" : "text-slate-300"}>
                         {log}
                       </p>
@@ -381,7 +381,7 @@ export const PreseasonReadinessPanel: React.FC = () => {
                   <>
                     <p className="text-slate-400">Subsystem Score: {scorecard.exportScore}% | Status: {scorecard.exportResult?.status}</p>
                     {scorecard.exportResult?.errorMessage && <p className="text-rose-400 font-bold">Error: {scorecard.exportResult.errorMessage}</p>}
-                    {safeArray(scorecard.exportResult?.details).map((log, i) => (
+                    {safeArray(scorecard.exportResult?.details).map((log: any, i) => (
                       <p key={i} className={log.includes("SUCCESS") ? "text-emerald-400" : log.includes("CRITICAL") ? "text-rose-400" : "text-slate-300"}>
                         {log}
                       </p>

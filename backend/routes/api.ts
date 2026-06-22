@@ -8,6 +8,10 @@ import {
   entryRepo,
   pickRepo,
   historyRepo,
+  systemMetadataRepo,
+  applicationVersionsRepo,
+  projectDecisionsRepo,
+  operationsEventsRepo,
   useMock
 } from "../repositories/index";
 import { buildAndSeedMockState } from "../services/mockSeeder";
@@ -47,9 +51,31 @@ import { ReplayReportService } from "../replay/services/ReplayReportService";
 import { WeeklyPipelineService } from "../pipeline/services/WeeklyPipelineService";
 import { PipelineExecutionService } from "../pipeline/services/PipelineExecutionService";
 import { AuthService } from "../auth/services/AuthService";
+import { AuthenticationMiddleware, RoleMiddleware } from "../auth/middleware/AuthMiddleware";
+import { SecurityStatusService } from "../auth/services/SecurityStatusService";
 
 
 const router = Router();
+
+// Apply administrative and RBAC gateway controls across all protected api endpoints
+router.use("/admin", AuthenticationMiddleware, RoleMiddleware("ADMIN"));
+router.use("/orchestration", AuthenticationMiddleware, RoleMiddleware("ADMIN"));
+router.use("/scheduler", AuthenticationMiddleware, RoleMiddleware("ADMIN"));
+router.use("/ingestion", AuthenticationMiddleware, RoleMiddleware("ADMIN"));
+router.use("/testing", AuthenticationMiddleware, RoleMiddleware("ADMIN"));
+router.use("/replay", AuthenticationMiddleware, RoleMiddleware("ADMIN"));
+router.use("/pipeline", AuthenticationMiddleware, RoleMiddleware("ADMIN"));
+
+// Secure all general system status/utility parameters except public health checking
+router.use("/system", (req: any, res: any, next: any) => {
+  if (req.path === "/health") {
+    return next();
+  }
+  return AuthenticationMiddleware(req, res, () => {
+    return RoleMiddleware("ADMIN")(req, res, next);
+  });
+});
+
 
 
 // Get Contests
@@ -886,6 +912,73 @@ router.get("/system/database", async (req: Request, res: Response) => {
   }
 });
 
+// GET Primary diagnostic/health state check for newly added storage layers
+router.get("/system/project-memory", async (req: Request, res: Response) => {
+  try {
+    const latestMeta = await systemMetadataRepo.getLatest();
+    if (!latestMeta) {
+      return res.json({
+        currentVersion: "v0.27",
+        currentBranch: "main",
+        currentTag: "v0.27-project-memory-foundation",
+        hostname: "unknown",
+        databaseStatus: useMock ? "MOCK" : "POSTGRES",
+        startupTimestamp: new Date().toISOString()
+      });
+    }
+    res.json({
+      currentVersion: latestMeta.currentVersion,
+      currentBranch: latestMeta.currentGitBranch,
+      currentTag: latestMeta.currentGitTag,
+      hostname: latestMeta.serverHostname,
+      databaseStatus: useMock ? "MOCK" : "POSTGRES",
+      startupTimestamp: latestMeta.lastStartupTimestamp
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET List of all application versions recorded in database
+router.get("/system/versions", async (req: Request, res: Response) => {
+  try {
+    const versions = await applicationVersionsRepo.getAll();
+    res.json(versions);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET List of all project architectural and strategy decisions
+router.get("/system/decisions", async (req: Request, res: Response) => {
+  try {
+    const decisions = await projectDecisionsRepo.getAll();
+    res.json(decisions);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST Register a database-persisted operations log event
+router.post("/system/operations-events", async (req: Request, res: Response) => {
+  try {
+    const { eventType, severity, source, description, metadataJson } = req.body;
+    if (!eventType || !severity || !source || !description) {
+      return res.status(400).json({ error: "Missing required event registration fields." });
+    }
+    const newEvent = await operationsEventsRepo.create({
+      eventType,
+      severity,
+      source,
+      description,
+      metadataJson: metadataJson || {}
+    });
+    res.status(201).json(newEvent);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET List all generated weekly reports across all contests
 router.get(["/system/reports", "/api/system/reports"], async (req: Request, res: Response) => {
   try {
@@ -1389,8 +1482,15 @@ router.get("/auth/status", async (req: Request, res: Response) => {
 // POST /auth/login
 router.post("/auth/login", async (req: Request, res: Response) => {
   try {
-    const { password } = req.body || {};
-    const result = AuthService.createSession(password);
+    const { password, role } = req.body || {};
+    const ipAddress = (req.ip || req.socket.remoteAddress || "unknown").toString();
+    const userAgent = req.headers["user-agent"] || "unknown";
+    const result = AuthService.createSession({
+      password,
+      role,
+      ipAddress,
+      userAgent
+    });
     if (result.success) {
       res.json(result);
     } else {
@@ -1405,10 +1505,22 @@ router.post("/auth/login", async (req: Request, res: Response) => {
 router.post("/auth/logout", async (req: Request, res: Response) => {
   try {
     const token = getAdminToken(req);
+    const ipAddress = (req.ip || req.socket.remoteAddress || "unknown").toString();
+    const userAgent = req.headers["user-agent"] || "unknown";
     if (token) {
-      AuthService.destroySession(token);
+      AuthService.destroySession(token, ipAddress, userAgent);
     }
     res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /admin/security/status - Protected Security status API
+router.get("/admin/security/status", async (req: Request, res: Response) => {
+  try {
+    const status = await SecurityStatusService.getStatus();
+    res.json(status);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

@@ -24,7 +24,12 @@ import {
   MockAuditRepository,
   MockSimulationRepository,
   MockSimulationRunRepository,
-  MockSimulationResultRepository
+  MockSimulationResultRepository,
+  MockAuthAuditRepository,
+  MockSystemMetadataRepository,
+  MockApplicationVersionsRepository,
+  MockProjectDecisionsRepository,
+  MockOperationsEventsRepository
 } from "./mockRepositories";
 
 import {
@@ -39,6 +44,13 @@ import {
   PostgresImportJobRepository
 } from "./postgres/postgresRepositories";
 
+import {
+  PostgresSystemMetadataRepository,
+  PostgresApplicationVersionsRepository,
+  PostgresProjectDecisionsRepository,
+  PostgresOperationsEventsRepository
+} from "./postgres/PostgresSystemMemoryRepositories";
+
 // Import high-fidelity PostgreSQL repositories
 import { PostgresContestRepository } from "./postgres/PostgresContestRepository";
 import { PostgresEntryRepository } from "./postgres/PostgresEntryRepository";
@@ -46,7 +58,12 @@ import { PostgresPickRepository } from "./postgres/PostgresPickRepository";
 import { PostgresWorkflowRepository } from "./postgres/PostgresWorkflowRepository";
 import { PostgresSnapshotRepository } from "./postgres/PostgresSnapshotRepository";
 
-const useMock = databaseConfig.useMock;
+export let useMock = databaseConfig.useMock;
+
+export function updateUseMock(val: boolean) {
+  useMock = val;
+  databaseConfig.useMock = val;
+}
 
 export class RepositoryFactory {
   static getTeamRepo() {
@@ -123,6 +140,21 @@ export class RepositoryFactory {
   }
   static getWorkflowRunRepo() {
     return useMock ? new MockWorkflowRepositoryWrapper() : new PostgresWorkflowRepository();
+  }
+  static getAuthAuditRepo() {
+    return new MockAuthAuditRepository();
+  }
+  static getSystemMetadataRepo() {
+    return useMock ? new MockSystemMetadataRepository() : new PostgresSystemMetadataRepository();
+  }
+  static getApplicationVersionsRepo() {
+    return useMock ? new MockApplicationVersionsRepository() : new PostgresApplicationVersionsRepository();
+  }
+  static getProjectDecisionsRepo() {
+    return useMock ? new MockProjectDecisionsRepository() : new PostgresProjectDecisionsRepository();
+  }
+  static getOperationsEventsRepo() {
+    return useMock ? new MockOperationsEventsRepository() : new PostgresOperationsEventsRepository();
   }
 }
 

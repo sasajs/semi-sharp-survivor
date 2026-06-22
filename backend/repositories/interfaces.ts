@@ -28,6 +28,7 @@ import {
   SimulationRun,
   EntrySurvivalProjection
 } from "../../src/types";
+import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
 export interface ITeamRepository {
   getAll(): Promise<Team[]>;
@@ -217,6 +218,34 @@ export interface ISimulationRunRepository {
 export interface ISimulationResultRepository {
   getProjectionsByRunId(runId: string): Promise<EntrySurvivalProjection[]>;
 }
+
+export interface IAuthAuditRepository {
+  getAll(): Promise<AuthAuditRecord[]>;
+  getRecent(limit: number): Promise<AuthAuditRecord[]>;
+  create(record: Omit<AuthAuditRecord, "id" | "timestamp">): Promise<AuthAuditRecord>;
+}
+
+export interface ISystemMetadataRepository {
+  getLatest(): Promise<SystemMetadata | null>;
+  save(metadata: SystemMetadata): Promise<SystemMetadata>;
+}
+
+export interface IApplicationVersionsRepository {
+  getAll(): Promise<ApplicationVersion[]>;
+  create(version: Omit<ApplicationVersion, "versionId" | "createdAt">): Promise<ApplicationVersion>;
+}
+
+export interface IProjectDecisionsRepository {
+  getAll(): Promise<ProjectDecision[]>;
+  create(decision: Omit<ProjectDecision, "decisionId" | "createdAt">): Promise<ProjectDecision>;
+}
+
+export interface IOperationsEventsRepository {
+  getAll(): Promise<OperationsEvent[]>;
+  getRecent(limit: number): Promise<OperationsEvent[]>;
+  create(event: Omit<OperationsEvent, "eventId" | "createdAt">): Promise<OperationsEvent>;
+}
+
 
 
 

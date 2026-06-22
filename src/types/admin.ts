@@ -285,5 +285,80 @@ export interface RemoteAccessStatus {
   nextSteps: string[];
 }
 
+export interface AuthAuditRecord {
+  id: string;
+  timestamp: string;
+  eventType: string; // e.g. "LOGIN_SUCCESS", "LOGIN_FAILURE", "LOGOUT", "SESSION_EXPIRATION", "UNAUTHORIZED_ATTEMPT", "FORBIDDEN_ATTEMPT"
+  username: string;
+  ipAddress: string;
+  userAgent: string;
+  result: string;
+}
+
+export interface SecurityStatus {
+  authenticationEnabled: boolean;
+  sessionTimeoutMinutes: number;
+  activeSessions: number;
+  failedLogins24h: number;
+  unauthorizedAttempts24h: number;
+  recentAttempts?: AuthAuditRecord[];
+}
+
+export interface SystemMetadata {
+  id?: number;
+  systemName: string;
+  currentVersion: string;
+  currentGitBranch: string;
+  currentGitTag: string;
+  deploymentEnvironment: string;
+  serverHostname: string;
+  databaseName: string;
+  lastStartupTimestamp: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ApplicationVersion {
+  versionId: number;
+  versionTag: string;
+  gitCommitHash: string;
+  releaseDate: string;
+  releaseNotes: string;
+  milestoneName: string;
+  createdAt?: string;
+}
+
+export interface ProjectDecision {
+  decisionId: number;
+  decisionDate: string;
+  category: string;
+  title: string;
+  rationale: string;
+  impact: string;
+  status: string;
+  createdAt?: string;
+}
+
+export interface OperationsEvent {
+  eventId: number;
+  eventType: string;
+  severity: string;
+  source: string;
+  description: string;
+  metadataJson: any;
+  createdAt?: string;
+}
+
+export interface ProjectMemoryResponse {
+  currentVersion: string;
+  currentBranch: string;
+  currentTag: string;
+  hostname: string;
+  databaseStatus: string;
+  startupTimestamp: string;
+}
+
+
+
 
 

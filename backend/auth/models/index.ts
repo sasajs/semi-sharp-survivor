@@ -1,6 +1,7 @@
 export interface AdminSession {
   token: string;
   expiresAt: string; // ISO String
+  role: "ADMIN" | "USER";
 }
 
 export interface AuthStatus {

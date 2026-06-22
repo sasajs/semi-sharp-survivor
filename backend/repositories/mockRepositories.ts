@@ -28,6 +28,7 @@ import {
   SimulationRun,
   EntrySurvivalProjection
 } from "../../src/types";
+import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
   ITeamRepository, 
   IContestRepository, 
@@ -52,7 +53,12 @@ import {
   IAuditRepository,
   ISimulationRepository,
   ISimulationRunRepository,
-  ISimulationResultRepository
+  ISimulationResultRepository,
+  IAuthAuditRepository,
+  ISystemMetadataRepository,
+  IApplicationVersionsRepository,
+  IProjectDecisionsRepository,
+  IOperationsEventsRepository
 } from "./interfaces";
 
 /**
@@ -1193,6 +1199,202 @@ export class MockSimulationResultRepository implements ISimulationResultReposito
     return run ? run.entry_projections : [];
   }
 }
+
+// In-memory array to persist audit logs for security panel
+export const mockAuthAuditRecords: AuthAuditRecord[] = [];
+
+export class MockAuthAuditRepository implements IAuthAuditRepository {
+  async getAll(): Promise<AuthAuditRecord[]> {
+    return [...mockAuthAuditRecords];
+  }
+
+  async getRecent(limit: number): Promise<AuthAuditRecord[]> {
+    return [...mockAuthAuditRecords]
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, limit);
+  }
+
+  async create(record: Omit<AuthAuditRecord, "id" | "timestamp">): Promise<AuthAuditRecord> {
+    const newRecord: AuthAuditRecord = {
+      ...record,
+      id: "aud_" + Math.random().toString(36).substring(2, 10),
+      timestamp: new Date().toISOString()
+    };
+    mockAuthAuditRecords.push(newRecord);
+    return newRecord;
+  }
+}
+
+export const mockSystemMetadata: SystemMetadata = {
+  systemName: "Semi-Sharp",
+  currentVersion: "v0.27",
+  currentGitBranch: "main",
+  currentGitTag: "v0.27-project-memory-foundation",
+  deploymentEnvironment: "production-mock",
+  serverHostname: "mock-host.local",
+  databaseName: "mock-sandbox",
+  lastStartupTimestamp: new Date().toISOString(),
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString()
+};
+
+export const mockApplicationVersions: ApplicationVersion[] = [
+  {
+    versionId: 1,
+    versionTag: "v0.26",
+    gitCommitHash: "a7b3c9e1f2d34567890abcdef1234567890abcde",
+    releaseDate: "2026-06-21T12:00:00Z",
+    releaseNotes: "Established raw system security roles and administrative gatekeeper rules.",
+    milestoneName: "Auth cutover",
+    createdAt: "2026-06-21T12:00:00Z"
+  },
+  {
+    versionId: 2,
+    versionTag: "v0.27",
+    gitCommitHash: "8f9e0d1c2b3a4f5e6d7c8b9a0f1e2d3c4b5a6f7e",
+    releaseDate: "2026-06-22T15:00:00Z",
+    releaseNotes: "Upgraded platform to support persistent project memory, system metadata, and deep audits.",
+    milestoneName: "Project Memory Foundation",
+    createdAt: "2026-06-22T15:00:00Z"
+  }
+];
+
+export const mockProjectDecisions: ProjectDecision[] = [
+  {
+    decisionId: 1,
+    decisionDate: "2026-06-20",
+    category: "Architectural Pattern",
+    title: "Repository Pattern Mandatory",
+    rationale: "Requires all tables and models to be decoupled via isolated class repositories.",
+    impact: "Guarantees that database models can switch seamlessly between low-overhead mock in-memory states and postgres high-fidelity states.",
+    status: "APPROVED",
+    createdAt: "2026-06-20T10:00:00Z"
+  },
+  {
+    decisionId: 2,
+    decisionDate: "2026-06-21",
+    category: "Persistence Strategy",
+    title: "PostgreSQL Authoritative Store",
+    rationale: "Adopt raw PostgreSQL relational engine for high-fidelity persistence tracking.",
+    impact: "Secures and validates transaction logs, contest runs, system health metrics, and user logs with transactional durability.",
+    status: "APPROVED",
+    createdAt: "2026-06-21T10:00:00Z"
+  },
+  {
+    decisionId: 3,
+    decisionDate: "2026-06-21",
+    category: "Aesthetic Rule",
+    title: "Mock Mode Retained",
+    rationale: "Retain full in-memory mock repositories and fallback controls for sandboxed testing.",
+    impact: "Provides frictionless local development environment when running without an active PostgreSQL cluster link.",
+    status: "APPROVED",
+    createdAt: "2026-06-21T11:00:00Z"
+  },
+  {
+    decisionId: 4,
+    decisionDate: "2026-06-22",
+    category: "Environment Boundary",
+    title: "Cloudflare Deployment",
+    rationale: "Configure proxy tunnels and gateway firewalls to isolate system parameters.",
+    impact: "Protects backoffice dashboards and JSON endpoints behind Cloudflare verification layer.",
+    status: "APPROVED",
+    createdAt: "2026-06-22T10:00:00Z"
+  },
+  {
+    decisionId: 5,
+    decisionDate: "2026-06-22",
+    category: "Feature Strategy",
+    title: "Historical Replay Architecture",
+    rationale: "Model contest historical data with sub-second simulation replay features.",
+    impact: "Allows testing modeling strategies across past season records with deep visual metric reviews.",
+    status: "APPROVED",
+    createdAt: "2026-06-22T11:00:00Z"
+  }
+];
+
+export const mockOperationsEvents: OperationsEvent[] = [
+  {
+    eventId: 1,
+    eventType: "Application Startup",
+    severity: "INFO",
+    source: "system-bootstrap",
+    description: "Application successfully bootstrapped system services in in-memory Mock Sandbox context.",
+    metadataJson: { mode: "MOCK", version: "v0.27" },
+    createdAt: new Date().toISOString()
+  }
+];
+
+export class MockSystemMetadataRepository implements ISystemMetadataRepository {
+  private metadata = { ...mockSystemMetadata };
+
+  async getLatest(): Promise<SystemMetadata | null> {
+    return this.metadata;
+  }
+
+  async save(metadata: SystemMetadata): Promise<SystemMetadata> {
+    this.metadata = {
+      ...metadata,
+      updatedAt: new Date().toISOString()
+    };
+    return this.metadata;
+  }
+}
+
+export class MockApplicationVersionsRepository implements IApplicationVersionsRepository {
+  async getAll(): Promise<ApplicationVersion[]> {
+    return [...mockApplicationVersions];
+  }
+
+  async create(version: Omit<ApplicationVersion, "versionId" | "createdAt">): Promise<ApplicationVersion> {
+    const newVersion: ApplicationVersion = {
+      ...version,
+      versionId: mockApplicationVersions.length + 1,
+      createdAt: new Date().toISOString()
+    };
+    mockApplicationVersions.push(newVersion);
+    return newVersion;
+  }
+}
+
+export class MockProjectDecisionsRepository implements IProjectDecisionsRepository {
+  async getAll(): Promise<ProjectDecision[]> {
+    return [...mockProjectDecisions];
+  }
+
+  async create(decision: Omit<ProjectDecision, "decisionId" | "createdAt">): Promise<ProjectDecision> {
+    const newDecision: ProjectDecision = {
+      ...decision,
+      decisionId: mockProjectDecisions.length + 1,
+      createdAt: new Date().toISOString()
+    };
+    mockProjectDecisions.push(newDecision);
+    return newDecision;
+  }
+}
+
+export class MockOperationsEventsRepository implements IOperationsEventsRepository {
+  async getAll(): Promise<OperationsEvent[]> {
+    return [...mockOperationsEvents];
+  }
+
+  async getRecent(limit: number): Promise<OperationsEvent[]> {
+    return [...mockOperationsEvents]
+      .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
+      .slice(0, limit);
+  }
+
+  async create(event: Omit<OperationsEvent, "eventId" | "createdAt">): Promise<OperationsEvent> {
+    const newEvent: OperationsEvent = {
+      ...event,
+      eventId: mockOperationsEvents.length + 1,
+      createdAt: new Date().toISOString()
+    };
+    mockOperationsEvents.push(newEvent);
+    return newEvent;
+  }
+}
+
+
 
 
 

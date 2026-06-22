@@ -7,13 +7,14 @@ interface AdminLoginPanelProps {
 
 export const AdminLoginPanel: React.FC<AdminLoginPanelProps> = ({ onLoginSuccess }) => {
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"ADMIN" | "USER">("ADMIN");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!password.trim()) {
+    if (role === "ADMIN" && !password.trim()) {
       setError("Password cannot be blank.");
       return;
     }
@@ -27,7 +28,7 @@ export const AdminLoginPanel: React.FC<AdminLoginPanelProps> = ({ onLoginSuccess
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ password })
+        body: JSON.stringify({ password, role })
       });
 
       const data = await res.json();
@@ -37,7 +38,7 @@ export const AdminLoginPanel: React.FC<AdminLoginPanelProps> = ({ onLoginSuccess
         localStorage.setItem("admin_token", data.session.token);
         onLoginSuccess(data.session.token);
       } else {
-        setError(data.error || "Authentication failed. Incorrect admin password.");
+        setError(data.error || "Authentication failed. Incorrect password for selected role.");
       }
     } catch (err: any) {
       setError(err.message || "Network error. Failed to authenticate.");
@@ -73,36 +74,74 @@ export const AdminLoginPanel: React.FC<AdminLoginPanelProps> = ({ onLoginSuccess
           </div>
         )}
 
+        {/* Target Role Segmented Toggle Controls */}
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
+            Target Authorization Role
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => { setRole("ADMIN"); setError(null); }}
+              className={`text-xs py-2.5 px-3 rounded-xl border text-center font-bold tracking-tight transition cursor-pointer ${
+                role === "ADMIN" 
+                  ? "bg-indigo-50 border-indigo-200 text-indigo-700 font-black" 
+                  : "bg-slate-50 border-slate-150 text-slate-500 hover:bg-slate-100"
+              }`}
+            >
+              Administrator (ADMIN)
+            </button>
+            <button
+              type="button"
+              onClick={() => { setRole("USER"); setError(null); }}
+              className={`text-xs py-2.5 px-3 rounded-xl border text-center font-bold tracking-tight transition cursor-pointer ${
+                role === "USER" 
+                  ? "bg-indigo-50 border-indigo-200 text-indigo-700 font-black" 
+                  : "bg-slate-50 border-slate-150 text-slate-500 hover:bg-slate-100"
+              }`}
+            >
+              Standard (USER)
+            </button>
+          </div>
+          <p className="text-[10px] text-slate-400 leading-relaxed">
+            {role === "ADMIN" 
+              ? "Requires actual configured administrative passphrase key." 
+              : "Bypasses key check. Grants read-only visual telemetry access."}
+          </p>
+        </div>
+
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
-              Passphrase
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••••"
-                className="w-full text-xs p-3 pr-10 border border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition outline-none font-mono"
-                disabled={loading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition"
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-              </button>
+          {role === "ADMIN" && (
+            <div className="space-y-1.5 animate-fade-in animate-duration-150">
+              <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
+                Passphrase
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="•••••••••••••••••"
+                  className="w-full text-xs p-3 pr-10 border border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition outline-none font-mono"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs p-3.5 rounded-xl transition shadow-sm flex items-center justify-center gap-2"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs p-3.5 rounded-xl transition shadow-sm flex items-center justify-center gap-2 cursor-pointer text-center"
           >
             {loading ? "Decrypting..." : "Access Dashboard"}
             <ArrowRight className="w-4 h-4" />

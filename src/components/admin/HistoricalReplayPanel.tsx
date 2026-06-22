@@ -223,7 +223,7 @@ export const HistoricalReplayPanel: React.FC = () => {
     }
   };
 
-  const selectedSeasonMeta = safeArray(seasons).find((s: any) => s?.season === selectedSeason);
+  const selectedSeasonMeta = safeArray(seasons).find((s: any) => s?.season === selectedSeason) as any;
 
   return (
     <div id="historical-replay-panel-root" className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden font-sans">

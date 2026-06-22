@@ -1,17 +1,17 @@
-import React, { Component, ErrorInfo, ReactNode } from "react";
+import React from "react";
 import { AlertOctagon, RotateCcw } from "lucide-react";
 
 interface Props {
-  children?: ReactNode;
+  children?: React.ReactNode;
 }
 
 interface State {
   hasError: boolean;
   error: Error | null;
-  errorInfo: ErrorInfo | null;
+  errorInfo: React.ErrorInfo | null;
 }
 
-export class AdminErrorBoundary extends Component<Props, State> {
+export class AdminErrorBoundary extends React.Component<Props, State> {
   public state: State = {
     hasError: false,
     error: null,
@@ -22,9 +22,9 @@ export class AdminErrorBoundary extends Component<Props, State> {
     return { hasError: true, error, errorInfo: null };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  public componentDidCatch(error: Error, errorInfo: any) {
     console.error("Uncaught admin dashboard error:", error, errorInfo);
-    this.setState({
+    (this as any).setState({
       error,
       errorInfo
     });
@@ -86,7 +86,7 @@ export class AdminErrorBoundary extends Component<Props, State> {
                 </button>
                 <button
                   type="button"
-                  onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })}
+                  onClick={() => (this as any).setState({ hasError: false, error: null, errorInfo: null })}
                   className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold px-4 py-2.5 rounded-xl transition"
                 >
                   Dismiss Boundary
@@ -98,7 +98,7 @@ export class AdminErrorBoundary extends Component<Props, State> {
       );
     }
 
-    return this.props.children;
+    return (this as any).props.children;
   }
 }
 
