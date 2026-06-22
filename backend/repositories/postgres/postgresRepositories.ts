@@ -33,6 +33,10 @@ import {
 export function fromUuid(uuid: string): string {
   if (!uuid) return uuid;
   if (uuid === "20262026-c17c-4c0a-bd6e-000000000001") return "circa-2026";
+  if (uuid === "22222222-2222-4222-c222-000000000101") return "UWOSH-1";
+  if (uuid === "22222222-2222-4222-c222-000000000102") return "UWOSH-2";
+  if (uuid === "22222222-2222-4222-c222-000000000103") return "UWOSH-3";
+  if (uuid === "22222222-2222-4222-c222-000000000104") return "UWOSH-4";
   if (uuid.startsWith("11111111-1111-4111-b111-")) {
     const num = parseInt(uuid.substring(24), 10);
     return `leg-${num}`;

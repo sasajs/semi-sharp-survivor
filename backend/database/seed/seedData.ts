@@ -16,6 +16,18 @@ export function toUuid(id: string, type: "contest" | "leg" | "entry" | "pick" | 
   if (id === "circa-2026") {
     return "20262026-c17c-4c0a-bd6e-000000000001";
   }
+  if (id === "UWOSH-1") {
+    return "22222222-2222-4222-c222-000000000101";
+  }
+  if (id === "UWOSH-2") {
+    return "22222222-2222-4222-c222-000000000102";
+  }
+  if (id === "UWOSH-3") {
+    return "22222222-2222-4222-c222-000000000103";
+  }
+  if (id === "UWOSH-4") {
+    return "22222222-2222-4222-c222-000000000104";
+  }
   if (id.startsWith("leg-")) {
     const num = parseInt(id.replace("leg-", ""), 10);
     return `11111111-1111-4111-b111-${num.toString().padStart(12, "0")}`;

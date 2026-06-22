@@ -32,7 +32,9 @@ import {
   MockOperationsEventsRepository,
   MockFeatureDefinitionRepository,
   MockFeatureSnapshotRepository,
-  MockFeatureBuildRunRepository
+  MockFeatureBuildRunRepository,
+  MockEntryStrategyProfileRepository,
+  MockEntryMetadataRepository
 } from "./mockRepositories";
 
 import {
@@ -63,6 +65,8 @@ import { PostgresSnapshotRepository } from "./postgres/PostgresSnapshotRepositor
 import { PostgresFeatureDefinitionRepository } from "./postgres/PostgresFeatureDefinitionRepository";
 import { PostgresFeatureSnapshotRepository } from "./postgres/PostgresFeatureSnapshotRepository";
 import { PostgresFeatureBuildRunRepository } from "./postgres/PostgresFeatureBuildRunRepository";
+import { PostgresEntryStrategyProfileRepository } from "./postgres/PostgresEntryStrategyProfileRepository";
+import { PostgresEntryMetadataRepository } from "./postgres/PostgresEntryMetadataRepository";
 
 export let useMock = databaseConfig.useMock;
 
@@ -170,6 +174,12 @@ export class RepositoryFactory {
   }
   static getFeatureBuildRunRepo() {
     return useMock ? new MockFeatureBuildRunRepository() : new PostgresFeatureBuildRunRepository();
+  }
+  static getEntryStrategyProfileRepo() {
+    return useMock ? new MockEntryStrategyProfileRepository() : new PostgresEntryStrategyProfileRepository();
+  }
+  static getEntryMetadataRepo() {
+    return useMock ? new MockEntryMetadataRepository() : new PostgresEntryMetadataRepository();
   }
 }
 

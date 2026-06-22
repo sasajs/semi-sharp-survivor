@@ -1548,6 +1548,86 @@ router.get("/auth/status", async (req: Request, res: Response) => {
   }
 });
 
+/* ====================================================================
+ * ENTRY STRATEGY PROFILES FOUNDATION ENDPOINTS
+ * ==================================================================== */
+import { EntryStrategyService } from "../services/EntryStrategyService";
+const entryStrategyService = new EntryStrategyService();
+
+// GET all strategic entries with profiles/metadata combined
+router.get("/api/strategies/entries", async (req: Request, res: Response) => {
+  try {
+    const list = await entryStrategyService.getAllStrategicEntries();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET all strategy profiles
+router.get("/api/strategies/profiles", async (req: Request, res: Response) => {
+  try {
+    const list = await entryStrategyService.getProfiles();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET all metadata records
+router.get("/api/strategies/metadata", async (req: Request, res: Response) => {
+  try {
+    const list = await entryStrategyService.getMetadata();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET specific entry strategy details
+router.get("/api/strategies/entry/:entryId", async (req: Request, res: Response) => {
+  try {
+    const details = await entryStrategyService.getEntryStrategyDetails(req.params.entryId);
+    if (!details) {
+      res.status(404).json({ error: "Entry not found" });
+    } else {
+      res.json(details);
+    }
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST save strategy profile
+router.post("/api/strategies/profiles", async (req: Request, res: Response) => {
+  try {
+    const profile = await entryStrategyService.saveProfile(req.body);
+    res.status(200).json(profile);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST save metadata record
+router.post("/api/strategies/metadata", async (req: Request, res: Response) => {
+  try {
+    const metadata = await entryStrategyService.saveMetadata(req.body);
+    res.status(200).json(metadata);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Joint diversification analysis
+router.get("/api/strategies/portfolio/analyze/:groupName", async (req: Request, res: Response) => {
+  try {
+    const analysis = await entryStrategyService.analyzeDiversificationGroup(req.params.groupName);
+    res.json(analysis);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /auth/login
 router.post("/auth/login", async (req: Request, res: Response) => {
   try {

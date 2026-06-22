@@ -68,6 +68,10 @@ export const initialEntries: SurvivorEntry[] = [
   { id: "entry-2", name: "Semi-Sharp #2", status: "alive", notes: "Conservative safety play, saving DET/DAL for Thanksgiving", created_at: new Date().toISOString() },
   { id: "entry-3", name: "High Leverage entry", status: "alive", notes: "Upset-heavy targeting, aiming to maximize early leverage", created_at: new Date().toISOString() },
   { id: "entry-4", name: "Faded Entry", status: "eliminated", notes: "Eliminated in Week 2 (selected ARI - tie occurred vs LAR, tie constitutes loss)", created_at: new Date().toISOString() },
+  { id: "UWOSH-1", name: "UWOSH-1", status: "alive", notes: "Steve's Entry 1 (Championship EV maximized)", created_at: new Date().toISOString() },
+  { id: "UWOSH-2", name: "UWOSH-2", status: "alive", notes: "Steve's Entry 2 (Joint portfolio optimization)", created_at: new Date().toISOString() },
+  { id: "UWOSH-3", name: "UWOSH-3", status: "alive", notes: "Cameron's Entry (Marketplace survival to mid-season)", created_at: new Date().toISOString() },
+  { id: "UWOSH-4", name: "UWOSH-4", status: "alive", notes: "UW Oshkosh Group Entry (Group consensus survival model)", created_at: new Date().toISOString() },
 ];
 
 export const initialPicks: SurvivorPick[] = [

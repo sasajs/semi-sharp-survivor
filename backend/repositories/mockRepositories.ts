@@ -29,7 +29,10 @@ import {
   EntrySurvivalProjection,
   FeatureDefinition,
   FeatureBuildRun,
-  FeatureStoreSnapshot
+  FeatureStoreSnapshot,
+  EntryStrategyProfile,
+  EntryMetadata,
+  StrategyType
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -64,7 +67,9 @@ import {
   IOperationsEventsRepository,
   IFeatureDefinitionRepository,
   IFeatureSnapshotRepository,
-  IFeatureBuildRunRepository
+  IFeatureBuildRunRepository,
+  IEntryStrategyProfileRepository,
+  IEntryMetadataRepository
 } from "./interfaces";
 
 /**
@@ -160,7 +165,90 @@ export let mockFeatureDefinitions: FeatureDefinition[] = [
 export let mockFeatureStoreSnapshots: FeatureStoreSnapshot[] = [];
 export let mockFeatureBuildRuns: FeatureBuildRun[] = [];
 
+export let mockEntryStrategyProfiles: EntryStrategyProfile[] = [];
+export let mockEntryMetadataRecords: EntryMetadata[] = [];
 
+const defaultMetadata: EntryMetadata[] = [
+  {
+    entry_id: "UWOSH-1",
+    owner_name: "Steve",
+    entry_description: "UWOSH-1 Steve Entry",
+    entry_notes: "High Priority",
+    primary_goal: "Maximize championship expected value",
+    secondary_goal: "ROI optimization",
+    active_flag: true
+  },
+  {
+    entry_id: "UWOSH-2",
+    owner_name: "Steve",
+    entry_description: "UWOSH-2 Steve Entry",
+    entry_notes: "Portfolio entry",
+    primary_goal: "Portfolio diversification",
+    secondary_goal: "Jointly optimize with UWOSH-1",
+    active_flag: true
+  },
+  {
+    entry_id: "UWOSH-3",
+    owner_name: "Cameron",
+    entry_description: "UWOSH-3 Cameron Entry",
+    entry_notes: "Marketplace resale focus",
+    primary_goal: "Survive into mid-season",
+    secondary_goal: "Increase marketplace resale value",
+    active_flag: true
+  },
+  {
+    entry_id: "UWOSH-4",
+    owner_name: "UW Oshkosh Group Entry",
+    entry_description: "9 total participants.",
+    entry_notes: "Low risk focus",
+    primary_goal: "Maximize survival probability",
+    secondary_goal: "Avoid aggressive strategies",
+    active_flag: true
+  }
+];
+
+const defaultProfiles: EntryStrategyProfile[] = [
+  {
+    profile_id: 1,
+    entry_id: "UWOSH-1",
+    strategy_type: StrategyType.CHAMPIONSHIP_EV,
+    objective: "Maximize championship expected value.",
+    risk_tolerance: "HIGH",
+    diversification_group: "UWOSH_GROUP",
+    marketplace_target: "NONE",
+    notes: "Steve first entry"
+  },
+  {
+    profile_id: 2,
+    entry_id: "UWOSH-2",
+    strategy_type: StrategyType.PORTFOLIO_EV,
+    objective: "Optimize jointly with UWOSH-1. Avoid unnecessary duplicate selections. Maximize combined portfolio EV.",
+    risk_tolerance: "MEDIUM",
+    diversification_group: "UWOSH_GROUP",
+    marketplace_target: "NONE",
+    notes: "Steve second entry (portfolio logic)"
+  },
+  {
+    profile_id: 3,
+    entry_id: "UWOSH-3",
+    strategy_type: StrategyType.MARKETPLACE_SURVIVAL,
+    objective: "Survive into mid-season to increase marketplace resale value. Favor safer selections early. Lower volatility.",
+    risk_tolerance: "LOW",
+    diversification_group: "CAMERON",
+    marketplace_target: "MID_SEASON",
+    notes: "Cameron marketplace survival entry"
+  },
+  {
+    profile_id: 4,
+    entry_id: "UWOSH-4",
+    strategy_type: StrategyType.GROUP_SURVIVAL,
+    objective: "9 total participants. Maximize survival probability. Reduce risk. Avoid aggressive strategies.",
+    risk_tolerance: "VERY_LOW",
+    diversification_group: "UWOSH_GROUP_4",
+    marketplace_target: "NONE",
+    notes: "UW Oshkosh Group entry (9 participants)"
+  }
+];
 
 /**
  * Global database reset / seed helper
@@ -182,6 +270,8 @@ export function resetMockDatabase(
   mockGames = [...games];
   mockLines = [...lines];
   mockHistory = [];
+  mockEntryMetadataRecords = [...defaultMetadata];
+  mockEntryStrategyProfiles = [...defaultProfiles];
 }
 
 /**
@@ -1543,6 +1633,70 @@ export class MockFeatureBuildRunRepository implements IFeatureBuildRunRepository
     return item;
   }
 }
+
+export class MockEntryStrategyProfileRepository implements IEntryStrategyProfileRepository {
+  async getAll(): Promise<EntryStrategyProfile[]> {
+    return [...mockEntryStrategyProfiles];
+  }
+
+  async getByEntryId(entryId: string): Promise<EntryStrategyProfile | null> {
+    return mockEntryStrategyProfiles.find(p => p.entry_id === entryId) || null;
+  }
+
+  async save(profile: EntryStrategyProfile): Promise<EntryStrategyProfile> {
+    const existingIdx = mockEntryStrategyProfiles.findIndex(p => p.entry_id === profile.entry_id);
+    const item: EntryStrategyProfile = {
+      ...profile,
+      profile_id: profile.profile_id || mockEntryStrategyProfiles.length + 1,
+      created_at: profile.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    if (existingIdx >= 0) {
+      mockEntryStrategyProfiles[existingIdx] = item;
+    } else {
+      mockEntryStrategyProfiles.push(item);
+    }
+    return item;
+  }
+
+  async deleteByEntryId(entryId: string): Promise<boolean> {
+    const originalLen = mockEntryStrategyProfiles.length;
+    mockEntryStrategyProfiles = mockEntryStrategyProfiles.filter(p => p.entry_id !== entryId);
+    return mockEntryStrategyProfiles.length < originalLen;
+  }
+}
+
+export class MockEntryMetadataRepository implements IEntryMetadataRepository {
+  async getAll(): Promise<EntryMetadata[]> {
+    return [...mockEntryMetadataRecords];
+  }
+
+  async getByEntryId(entryId: string): Promise<EntryMetadata | null> {
+    return mockEntryMetadataRecords.find(m => m.entry_id === entryId) || null;
+  }
+
+  async save(metadata: EntryMetadata): Promise<EntryMetadata> {
+    const existingIdx = mockEntryMetadataRecords.findIndex(m => m.entry_id === metadata.entry_id);
+    const item: EntryMetadata = {
+      ...metadata,
+      created_at: metadata.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    if (existingIdx >= 0) {
+      mockEntryMetadataRecords[existingIdx] = item;
+    } else {
+      mockEntryMetadataRecords.push(item);
+    }
+    return item;
+  }
+
+  async deleteByEntryId(entryId: string): Promise<boolean> {
+    const originalLen = mockEntryMetadataRecords.length;
+    mockEntryMetadataRecords = mockEntryMetadataRecords.filter(m => m.entry_id !== entryId);
+    return mockEntryMetadataRecords.length < originalLen;
+  }
+}
+
 
 
 

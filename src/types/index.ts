@@ -893,3 +893,36 @@ export interface FeatureBuildRun {
   build_version: string;
   notes?: string;
 }
+
+export enum StrategyType {
+  CHAMPIONSHIP_EV = "CHAMPIONSHIP_EV",
+  PORTFOLIO_EV = "PORTFOLIO_EV",
+  MARKETPLACE_SURVIVAL = "MARKETPLACE_SURVIVAL",
+  GROUP_SURVIVAL = "GROUP_SURVIVAL"
+}
+
+export interface EntryStrategyProfile {
+  profile_id?: string | number;
+  entry_id: string;
+  strategy_type: StrategyType;
+  objective: string;
+  risk_tolerance: string;
+  diversification_group?: string;
+  marketplace_target?: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface EntryMetadata {
+  entry_id: string;
+  owner_name: string;
+  entry_description?: string;
+  entry_notes?: string;
+  primary_goal: string;
+  secondary_goal?: string;
+  active_flag: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+

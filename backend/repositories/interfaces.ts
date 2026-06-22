@@ -29,7 +29,9 @@ import {
   EntrySurvivalProjection,
   FeatureDefinition,
   FeatureBuildRun,
-  FeatureStoreSnapshot
+  FeatureStoreSnapshot,
+  EntryStrategyProfile,
+  EntryMetadata
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -268,6 +270,21 @@ export interface IFeatureBuildRunRepository {
   getLatest(): Promise<FeatureBuildRun | null>;
   save(run: FeatureBuildRun): Promise<FeatureBuildRun>;
 }
+
+export interface IEntryStrategyProfileRepository {
+  getAll(): Promise<EntryStrategyProfile[]>;
+  getByEntryId(entryId: string): Promise<EntryStrategyProfile | null>;
+  save(profile: EntryStrategyProfile): Promise<EntryStrategyProfile>;
+  deleteByEntryId(entryId: string): Promise<boolean>;
+}
+
+export interface IEntryMetadataRepository {
+  getAll(): Promise<EntryMetadata[]>;
+  getByEntryId(entryId: string): Promise<EntryMetadata | null>;
+  save(metadata: EntryMetadata): Promise<EntryMetadata>;
+  deleteByEntryId(entryId: string): Promise<boolean>;
+}
+
 
 
 

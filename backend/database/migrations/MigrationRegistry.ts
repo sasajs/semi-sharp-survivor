@@ -21,5 +21,10 @@ export const migrationRegistry: Migration[] = [
     version: "V028",
     description: "Feature Store Foundation: feature_definitions, feature_snapshots, and feature_build_runs tables.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "028_feature_store_foundation.sql")
+  },
+  {
+    version: "V029",
+    description: "Entry Strategy Profiles Foundation: entry_metadata and entry_strategy_profiles audit records and tables.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "029_entry_strategy_profiles.sql")
   }
 ];
