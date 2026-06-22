@@ -26,7 +26,10 @@ import {
   RecommendationSnapshot,
   DecisionAuditRecord,
   SimulationRun,
-  EntrySurvivalProjection
+  EntrySurvivalProjection,
+  FeatureDefinition,
+  FeatureBuildRun,
+  FeatureStoreSnapshot
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -245,6 +248,27 @@ export interface IOperationsEventsRepository {
   getRecent(limit: number): Promise<OperationsEvent[]>;
   create(event: Omit<OperationsEvent, "eventId" | "createdAt">): Promise<OperationsEvent>;
 }
+
+export interface IFeatureDefinitionRepository {
+  getAll(): Promise<FeatureDefinition[]>;
+  getByFeatureId(id: string): Promise<FeatureDefinition | null>;
+  save(definition: FeatureDefinition): Promise<FeatureDefinition>;
+}
+
+export interface IFeatureSnapshotRepository {
+  getAll(): Promise<FeatureStoreSnapshot[]>;
+  getBySeasonAndWeek(season: number, week: number): Promise<FeatureStoreSnapshot[]>;
+  save(snapshot: FeatureStoreSnapshot): Promise<FeatureStoreSnapshot>;
+  saveMany(snapshots: FeatureStoreSnapshot[]): Promise<FeatureStoreSnapshot[]>;
+}
+
+export interface IFeatureBuildRunRepository {
+  getAll(): Promise<FeatureBuildRun[]>;
+  getById(id: number | string): Promise<FeatureBuildRun | null>;
+  getLatest(): Promise<FeatureBuildRun | null>;
+  save(run: FeatureBuildRun): Promise<FeatureBuildRun>;
+}
+
 
 
 

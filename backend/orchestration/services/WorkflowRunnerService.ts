@@ -177,8 +177,18 @@ export class WorkflowRunnerService {
         return { status: "imports_redefined", totalGames: (await gameRepo.getByLegId(context.legId)).length };
 
       case "FEATURE_STORE_REFRESH":
+        const buildRun = await FeatureStoreService.buildWeeklySnapshots(
+          Number(context.season),
+          Number(context.weekNumber),
+          `Automated workflow build run, triggered by workflow step FEATURE_STORE_REFRESH`
+        );
         const features = await FeatureStoreService.getConsolidatedFeaturesForLeg(context.legId);
-        return { features_restored: features.length };
+        return { 
+          features_restored: features.length,
+          feature_store_build_id: buildRun.run_id,
+          feature_store_status: buildRun.status,
+          feature_store_count: buildRun.feature_count
+        };
 
       case "INVENTORY_CALCULATION":
         const entries = await entryRepo.getAll();

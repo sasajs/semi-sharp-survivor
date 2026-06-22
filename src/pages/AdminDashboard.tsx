@@ -14,6 +14,7 @@ import { WeeklyPipelinePanel } from "../components/admin/WeeklyPipelinePanel";
 import { RemoteAccessPanel } from "../components/admin/RemoteAccessPanel";
 import { SecurityStatusPanel } from "../components/admin/SecurityStatusPanel";
 import { SystemMemoryPanel } from "../components/admin/SystemMemoryPanel";
+import { FeatureStorePanel } from "../components/admin/FeatureStorePanel";
 import { AdminErrorBoundary } from "../components/admin/AdminErrorBoundary";
 import { AdminLoginPanel } from "../components/admin/AdminLoginPanel";
 import { AuthStatus } from "../types/auth";
@@ -177,6 +178,14 @@ export const AdminDashboard: React.FC = () => {
             <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">02. Persistent Database Metrics</span>
           </div>
           <DatabaseStatusPanel />
+        </section>
+
+        {/* Section 2.2: Feature Store Foundation */}
+        <section id="admin-section-feature-store" className="space-y-3">
+          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.2. Feature Store Foundation</span>
+          </div>
+          <FeatureStorePanel />
         </section>
 
         {/* Section 2.5: PostgreSQL Cutover Readiness Validation */}

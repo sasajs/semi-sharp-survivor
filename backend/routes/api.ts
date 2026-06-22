@@ -400,6 +400,75 @@ router.get("/features/consolidated", async (req: Request, res: Response) => {
   }
 });
 
+// GET Feature definitions
+router.get(["/features/definitions", "/api/features/definitions"], async (req: Request, res: Response) => {
+  try {
+    const definitions = await FeatureStoreService.getFeatureDefinitions();
+    res.json(definitions);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST Register feature definition
+router.post(["/features/definitions", "/api/features/definitions"], async (req: Request, res: Response) => {
+  try {
+    const saved = await FeatureStoreService.registerFeatureDefinition(req.body);
+    res.status(201).json(saved);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// GET Feature snapshots (all)
+router.get(["/features/snapshots", "/api/features/snapshots"], async (req: Request, res: Response) => {
+  try {
+    const snapshots = await FeatureStoreService.getLatestFeatureSnapshots();
+    res.json(snapshots);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Query historical feature snapshots by season & week query params
+router.get(["/features/historical", "/api/features/historical"], async (req: Request, res: Response) => {
+  const season = parseInt(req.query.season as string, 10);
+  const week = parseInt(req.query.week as string, 10);
+  if (isNaN(season) || isNaN(week)) {
+    return res.status(400).json({ error: "Missing or invalid season or week query parameter." });
+  }
+  try {
+    const data = await FeatureStoreService.queryHistoricalFeatures(season, week);
+    res.json(data);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET Feature build runs
+router.get(["/features/build-runs", "/api/features/build-runs"], async (req: Request, res: Response) => {
+  try {
+    const runs = await FeatureStoreService.getFeatureBuildRuns();
+    res.json(runs);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST Build weekly feature snapshots
+router.post(["/features/build", "/api/features/build"], async (req: Request, res: Response) => {
+  const { season, week, notes } = req.body;
+  if (season === undefined || week === undefined) {
+    return res.status(400).json({ error: "season and week are required in body." });
+  }
+  try {
+    const run = await FeatureStoreService.buildWeeklySnapshots(Number(season), Number(week), notes);
+    res.status(202).json(run);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Get Audit Logs for Import Jobs
 router.get("/imports/jobs", async (req: Request, res: Response) => {
   try {

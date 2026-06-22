@@ -181,4 +181,24 @@ This report was generated using state-locked snapshots. Tamper-proof validation 
       content_markdown: md
     };
   }
+
+  static buildFeatureStoreAuditSection(definitions: any[], snapshotCount: number, season: number, week: number): WeeklyReportSection {
+    const md = `### Certified Feature Store Audit (v0.28 Core)
+Features are mathematically computed on-demand and logged to our append-only Postgres schema.
+
+- **Verified Snapshots for S${season} W${week}**: **${snapshotCount}** compiled values.
+- **Pre-Registered Feature Definitions**:
+
+| Feature ID | Full Name | Category | Scope | Description |
+|---|---|---|---|---|
+${definitions.map(d => `| \`${d.feature_id}\` | ${d.feature_name} | ${d.feature_category} | ${d.sport} | ${d.description || "-"} |`).join("\n")}
+`;
+
+    return {
+      id: "sec-feature-store-audit",
+      title: "9. Feature Store Compliance & Model Auditing",
+      type: "audit",
+      content_markdown: md
+    };
+  }
 }

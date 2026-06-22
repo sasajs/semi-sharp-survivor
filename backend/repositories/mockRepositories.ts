@@ -26,7 +26,10 @@ import {
   RecommendationSnapshot,
   DecisionAuditRecord,
   SimulationRun,
-  EntrySurvivalProjection
+  EntrySurvivalProjection,
+  FeatureDefinition,
+  FeatureBuildRun,
+  FeatureStoreSnapshot
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -58,7 +61,10 @@ import {
   ISystemMetadataRepository,
   IApplicationVersionsRepository,
   IProjectDecisionsRepository,
-  IOperationsEventsRepository
+  IOperationsEventsRepository,
+  IFeatureDefinitionRepository,
+  IFeatureSnapshotRepository,
+  IFeatureBuildRunRepository
 } from "./interfaces";
 
 /**
@@ -93,6 +99,66 @@ export let mockRiskSnapshots: RiskSnapshot[] = [];
 export let mockWeeklyRecSnapshots: RecommendationSnapshot[] = [];
 export let mockDecisionAuditRecords: DecisionAuditRecord[] = [];
 export let mockSimulationRuns: SimulationRun[] = [];
+
+// --- FEATURE STORE MOCK TABLES ---
+export let mockFeatureDefinitions: FeatureDefinition[] = [
+  {
+    feature_id: "days_rest",
+    feature_name: "Days of Rest",
+    feature_category: "Scheduling",
+    description: "Total rest days prior to the game kickoff.",
+    sport: "NFL",
+    active_flag: true,
+    created_at: new Date().toISOString()
+  },
+  {
+    feature_id: "home_field_advantage",
+    feature_name: "Home Field Advantage",
+    feature_category: "Situational",
+    description: "Binary indicator (1.0 or 0.0) of whether the team has home field advantage in the game.",
+    sport: "NFL",
+    active_flag: true,
+    created_at: new Date().toISOString()
+  },
+  {
+    feature_id: "market_spread",
+    feature_name: "Market Spread",
+    feature_category: "Market",
+    description: "Official betting line market spread for the team (negative for favorites, positive for underdogs).",
+    sport: "NFL",
+    active_flag: true,
+    created_at: new Date().toISOString()
+  },
+  {
+    feature_id: "market_total",
+    feature_name: "Market Over/Under Total",
+    feature_category: "Market",
+    description: "Official betting line total over/under projection for the game.",
+    sport: "NFL",
+    active_flag: true,
+    created_at: new Date().toISOString()
+  },
+  {
+    feature_id: "team_win_pct",
+    feature_name: "Team Win Percentage",
+    feature_category: "Performance",
+    description: "The historical winning percentage of the team leading up to the current week.",
+    sport: "NFL",
+    active_flag: true,
+    created_at: new Date().toISOString()
+  },
+  {
+    feature_id: "future_team_value",
+    feature_name: "Future Team Value",
+    feature_category: "Long-term",
+    description: "Projected future valuation multiplier for survivor or simulation weightings.",
+    sport: "NFL",
+    active_flag: true,
+    created_at: new Date().toISOString()
+  }
+];
+export let mockFeatureStoreSnapshots: FeatureStoreSnapshot[] = [];
+export let mockFeatureBuildRuns: FeatureBuildRun[] = [];
 
 
 
@@ -1393,6 +1459,91 @@ export class MockOperationsEventsRepository implements IOperationsEventsReposito
     return newEvent;
   }
 }
+
+export class MockFeatureDefinitionRepository implements IFeatureDefinitionRepository {
+  async getAll(): Promise<FeatureDefinition[]> {
+    return [...mockFeatureDefinitions];
+  }
+
+  async getByFeatureId(id: string): Promise<FeatureDefinition | null> {
+    return mockFeatureDefinitions.find(fd => fd.feature_id === id) || null;
+  }
+
+  async save(definition: FeatureDefinition): Promise<FeatureDefinition> {
+    const existingIdx = mockFeatureDefinitions.findIndex(fd => fd.feature_id === definition.feature_id);
+    const item = { ...definition, created_at: definition.created_at || new Date().toISOString() };
+    if (existingIdx >= 0) {
+      mockFeatureDefinitions[existingIdx] = item;
+    } else {
+      mockFeatureDefinitions.push(item);
+    }
+    return item;
+  }
+}
+
+export class MockFeatureSnapshotRepository implements IFeatureSnapshotRepository {
+  async getAll(): Promise<FeatureStoreSnapshot[]> {
+    return [...mockFeatureStoreSnapshots];
+  }
+
+  async getBySeasonAndWeek(season: number, week: number): Promise<FeatureStoreSnapshot[]> {
+    return mockFeatureStoreSnapshots.filter(fs => fs.season === season && fs.week === week);
+  }
+
+  async save(snapshot: FeatureStoreSnapshot): Promise<FeatureStoreSnapshot> {
+    const item = { 
+      ...snapshot, 
+      snapshot_id: snapshot.snapshot_id || mockFeatureStoreSnapshots.length + 1, 
+      created_at: snapshot.created_at || new Date().toISOString() 
+    };
+    mockFeatureStoreSnapshots.push(item);
+    return item;
+  }
+
+  async saveMany(snapshots: FeatureStoreSnapshot[]): Promise<FeatureStoreSnapshot[]> {
+    const saved: FeatureStoreSnapshot[] = [];
+    for (const snap of snapshots) {
+      saved.push(await this.save(snap));
+    }
+    return saved;
+  }
+}
+
+export class MockFeatureBuildRunRepository implements IFeatureBuildRunRepository {
+  async getAll(): Promise<FeatureBuildRun[]> {
+    return [...mockFeatureBuildRuns];
+  }
+
+  async getById(id: number | string): Promise<FeatureBuildRun | null> {
+    const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+    return mockFeatureBuildRuns.find(fr => fr.run_id === numericId) || null;
+  }
+
+  async getLatest(): Promise<FeatureBuildRun | null> {
+    if (mockFeatureBuildRuns.length === 0) return null;
+    return [...mockFeatureBuildRuns].sort((a, b) => {
+      const idxA = typeof a.run_id === "number" ? a.run_id : 0;
+      const idxB = typeof b.run_id === "number" ? b.run_id : 0;
+      return idxB - idxA;
+    })[0];
+  }
+
+  async save(run: FeatureBuildRun): Promise<FeatureBuildRun> {
+    const runId = run.run_id || mockFeatureBuildRuns.length + 1;
+    const existingIdx = mockFeatureBuildRuns.findIndex(fr => fr.run_id === runId);
+    const item: FeatureBuildRun = {
+      ...run,
+      run_id: runId
+    };
+    if (existingIdx >= 0) {
+      mockFeatureBuildRuns[existingIdx] = item;
+    } else {
+      mockFeatureBuildRuns.push(item);
+    }
+    return item;
+  }
+}
+
 
 
 

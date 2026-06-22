@@ -16,5 +16,10 @@ export const migrationRegistry: Migration[] = [
     version: "V027",
     description: "Project memory, system metadata, application versions, project decisions, and operations events audit tables.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "027_project_memory_foundation.sql")
+  },
+  {
+    version: "V028",
+    description: "Feature Store Foundation: feature_definitions, feature_snapshots, and feature_build_runs tables.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "028_feature_store_foundation.sql")
   }
 ];

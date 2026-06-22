@@ -19,7 +19,9 @@ import {
   riskRepo, 
   recommendationRepo, 
   futureValueRepo,
-  gameRepo
+  gameRepo,
+  featureDefinitionRepo,
+  featureSnapshotRepo
 } from "../../repositories";
 import { ReportNarrativeService } from "./ReportNarrativeService";
 import { ReportSectionBuilderService } from "./ReportSectionBuilderService";
@@ -232,6 +234,20 @@ export class WeeklyReportService {
       simulation_summary: simSummary,
       created_at: new Date().toISOString()
     };
+
+    const season = parseInt(contestId) || 2026;
+    const week = leg.nfl_week;
+
+    // Feature Store Integration
+    const defs = await featureDefinitionRepo.getAll();
+    const snaps = await featureSnapshotRepo.getBySeasonAndWeek(season, week);
+    const featureStoreSection = ReportSectionBuilderService.buildFeatureStoreAuditSection(
+      defs,
+      snaps.length,
+      season,
+      week
+    );
+    sections.push(featureStoreSection);
 
     const reportHash = ReportAuditService.createReportHash(reportShell);
     const auditMetadata = ReportAuditService.attachAuditMetadata(legId, reportHash);

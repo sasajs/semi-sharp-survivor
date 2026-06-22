@@ -859,9 +859,37 @@ export interface RemoteAccessStatus {
   nextSteps: string[];
 }
 
+export interface FeatureDefinition {
+  feature_id: string;
+  feature_name: string;
+  feature_category: string;
+  description: string;
+  sport: string;
+  active_flag: boolean;
+  created_at?: string;
+}
 
+export interface FeatureStoreSnapshot {
+  snapshot_id?: number | string;
+  season: number;
+  week: number;
+  sport: string;
+  team_id: string;
+  game_id?: string | null;
+  feature_id: string;
+  feature_value: number;
+  source: string;
+  created_at?: string;
+}
 
-
-
-
-
+export interface FeatureBuildRun {
+  run_id?: number | string;
+  season: number;
+  week: number;
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  feature_count: number;
+  started_at: string;
+  completed_at?: string;
+  build_version: string;
+  notes?: string;
+}

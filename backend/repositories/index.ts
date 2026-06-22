@@ -113,4 +113,7 @@ export const systemMetadataRepo = createRepositoryProxy(() => RepositoryFactory.
 export const applicationVersionsRepo = createRepositoryProxy(() => RepositoryFactory.getApplicationVersionsRepo());
 export const projectDecisionsRepo = createRepositoryProxy(() => RepositoryFactory.getProjectDecisionsRepo());
 export const operationsEventsRepo = createRepositoryProxy(() => RepositoryFactory.getOperationsEventsRepo());
+export const featureDefinitionRepo = createRepositoryProxy(() => RepositoryFactory.getFeatureDefinitionRepo());
+export const featureSnapshotRepo = createRepositoryProxy(() => RepositoryFactory.getFeatureSnapshotRepo());
+export const featureBuildRunRepo = createRepositoryProxy(() => RepositoryFactory.getFeatureBuildRunRepo());
 

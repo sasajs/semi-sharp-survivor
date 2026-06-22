@@ -273,5 +273,49 @@ export const adminApiService = {
     const res = await fetch("/api/system/decisions", { headers });
     if (!res.ok) throw new Error("Failed to fetch active architectural context");
     return res.json();
+  },
+
+  async fetchFeatureDefinitions(): Promise<any[]> {
+    const res = await fetch("/api/features/definitions");
+    if (!res.ok) throw new Error("Failed to fetch feature definitions");
+    return res.json();
+  },
+
+  async registerFeatureDefinition(def: any): Promise<any> {
+    const res = await fetch("/api/features/definitions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(def)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || "Failed to register feature definition");
+    }
+    return res.json();
+  },
+
+  async fetchFeatureBuildRuns(): Promise<any[]> {
+    const res = await fetch("/api/features/build-runs");
+    if (!res.ok) throw new Error("Failed to fetch feature build runs");
+    return res.json();
+  },
+
+  async triggerFeatureBuild(season: number, week: number, notes?: string): Promise<any> {
+    const res = await fetch("/api/features/build", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week, notes })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || "Failed to trigger feature store build");
+    }
+    return res.json();
+  },
+
+  async fetchHistoricalSnapshots(season: number, week: number): Promise<any[]> {
+    const res = await fetch(`/api/features/historical?season=${season}&week=${week}`);
+    if (!res.ok) throw new Error(`Failed to query historical snapshots for ${season} Week ${week}`);
+    return res.json();
   }
 };
