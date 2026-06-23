@@ -17,6 +17,7 @@ import { SystemMemoryPanel } from "../components/admin/SystemMemoryPanel";
 import { FeatureStorePanel } from "../components/admin/FeatureStorePanel";
 import { EntryStrategyPanel } from "../components/admin/EntryStrategyPanel";
 import { FutureTeamValuePanel } from "../components/admin/FutureTeamValuePanel";
+import { SurvivorEquityPanel } from "../components/admin/SurvivorEquityPanel";
 import { AdminErrorBoundary } from "../components/admin/AdminErrorBoundary";
 import { AdminLoginPanel } from "../components/admin/AdminLoginPanel";
 import { AuthStatus } from "../types/auth";
@@ -204,6 +205,14 @@ export const AdminDashboard: React.FC = () => {
             <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.4. Future Team Value Engine</span>
           </div>
           <FutureTeamValuePanel />
+        </section>
+
+        {/* Section 2.45: Survivor Equity Engine (v0.32) */}
+        <section id="admin-section-survivor-equity" className="space-y-3">
+          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.45. Survivor Equity Engine</span>
+          </div>
+          <SurvivorEquityPanel />
         </section>
 
         {/* Section 2.5: PostgreSQL Cutover Readiness Validation */}

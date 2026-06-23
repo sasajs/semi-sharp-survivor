@@ -27,6 +27,7 @@ import { ReportNarrativeService } from "./ReportNarrativeService";
 import { ReportSectionBuilderService } from "./ReportSectionBuilderService";
 import { ReportAuditService } from "./ReportAuditService";
 import { FutureTeamValueService } from "../../services/FutureTeamValueService";
+import { SurvivorEquityService } from "../../services/SurvivorEquityService";
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
 
 // Persistent state storage for generated reports and report runs
@@ -267,6 +268,24 @@ export class WeeklyReportService {
       sections.push(ftvSection);
     } catch (ftvErr: any) {
       console.warn("Could not append Future Team Value section to weekly report:", ftvErr.message);
+    }
+
+    // Survivor Equity Section (v0.32 Engine Foundation)
+    try {
+      const eqService = new SurvivorEquityService();
+      let stratPreference: any = undefined;
+      if (config.strategy_preference === "safe") {
+        stratPreference = "MARKETPLACE_SURVIVAL";
+      } else if (config.strategy_preference === "balanced") {
+        stratPreference = "PORTFOLIO_EV";
+      } else {
+        stratPreference = "CHAMPIONSHIP_EV";
+      }
+      const eqRankings = await eqService.getRankingsWithExplainability(season.toString(), week, stratPreference);
+      const eqSection = ReportSectionBuilderService.buildSurvivorEquitySection(eqRankings, season.toString(), week);
+      sections.push(eqSection);
+    } catch (eqErr: any) {
+      console.warn("Could not append Survivor Equity section to weekly report:", eqErr.message);
     }
 
     const reportHash = ReportAuditService.createReportHash(reportShell);

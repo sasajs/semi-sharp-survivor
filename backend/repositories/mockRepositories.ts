@@ -33,7 +33,8 @@ import {
   EntryStrategyProfile,
   EntryMetadata,
   StrategyType,
-  FutureTeamValue
+  FutureTeamValue,
+  SurvivorEquitySnapshot
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -71,7 +72,8 @@ import {
   IFeatureBuildRunRepository,
   IEntryStrategyProfileRepository,
   IEntryMetadataRepository,
-  IFutureTeamValueRepository
+  IFutureTeamValueRepository,
+  ISurvivorEquityRepository
 } from "./interfaces";
 
 /**
@@ -162,6 +164,15 @@ export let mockFeatureDefinitions: FeatureDefinition[] = [
     sport: "NFL",
     active_flag: true,
     created_at: new Date().toISOString()
+  },
+  {
+    feature_id: "survivor_equity",
+    feature_name: "Survivor Equity",
+    feature_category: "Contest Value",
+    description: "Estimated contest equity gain of surviving the week with a given team choice, weighted by entry-specific strategy profile.",
+    sport: "NFL",
+    active_flag: true,
+    created_at: new Date().toISOString()
   }
 ];
 export let mockFeatureStoreSnapshots: FeatureStoreSnapshot[] = [];
@@ -170,6 +181,7 @@ export let mockFeatureBuildRuns: FeatureBuildRun[] = [];
 export let mockEntryStrategyProfiles: EntryStrategyProfile[] = [];
 export let mockEntryMetadataRecords: EntryMetadata[] = [];
 export let mockFutureTeamValues: FutureTeamValue[] = [];
+export let mockSurvivorEquitySnapshots: SurvivorEquitySnapshot[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -276,6 +288,7 @@ export function resetMockDatabase(
   mockEntryMetadataRecords = [...defaultMetadata];
   mockEntryStrategyProfiles = [...defaultProfiles];
   mockFutureTeamValues = [];
+  mockSurvivorEquitySnapshots = [];
 }
 
 /**
@@ -1744,6 +1757,50 @@ export class MockFutureTeamValueRepository implements IFutureTeamValueRepository
     return mockFutureTeamValues.length < originalLen;
   }
 }
+
+export class MockSurvivorEquityRepository implements ISurvivorEquityRepository {
+  async getAll(): Promise<SurvivorEquitySnapshot[]> {
+    return [...mockSurvivorEquitySnapshots];
+  }
+
+  async getBySeasonAndWeek(season: string, week: number): Promise<SurvivorEquitySnapshot[]> {
+    return mockSurvivorEquitySnapshots.filter(v => v.season === season && v.week === week)
+      .sort((a, b) => b.equity_score - a.equity_score);
+  }
+
+  async getLatest(): Promise<SurvivorEquitySnapshot[]> {
+    if (mockSurvivorEquitySnapshots.length === 0) return [];
+    const latestVersion = mockSurvivorEquitySnapshots[mockSurvivorEquitySnapshots.length - 1].calculation_version;
+    return mockSurvivorEquitySnapshots.filter(v => v.calculation_version === latestVersion)
+      .sort((a, b) => b.equity_score - a.equity_score);
+  }
+
+  async save(snapshot: SurvivorEquitySnapshot): Promise<SurvivorEquitySnapshot> {
+    const item: SurvivorEquitySnapshot = {
+      ...snapshot,
+      id: snapshot.id || `eq-${Date.now()}-${Math.random().toString().substring(2,6)}`,
+      created_at: snapshot.created_at || new Date().toISOString()
+    };
+    mockSurvivorEquitySnapshots.push(item);
+    return item;
+  }
+
+  async saveMany(snapshots: SurvivorEquitySnapshot[]): Promise<SurvivorEquitySnapshot[]> {
+    const results: SurvivorEquitySnapshot[] = [];
+    for (const snapshot of snapshots) {
+      const saved = await this.save(snapshot);
+      results.push(saved);
+    }
+    return results;
+  }
+
+  async deleteBySeasonAndWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockSurvivorEquitySnapshots.length;
+    mockSurvivorEquitySnapshots = mockSurvivorEquitySnapshots.filter(v => !(v.season === season && v.week === week));
+    return mockSurvivorEquitySnapshots.length < originalLen;
+  }
+}
+
 
 
 

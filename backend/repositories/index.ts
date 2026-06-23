@@ -117,4 +117,6 @@ export const featureDefinitionRepo = createRepositoryProxy(() => RepositoryFacto
 export const featureSnapshotRepo = createRepositoryProxy(() => RepositoryFactory.getFeatureSnapshotRepo());
 export const featureBuildRunRepo = createRepositoryProxy(() => RepositoryFactory.getFeatureBuildRunRepo());
 export const futureTeamValueRepo = createRepositoryProxy(() => RepositoryFactory.getFutureTeamValueRepo());
+export const survivorEquityRepo = createRepositoryProxy(() => RepositoryFactory.getSurvivorEquityRepo());
+
 

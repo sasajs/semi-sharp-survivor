@@ -35,7 +35,8 @@ import {
   MockFeatureBuildRunRepository,
   MockEntryStrategyProfileRepository,
   MockEntryMetadataRepository,
-  MockFutureTeamValueRepository
+  MockFutureTeamValueRepository,
+  MockSurvivorEquityRepository
 } from "./mockRepositories";
 
 import {
@@ -69,6 +70,7 @@ import { PostgresFeatureBuildRunRepository } from "./postgres/PostgresFeatureBui
 import { PostgresEntryStrategyProfileRepository } from "./postgres/PostgresEntryStrategyProfileRepository";
 import { PostgresEntryMetadataRepository } from "./postgres/PostgresEntryMetadataRepository";
 import { PostgresFutureTeamValueRepository } from "./postgres/PostgresFutureTeamValueRepository";
+import { PostgresSurvivorEquityRepository } from "./postgres/PostgresSurvivorEquityRepository";
 
 export let useMock = databaseConfig.useMock;
 
@@ -185,6 +187,9 @@ export class RepositoryFactory {
   }
   static getFutureTeamValueRepo() {
     return useMock ? new MockFutureTeamValueRepository() : new PostgresFutureTeamValueRepository();
+  }
+  static getSurvivorEquityRepo() {
+    return useMock ? new MockSurvivorEquityRepository() : new PostgresSurvivorEquityRepository();
   }
 }
 

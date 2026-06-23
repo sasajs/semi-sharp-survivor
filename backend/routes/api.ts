@@ -55,9 +55,11 @@ import { AuthenticationMiddleware, RoleMiddleware } from "../auth/middleware/Aut
 import { SecurityStatusService } from "../auth/services/SecurityStatusService";
 import { EntryStrategyService } from "../services/EntryStrategyService";
 import { FutureTeamValueService } from "../services/FutureTeamValueService";
+import { SurvivorEquityService } from "../services/SurvivorEquityService";
 
 const entryStrategyService = new EntryStrategyService();
 const futureTeamValueService = new FutureTeamValueService();
+const survivorEquityService = new SurvivorEquityService();
 
 const router = Router();
 
@@ -1748,7 +1750,7 @@ router.get("/api/system/dashboard-definitions", async (req: Request, res: Respon
  * ==================================================================== */
 
 // GET /api/future-value/latest
-router.get("/future-value/latest", async (req: Request, res: Response) => {
+router.get("/api/future-value/latest", async (req: Request, res: Response) => {
   try {
     const list = await futureTeamValueService.getLatestBaseline();
     res.json(list);
@@ -1758,7 +1760,7 @@ router.get("/future-value/latest", async (req: Request, res: Response) => {
 });
 
 // GET /api/future-value/history
-router.get("/future-value/history", async (req: Request, res: Response) => {
+router.get("/api/future-value/history", async (req: Request, res: Response) => {
   try {
     const list = await futureTeamValueService.getHistory();
     res.json(list);
@@ -1768,7 +1770,7 @@ router.get("/future-value/history", async (req: Request, res: Response) => {
 });
 
 // GET /api/future-value/rankings
-router.get("/future-value/rankings", async (req: Request, res: Response) => {
+router.get("/api/future-value/rankings", async (req: Request, res: Response) => {
   try {
     const season = (req.query.season || "2026").toString();
     const week = parseInt((req.query.week || "1").toString(), 10);
@@ -1786,7 +1788,7 @@ router.get("/future-value/rankings", async (req: Request, res: Response) => {
 });
 
 // POST /api/future-value/calculate
-router.post("/future-value/calculate", async (req: Request, res: Response) => {
+router.post("/api/future-value/calculate", async (req: Request, res: Response) => {
   try {
     const { season, week } = req.body || {};
     if (!season) {
@@ -1803,6 +1805,68 @@ router.post("/future-value/calculate", async (req: Request, res: Response) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+/* ====================================================================
+ * SURVIVOR EQUITY ENGINE ENDPOINTS
+ * ==================================================================== */
+
+// GET /api/survivor-equity/latest
+router.get("/survivor-equity/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await survivorEquityService.getLatest();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/survivor-equity/history
+router.get("/survivor-equity/history", async (req: Request, res: Response) => {
+  try {
+    const list = await survivorEquityService.getHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/survivor-equity/rankings
+router.get("/survivor-equity/rankings", async (req: Request, res: Response) => {
+  try {
+    const season = (req.query.season || "2026").toString();
+    const week = parseInt((req.query.week || "1").toString(), 10);
+    const strategy = req.query.strategy ? (req.query.strategy).toString() : undefined;
+
+    const list = await survivorEquityService.getRankingsWithExplainability(
+      season,
+      week,
+      strategy as any
+    );
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/survivor-equity/calculate
+router.post("/survivor-equity/calculate", async (req: Request, res: Response) => {
+  try {
+    const { season, week } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const weekNum = parseInt((week || "1").toString(), 10);
+    if (isNaN(weekNum) || weekNum < 1 || weekNum > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+
+    const results = await survivorEquityService.calculate(season, weekNum);
+    res.json({ success: true, count: results.length, data: results });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 // POST /auth/login
 router.post("/auth/login", async (req: Request, res: Response) => {

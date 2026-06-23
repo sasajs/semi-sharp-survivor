@@ -938,4 +938,20 @@ export interface FutureTeamValue {
   created_at?: string;
 }
 
+export interface SurvivorEquitySnapshot {
+  id?: number | string;
+  season: string;
+  week: number;
+  entry_id: string;
+  team_id: string;
+  survival_probability: number;
+  future_team_value: number;
+  equity_score: number;
+  equity_rank: number;
+  strategy_profile: string;
+  calculation_version: string;
+  created_at?: string;
+}
+
+
 

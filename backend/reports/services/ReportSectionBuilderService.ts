@@ -220,4 +220,36 @@ ${rankings.slice(0, 10).map(r => `| **${r.team_id.toUpperCase()}** | ${r.future_
       content_markdown: md
     };
   }
+
+  static buildSurvivorEquitySection(rankings: any[], season: string, week: number): WeeklyReportSection {
+    const top10 = rankings.slice(0, 10);
+    const strategyAnalysis = `
+### Strategy Impact & Weights Analysis
+- **CHAMPIONSHIP_EV**: 30% Survival, 50% Future Team Value, 20% Season Utility (Focuses on preserving high-value future targets).
+- **PORTFOLIO_EV**: 40% Survival, 40% Future Team Value, 20% Season Utility (Balanced weighting for joint portfolio optimization).
+- **MARKETPLACE_SURVIVAL**: 60% Survival, 20% Future Team Value, 20% Season Utility (Prioritizes immediate safety to progress into mid-season).
+- **GROUP_SURVIVAL**: 70% Survival, 15% Future Team Value, 15% Season Utility (Consensus model maximizing raw survival).
+`;
+
+    const md = `### Survivor Equity Snapshot (v0.32 Engine Foundation)
+Survivor Equity estimates how much contest value you gain if a given pick survives, balancing immediate survival probability against preserving future value.
+
+- **Season**: ${season} | **Current Week**: Week ${week}
+
+- **Top 10 Survivor Equity Candidates (Ranked)**:
+
+| Team | Equity Score | Rank | Survival Prob | Future Value | Strategy Profile | Explanation |
+|---|---|---|---|---|---|---|
+${top10.map(r => `| **${r.team_id.toUpperCase()}** | ${r.equity_score.toFixed(1)} | #${r.equity_rank} | ${r.survival_probability.toFixed(1)}% | ${r.future_team_value.toFixed(1)} | \`${r.strategy_profile}\` | ${r.explanation} |`).join("\n")}
+
+${strategyAnalysis}
+`;
+
+    return {
+      id: "sec-survivor-equity-analysis",
+      title: "11. Survivor Equity & Contest Value Analysis",
+      type: "inventory_summary",
+      content_markdown: md
+    };
+  }
 }

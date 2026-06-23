@@ -32,7 +32,8 @@ import {
   FeatureStoreSnapshot,
   EntryStrategyProfile,
   EntryMetadata,
-  FutureTeamValue
+  FutureTeamValue,
+  SurvivorEquitySnapshot
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -294,6 +295,16 @@ export interface IFutureTeamValueRepository {
   saveMany(vals: FutureTeamValue[]): Promise<FutureTeamValue[]>;
   deleteBySeasonAndWeek(season: string, week: number): Promise<boolean>;
 }
+
+export interface ISurvivorEquityRepository {
+  getAll(): Promise<SurvivorEquitySnapshot[]>;
+  getBySeasonAndWeek(season: string, week: number): Promise<SurvivorEquitySnapshot[]>;
+  getLatest(): Promise<SurvivorEquitySnapshot[]>;
+  save(snapshot: SurvivorEquitySnapshot): Promise<SurvivorEquitySnapshot>;
+  saveMany(snapshots: SurvivorEquitySnapshot[]): Promise<SurvivorEquitySnapshot[]>;
+  deleteBySeasonAndWeek(season: string, week: number): Promise<boolean>;
+}
+
 
 
 
