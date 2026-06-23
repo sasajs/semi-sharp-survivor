@@ -33,7 +33,8 @@ import {
   EntryStrategyProfile,
   EntryMetadata,
   FutureTeamValue,
-  SurvivorEquitySnapshot
+  SurvivorEquitySnapshot,
+  AuditableRecommendationCandidate
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -302,6 +303,16 @@ export interface ISurvivorEquityRepository {
   getLatest(): Promise<SurvivorEquitySnapshot[]>;
   save(snapshot: SurvivorEquitySnapshot): Promise<SurvivorEquitySnapshot>;
   saveMany(snapshots: SurvivorEquitySnapshot[]): Promise<SurvivorEquitySnapshot[]>;
+  deleteBySeasonAndWeek(season: string, week: number): Promise<boolean>;
+}
+
+export interface IRecommendationCandidateRepository {
+  getAll(): Promise<AuditableRecommendationCandidate[]>;
+  getBySeasonAndWeek(season: string, week: number): Promise<AuditableRecommendationCandidate[]>;
+  getLatest(): Promise<AuditableRecommendationCandidate[]>;
+  getByEntryId(entryId: string): Promise<AuditableRecommendationCandidate[]>;
+  save(candidate: AuditableRecommendationCandidate): Promise<AuditableRecommendationCandidate>;
+  saveMany(candidates: AuditableRecommendationCandidate[]): Promise<AuditableRecommendationCandidate[]>;
   deleteBySeasonAndWeek(season: string, week: number): Promise<boolean>;
 }
 

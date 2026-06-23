@@ -36,7 +36,8 @@ import {
   MockEntryStrategyProfileRepository,
   MockEntryMetadataRepository,
   MockFutureTeamValueRepository,
-  MockSurvivorEquityRepository
+  MockSurvivorEquityRepository,
+  MockRecommendationCandidateRepository
 } from "./mockRepositories";
 
 import {
@@ -71,6 +72,7 @@ import { PostgresEntryStrategyProfileRepository } from "./postgres/PostgresEntry
 import { PostgresEntryMetadataRepository } from "./postgres/PostgresEntryMetadataRepository";
 import { PostgresFutureTeamValueRepository } from "./postgres/PostgresFutureTeamValueRepository";
 import { PostgresSurvivorEquityRepository } from "./postgres/PostgresSurvivorEquityRepository";
+import { PostgresRecommendationCandidateRepository } from "./postgres/PostgresRecommendationCandidateRepository";
 
 export let useMock = databaseConfig.useMock;
 
@@ -190,6 +192,9 @@ export class RepositoryFactory {
   }
   static getSurvivorEquityRepo() {
     return useMock ? new MockSurvivorEquityRepository() : new PostgresSurvivorEquityRepository();
+  }
+  static getRecommendationCandidateRepo() {
+    return useMock ? new MockRecommendationCandidateRepository() : new PostgresRecommendationCandidateRepository();
   }
 }
 

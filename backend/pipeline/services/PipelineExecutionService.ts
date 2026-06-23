@@ -3,6 +3,7 @@ import { PipelineAuditService } from "./PipelineAuditService";
 import { PipelineValidationService } from "./PipelineValidationService";
 import { FutureTeamValueService } from "../../services/FutureTeamValueService";
 import { SurvivorEquityService } from "../../services/SurvivorEquityService";
+import { RecommendationCandidateService } from "../../services/RecommendationCandidateService";
 
 export class PipelineExecutionService {
   private static executions: PipelineExecution[] = [];
@@ -69,10 +70,12 @@ export class PipelineExecutionService {
               await ftvService.calculate("2026", 1);
               const eqService = new SurvivorEquityService();
               await eqService.calculate("2026", 1);
+              const recService = new RecommendationCandidateService();
+              await recService.calculate("2026", 1);
             } catch (ftvErr: any) {
               PipelineAuditService.log("WARNING", "PIPELINE_CALC_FAILED", `Traced engine calculations during pipeline execution skipped/warned: ${ftvErr.message}`);
             }
-            outputSummary = "Triggering weekly Survivor calculation loop. Resolved 16 matchups. Future Team Value & Survivor Equity scores generated dynamically. Model weights applied successfully.";
+            outputSummary = "Triggering weekly Survivor calculation loop. Resolved 16 matchups. Future Team Value, Survivor Equity, & Recommendation Candidate scores generated dynamically. Model weights applied successfully.";
             break;
           case PipelineStage.REPORT_GENERATION:
             outputSummary = "Generated weekly intelligence reports. Margins compiled. Scoreboards matching trigonometric predictions.";

@@ -28,6 +28,7 @@ import { ReportSectionBuilderService } from "./ReportSectionBuilderService";
 import { ReportAuditService } from "./ReportAuditService";
 import { FutureTeamValueService } from "../../services/FutureTeamValueService";
 import { SurvivorEquityService } from "../../services/SurvivorEquityService";
+import { RecommendationCandidateService } from "../../services/RecommendationCandidateService";
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
 
 // Persistent state storage for generated reports and report runs
@@ -286,6 +287,20 @@ export class WeeklyReportService {
       sections.push(eqSection);
     } catch (eqErr: any) {
       console.warn("Could not append Survivor Equity section to weekly report:", eqErr.message);
+    }
+
+    // Recommendation Candidates Section (v0.33 Engine)
+    try {
+      const recService = new RecommendationCandidateService();
+      let candidates = await recService.getHistory();
+      candidates = candidates.filter(c => c.season === season.toString() && c.week === week);
+      if (candidates.length === 0) {
+        candidates = await recService.calculate(season.toString(), week);
+      }
+      const recCandidatesSection = ReportSectionBuilderService.buildRecommendationCandidatesSection(candidates, season.toString(), week);
+      sections.push(recCandidatesSection);
+    } catch (recErr: any) {
+      console.warn("Could not append Recommendation Candidates section to weekly report:", recErr.message);
     }
 
     const reportHash = ReportAuditService.createReportHash(reportShell);

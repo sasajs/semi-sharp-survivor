@@ -953,5 +953,25 @@ export interface SurvivorEquitySnapshot {
   created_at?: string;
 }
 
+export interface AuditableRecommendationCandidate {
+  id?: number | string;
+  season: string;
+  week: number;
+  entry_id: string;
+  team_id: string;
+  candidate_rank: number;
+  candidate_score: number;
+  survivor_equity_score: number;
+  future_team_value_score: number;
+  survival_probability: number;
+  strategy_profile: string;
+  eligibility_status: string;
+  eligibility_reason: string | null;
+  explanation: string;
+  calculation_version: string;
+  created_at?: string;
+}
+
+
 
 

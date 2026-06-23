@@ -2,6 +2,7 @@ import { Team, Contest, ContestLeg, Game, TeamWeekLine, SurvivorEntry, SurvivorP
 import { resetMockDatabase } from "../repositories/mockRepositories";
 import { FutureTeamValueService } from "./FutureTeamValueService";
 import { SurvivorEquityService } from "./SurvivorEquityService";
+import { RecommendationCandidateService } from "./RecommendationCandidateService";
 
 export const initialTeams: Team[] = [
   { id: "ari", name: "Arizona Cardinals", abbreviation: "ARI", bye_week: 11, primary_color: "#97233F", secondary_color: "#FFB612" },
@@ -160,13 +161,17 @@ export function buildAndSeedMockState() {
   resetMockDatabase(initialTeams, initialContests, initialLegs, initialEntries, initialPicks, games, lines);
 
   // Pre-calculate baseline values for the mock dashboard out-of-the-box
-  try {
-    const ftvService = new FutureTeamValueService();
-    ftvService.calculate("2026", 1);
-    const eqService = new SurvivorEquityService();
-    eqService.calculate("2026", 1);
-    console.log("[Mock Seeder] Pre-calculated Future Team Value and Survivor Equity snapshotted states successfully.");
-  } catch (err) {
-    console.warn("Failed to pre-calculate mock dashboard metrics:", err);
-  }
+  (async () => {
+    try {
+      const ftvService = new FutureTeamValueService();
+      await ftvService.calculate("2026", 1);
+      const eqService = new SurvivorEquityService();
+      await eqService.calculate("2026", 1);
+      const recService = new RecommendationCandidateService();
+      await recService.calculate("2026", 1);
+      console.log("[Mock Seeder] Pre-calculated Future Team Value, Survivor Equity, and Recommendation Candidates snapshotted states successfully.");
+    } catch (err) {
+      console.warn("Failed to pre-calculate mock dashboard metrics:", err);
+    }
+  })();
 }

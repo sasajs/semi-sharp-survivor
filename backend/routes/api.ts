@@ -56,10 +56,12 @@ import { SecurityStatusService } from "../auth/services/SecurityStatusService";
 import { EntryStrategyService } from "../services/EntryStrategyService";
 import { FutureTeamValueService } from "../services/FutureTeamValueService";
 import { SurvivorEquityService } from "../services/SurvivorEquityService";
+import { RecommendationCandidateService } from "../services/RecommendationCandidateService";
 
 const entryStrategyService = new EntryStrategyService();
 const futureTeamValueService = new FutureTeamValueService();
 const survivorEquityService = new SurvivorEquityService();
+const recommendationCandidateService = new RecommendationCandidateService();
 
 const router = Router();
 
@@ -1910,6 +1912,60 @@ router.get("/admin/security/status", async (req: Request, res: Response) => {
   try {
     const status = await SecurityStatusService.getStatus();
     res.json(status);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ====================================================================
+ * RECOMMENDATION CANDIDATE ENGINE ENDPOINTS (v0.33)
+ * ==================================================================== */
+
+// GET /api/recommendation-candidates/latest
+router.get("/recommendation-candidates/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await recommendationCandidateService.getLatest();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendation-candidates/history
+router.get("/recommendation-candidates/history", async (req: Request, res: Response) => {
+  try {
+    const list = await recommendationCandidateService.getHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendation-candidates/by-entry/:entryId
+router.get("/recommendation-candidates/by-entry/:entryId", async (req: Request, res: Response) => {
+  try {
+    const { entryId } = req.params;
+    const list = await recommendationCandidateService.getByEntryId(entryId);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/recommendation-candidates/calculate
+router.post("/recommendation-candidates/calculate", async (req: Request, res: Response) => {
+  try {
+    const { season, week } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const weekNum = parseInt((week || "1").toString(), 10);
+    if (isNaN(weekNum) || weekNum < 1 || weekNum > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+
+    const results = await recommendationCandidateService.calculate(season, weekNum);
+    res.json({ success: true, count: results.length, data: results });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

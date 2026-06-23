@@ -252,4 +252,56 @@ ${strategyAnalysis}
       content_markdown: md
     };
   }
+
+  static buildRecommendationCandidatesSection(candidates: any[], season: string, week: number): WeeklyReportSection {
+    const entriesMap = new Map<string, any[]>();
+    for (const c of candidates) {
+      if (!entriesMap.has(c.entry_id)) {
+        entriesMap.set(c.entry_id, []);
+      }
+      entriesMap.get(c.entry_id)!.push(c);
+    }
+
+    let entriesMarkdown = "";
+    for (const [entryId, entryCandList] of entriesMap.entries()) {
+      const sorted = [...entryCandList].sort((a, b) => {
+        if (a.eligibility_status === "eligible" && b.eligibility_status !== "eligible") return -1;
+        if (a.eligibility_status !== "eligible" && b.eligibility_status === "eligible") return 1;
+        return b.candidate_score - a.candidate_score;
+      });
+
+      const top5 = sorted.slice(0, 5);
+      
+      entriesMarkdown += `
+#### Entry: **${entryId}**
+*Strategy Profile Impact: \`${top5[0]?.strategy_profile || "N/A"}\`*
+
+| Rank | Team | Candidate Score | Eligibility | Equity Score | Future Value | Survival Prob | Explanation |
+|---|---|---|---|---|---|---|---|
+${top5.map(c => {
+  const rankStr = c.eligibility_status === "eligible" ? `#${c.candidate_rank}` : "N/A";
+  const scoreStr = c.eligibility_status === "eligible" ? c.candidate_score.toFixed(1) : "N/A";
+  const statusBadge = c.eligibility_status === "eligible" ? "🟢 Eligible" : `🔴 Ineligible (${c.eligibility_reason})`;
+  return `| ${rankStr} | **${c.team_id.toUpperCase()}** | ${scoreStr} | ${statusBadge} | ${c.survivor_equity_score.toFixed(1)} | ${c.future_team_value_score.toFixed(1)} | ${c.survival_probability.toFixed(1)}% | ${c.explanation} |`;
+}).join("\n")}
+`;
+    }
+
+    const md = `### Recommendation Candidates (v0.33 Engine)
+⚠️ **IMPORTANT NOTICE: Candidates only — not final recommendations.**
+These are ranked candidate options generated using eligible team filters and strategic fit scoring. They do NOT represent locked picks or final recommendation decisions.
+
+- **Season**: ${season} | **Current Week**: Week ${week}
+- **Scoring Weights Model**: 70% Survivor Equity Score + 20% Survival Probability + 10% Strategy Fit Score.
+
+${entriesMarkdown}
+`;
+
+    return {
+      id: "sec-recommendation-candidates-analysis",
+      title: "12. Recommendation Candidate Auditing",
+      type: "inventory_summary",
+      content_markdown: md
+    };
+  }
 }
