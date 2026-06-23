@@ -31,5 +31,10 @@ export const migrationRegistry: Migration[] = [
     version: "V030",
     description: "Entry Metadata and Explainability Refinement.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "030_entry_metadata_and_explainability.sql")
+  },
+  {
+    version: "V031",
+    description: "Future Team Value Engine: future_team_values calculations schema.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "031_future_team_values.sql")
   }
 ];

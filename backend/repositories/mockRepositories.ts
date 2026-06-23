@@ -32,7 +32,8 @@ import {
   FeatureStoreSnapshot,
   EntryStrategyProfile,
   EntryMetadata,
-  StrategyType
+  StrategyType,
+  FutureTeamValue
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -69,7 +70,8 @@ import {
   IFeatureSnapshotRepository,
   IFeatureBuildRunRepository,
   IEntryStrategyProfileRepository,
-  IEntryMetadataRepository
+  IEntryMetadataRepository,
+  IFutureTeamValueRepository
 } from "./interfaces";
 
 /**
@@ -167,6 +169,7 @@ export let mockFeatureBuildRuns: FeatureBuildRun[] = [];
 
 export let mockEntryStrategyProfiles: EntryStrategyProfile[] = [];
 export let mockEntryMetadataRecords: EntryMetadata[] = [];
+export let mockFutureTeamValues: FutureTeamValue[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -272,6 +275,7 @@ export function resetMockDatabase(
   mockHistory = [];
   mockEntryMetadataRecords = [...defaultMetadata];
   mockEntryStrategyProfiles = [...defaultProfiles];
+  mockFutureTeamValues = [];
 }
 
 /**
@@ -1696,6 +1700,51 @@ export class MockEntryMetadataRepository implements IEntryMetadataRepository {
     return mockEntryMetadataRecords.length < originalLen;
   }
 }
+
+export class MockFutureTeamValueRepository implements IFutureTeamValueRepository {
+  async getAll(): Promise<FutureTeamValue[]> {
+    return [...mockFutureTeamValues];
+  }
+
+  async getBySeasonAndWeek(season: string, week: number): Promise<FutureTeamValue[]> {
+    return mockFutureTeamValues.filter(v => v.season === season && v.week === week)
+      .sort((a, b) => b.future_value_score - a.future_value_score);
+  }
+
+  async getLatest(): Promise<FutureTeamValue[]> {
+    if (mockFutureTeamValues.length === 0) return [];
+    // Get latest calculation version
+    const latestVersion = mockFutureTeamValues[mockFutureTeamValues.length - 1].calculation_version;
+    return mockFutureTeamValues.filter(v => v.calculation_version === latestVersion)
+      .sort((a, b) => b.future_value_score - a.future_value_score);
+  }
+
+  async save(val: FutureTeamValue): Promise<FutureTeamValue> {
+    const item: FutureTeamValue = {
+      ...val,
+      id: val.id || `ftv-${Date.now()}-${Math.random().toString().substring(2,6)}`,
+      created_at: val.created_at || new Date().toISOString()
+    };
+    mockFutureTeamValues.push(item);
+    return item;
+  }
+
+  async saveMany(vals: FutureTeamValue[]): Promise<FutureTeamValue[]> {
+    const results: FutureTeamValue[] = [];
+    for (const val of vals) {
+      const saved = await this.save(val);
+      results.push(saved);
+    }
+    return results;
+  }
+
+  async deleteBySeasonAndWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockFutureTeamValues.length;
+    mockFutureTeamValues = mockFutureTeamValues.filter(v => !(v.season === season && v.week === week));
+    return mockFutureTeamValues.length < originalLen;
+  }
+}
+
 
 
 

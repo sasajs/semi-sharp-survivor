@@ -201,4 +201,23 @@ ${definitions.map(d => `| \`${d.feature_id}\` | ${d.feature_name} | ${d.feature_
       content_markdown: md
     };
   }
+
+  static buildFutureTeamValueSection(rankings: any[], season: string, week: number): WeeklyReportSection {
+    const md = `### Future Team Value Preservations (v0.31 Engine)
+The Future Team Value Engine estimates the strategic value of preserving teams for future weeks rather than burning them today.
+- **Season**: ${season} | **Current Week**: Week ${week}
+- **Calculated Team Preservations (Top 10)**:
+
+| Team | Value Score | Rank | Explanation / Reason |
+|---|---|---|---|
+${rankings.slice(0, 10).map(r => `| **${r.team_id.toUpperCase()}** | ${r.future_value_score.toFixed(1)} | #${r.future_value_rank} | ${r.explanation} |`).join("\n")}
+`;
+
+    return {
+      id: "sec-future-team-value-preservation",
+      title: "10. Survivor Future Team Value Analysis",
+      type: "inventory_summary",
+      content_markdown: md
+    };
+  }
 }

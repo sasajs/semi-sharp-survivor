@@ -116,4 +116,5 @@ export const operationsEventsRepo = createRepositoryProxy(() => RepositoryFactor
 export const featureDefinitionRepo = createRepositoryProxy(() => RepositoryFactory.getFeatureDefinitionRepo());
 export const featureSnapshotRepo = createRepositoryProxy(() => RepositoryFactory.getFeatureSnapshotRepo());
 export const featureBuildRunRepo = createRepositoryProxy(() => RepositoryFactory.getFeatureBuildRunRepo());
+export const futureTeamValueRepo = createRepositoryProxy(() => RepositoryFactory.getFutureTeamValueRepo());
 

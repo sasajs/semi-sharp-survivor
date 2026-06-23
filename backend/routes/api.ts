@@ -54,8 +54,10 @@ import { AuthService } from "../auth/services/AuthService";
 import { AuthenticationMiddleware, RoleMiddleware } from "../auth/middleware/AuthMiddleware";
 import { SecurityStatusService } from "../auth/services/SecurityStatusService";
 import { EntryStrategyService } from "../services/EntryStrategyService";
+import { FutureTeamValueService } from "../services/FutureTeamValueService";
 
 const entryStrategyService = new EntryStrategyService();
+const futureTeamValueService = new FutureTeamValueService();
 
 const router = Router();
 
@@ -1739,6 +1741,67 @@ router.get("/api/system/dashboard-definitions", async (req: Request, res: Respon
     THANKSGIVING_SLATE: "The Thanksgiving holiday. A three-game special slate requiring precise, dedicated team selections. A key milestone for mid-season survival profiles.",
     NEXT_PLAYOFF_LEG: "Upcoming tournament legs or Christmas premium legs. Strategy-aware recommendation engines reserve top-shelf assets to protect this high-leverage slate."
   });
+});
+
+/* ====================================================================
+ * FUTURE TEAM VALUE ENGINE ENDPOINTS
+ * ==================================================================== */
+
+// GET /api/future-value/latest
+router.get("/future-value/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await futureTeamValueService.getLatestBaseline();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/future-value/history
+router.get("/future-value/history", async (req: Request, res: Response) => {
+  try {
+    const list = await futureTeamValueService.getHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/future-value/rankings
+router.get("/future-value/rankings", async (req: Request, res: Response) => {
+  try {
+    const season = (req.query.season || "2026").toString();
+    const week = parseInt((req.query.week || "1").toString(), 10);
+    const strategy = req.query.strategy ? (req.query.strategy).toString() : undefined;
+
+    const list = await futureTeamValueService.getRankingsWithExplainability(
+      season,
+      week,
+      strategy as any
+    );
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/future-value/calculate
+router.post("/future-value/calculate", async (req: Request, res: Response) => {
+  try {
+    const { season, week } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const weekNum = parseInt((week || "1").toString(), 10);
+    if (isNaN(weekNum) || weekNum < 1 || weekNum > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+
+    const results = await futureTeamValueService.calculate(season, weekNum);
+    res.json({ success: true, count: results.length, data: results });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST /auth/login

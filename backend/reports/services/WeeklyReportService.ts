@@ -26,6 +26,7 @@ import {
 import { ReportNarrativeService } from "./ReportNarrativeService";
 import { ReportSectionBuilderService } from "./ReportSectionBuilderService";
 import { ReportAuditService } from "./ReportAuditService";
+import { FutureTeamValueService } from "../../services/FutureTeamValueService";
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
 
 // Persistent state storage for generated reports and report runs
@@ -248,6 +249,25 @@ export class WeeklyReportService {
       week
     );
     sections.push(featureStoreSection);
+
+    // Future Team Value Section (v0.31 Engine)
+    try {
+      const ftvService = new FutureTeamValueService();
+      // Translate report strategy preference to core StrategyType
+      let stratPreference: any = undefined;
+      if (config.strategy_preference === "safe") {
+        stratPreference = "MARKETPLACE_SURVIVAL";
+      } else if (config.strategy_preference === "balanced") {
+        stratPreference = "PORTFOLIO_EV";
+      } else {
+        stratPreference = "CHAMPIONSHIP_EV";
+      }
+      const ftvRankings = await ftvService.getRankingsWithExplainability(season.toString(), week, stratPreference);
+      const ftvSection = ReportSectionBuilderService.buildFutureTeamValueSection(ftvRankings, season.toString(), week);
+      sections.push(ftvSection);
+    } catch (ftvErr: any) {
+      console.warn("Could not append Future Team Value section to weekly report:", ftvErr.message);
+    }
 
     const reportHash = ReportAuditService.createReportHash(reportShell);
     const auditMetadata = ReportAuditService.attachAuditMetadata(legId, reportHash);

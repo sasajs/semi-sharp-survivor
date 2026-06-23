@@ -31,7 +31,8 @@ import {
   FeatureBuildRun,
   FeatureStoreSnapshot,
   EntryStrategyProfile,
-  EntryMetadata
+  EntryMetadata,
+  FutureTeamValue
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -284,6 +285,16 @@ export interface IEntryMetadataRepository {
   save(metadata: EntryMetadata): Promise<EntryMetadata>;
   deleteByEntryId(entryId: string): Promise<boolean>;
 }
+
+export interface IFutureTeamValueRepository {
+  getAll(): Promise<FutureTeamValue[]>;
+  getBySeasonAndWeek(season: string, week: number): Promise<FutureTeamValue[]>;
+  getLatest(): Promise<FutureTeamValue[]>;
+  save(val: FutureTeamValue): Promise<FutureTeamValue>;
+  saveMany(vals: FutureTeamValue[]): Promise<FutureTeamValue[]>;
+  deleteBySeasonAndWeek(season: string, week: number): Promise<boolean>;
+}
+
 
 
 

@@ -926,3 +926,16 @@ export interface EntryMetadata {
   updated_at?: string;
 }
 
+export interface FutureTeamValue {
+  id?: number | string;
+  season: string;
+  week: number;
+  team_id: string;
+  future_value_score: number;
+  future_value_rank: number;
+  future_weeks_considered: number;
+  calculation_version: string;
+  created_at?: string;
+}
+
+
