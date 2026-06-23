@@ -46,5 +46,10 @@ export const migrationRegistry: Migration[] = [
     version: "V033",
     description: "Recommendation Candidate Engine: recommendation_candidates schema.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "033_recommendation_candidates.sql")
+  },
+  {
+    version: "V034",
+    description: "Ownership & Contest Dynamics Foundation: ownership_projections and contest_dynamics_snapshots tables.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "034_ownership_and_contest_dynamics.sql")
   }
 ];

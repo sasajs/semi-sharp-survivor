@@ -100,5 +100,17 @@ export const apiService = {
       method: "POST"
     });
     if (!res.ok) throw new Error("Failed to reset database");
+  },
+
+  async fetchOwnershipProjections(season: string, week: number): Promise<any[]> {
+    const res = await fetch(`/api/ownership/rankings?season=${season}&week=${week}`);
+    if (!res.ok) throw new Error("Failed to fetch ownership projections");
+    return res.json();
+  },
+
+  async fetchContestDynamics(season: string, week: number): Promise<any[]> {
+    const res = await fetch(`/api/contest-dynamics/rankings?season=${season}&week=${week}`);
+    if (!res.ok) throw new Error("Failed to fetch contest dynamics");
+    return res.json();
   }
 };

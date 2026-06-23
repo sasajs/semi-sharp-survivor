@@ -29,6 +29,8 @@ import { ReportAuditService } from "./ReportAuditService";
 import { FutureTeamValueService } from "../../services/FutureTeamValueService";
 import { SurvivorEquityService } from "../../services/SurvivorEquityService";
 import { RecommendationCandidateService } from "../../services/RecommendationCandidateService";
+import { OwnershipProjectionService } from "../../services/OwnershipProjectionService";
+import { ContestDynamicsService } from "../../services/ContestDynamicsService";
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
 
 // Persistent state storage for generated reports and report runs
@@ -301,6 +303,34 @@ export class WeeklyReportService {
       sections.push(recCandidatesSection);
     } catch (recErr: any) {
       console.warn("Could not append Recommendation Candidates section to weekly report:", recErr.message);
+    }
+
+    // Ownership Projection Analysis Section (v0.34 Engine)
+    try {
+      const ownService = new OwnershipProjectionService();
+      let projections = await ownService.getHistory();
+      projections = projections.filter(p => p.season === season.toString() && p.week === week);
+      if (projections.length === 0) {
+        projections = await ownService.calculate(season.toString(), week);
+      }
+      const ownSection = ReportSectionBuilderService.buildOwnershipProjectionSection(projections, season.toString(), week);
+      sections.push(ownSection);
+    } catch (ownErr: any) {
+      console.warn("Could not append Ownership Projections section to weekly report:", ownErr.message);
+    }
+
+    // Contest Dynamics Analysis Section (v0.34 Engine)
+    try {
+      const dynService = new ContestDynamicsService();
+      let snapshots = await dynService.getHistory();
+      snapshots = snapshots.filter(s => s.season === season.toString() && s.week === week);
+      if (snapshots.length === 0) {
+        snapshots = await dynService.calculate(season.toString(), week);
+      }
+      const dynSection = ReportSectionBuilderService.buildContestDynamicsSection(snapshots, season.toString(), week);
+      sections.push(dynSection);
+    } catch (dynErr: any) {
+      console.warn("Could not append Contest Dynamics section to weekly report:", dynErr.message);
     }
 
     const reportHash = ReportAuditService.createReportHash(reportShell);

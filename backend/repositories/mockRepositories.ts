@@ -35,7 +35,9 @@ import {
   StrategyType,
   FutureTeamValue,
   SurvivorEquitySnapshot,
-  AuditableRecommendationCandidate
+  AuditableRecommendationCandidate,
+  OwnershipProjection,
+  ContestDynamicsSnapshot
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -75,7 +77,9 @@ import {
   IEntryMetadataRepository,
   IFutureTeamValueRepository,
   ISurvivorEquityRepository,
-  IRecommendationCandidateRepository
+  IRecommendationCandidateRepository,
+  IOwnershipProjectionRepository,
+  IContestDynamicsRepository
 } from "./interfaces";
 
 /**
@@ -185,6 +189,8 @@ export let mockEntryMetadataRecords: EntryMetadata[] = [];
 export let mockFutureTeamValues: FutureTeamValue[] = [];
 export let mockSurvivorEquitySnapshots: SurvivorEquitySnapshot[] = [];
 export let mockRecommendationCandidates: AuditableRecommendationCandidate[] = [];
+export let mockOwnershipProjections: OwnershipProjection[] = [];
+export let mockContestDynamicsSnapshots: ContestDynamicsSnapshot[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -293,6 +299,8 @@ export function resetMockDatabase(
   mockFutureTeamValues = [];
   mockSurvivorEquitySnapshots = [];
   mockRecommendationCandidates = [];
+  mockOwnershipProjections = [];
+  mockContestDynamicsSnapshots = [];
 }
 
 /**
@@ -1849,6 +1857,93 @@ export class MockRecommendationCandidateRepository implements IRecommendationCan
     return mockRecommendationCandidates.length < originalLen;
   }
 }
+
+export class MockOwnershipProjectionRepository implements IOwnershipProjectionRepository {
+  async getAll(): Promise<OwnershipProjection[]> {
+    return [...mockOwnershipProjections];
+  }
+
+  async getBySeasonAndWeek(season: string, week: number): Promise<OwnershipProjection[]> {
+    return mockOwnershipProjections.filter(p => p.season === season && p.week === week);
+  }
+
+  async getLatest(): Promise<OwnershipProjection[]> {
+    if (mockOwnershipProjections.length === 0) return [];
+    const latestVersion = mockOwnershipProjections[mockOwnershipProjections.length - 1].calculation_version;
+    return mockOwnershipProjections.filter(p => p.calculation_version === latestVersion);
+  }
+
+  async save(projection: OwnershipProjection): Promise<OwnershipProjection> {
+    const item: OwnershipProjection = {
+      ...projection,
+      id: projection.id || Math.random().toString(36).substr(2, 9),
+      created_at: projection.created_at || new Date().toISOString()
+    };
+    mockOwnershipProjections.push(item);
+    return item;
+  }
+
+  async saveMany(projections: OwnershipProjection[]): Promise<OwnershipProjection[]> {
+    const results: OwnershipProjection[] = [];
+    for (const p of projections) {
+      const saved = await this.save(p);
+      results.push(saved);
+    }
+    return results;
+  }
+
+  async deleteBySeasonAndWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockOwnershipProjections.length;
+    mockOwnershipProjections = mockOwnershipProjections.filter(p => !(p.season === season && p.week === week));
+    return mockOwnershipProjections.length < originalLen;
+  }
+}
+
+export class MockContestDynamicsRepository implements IContestDynamicsRepository {
+  async getAll(): Promise<ContestDynamicsSnapshot[]> {
+    return [...mockContestDynamicsSnapshots];
+  }
+
+  async getBySeasonAndWeek(season: string, week: number): Promise<ContestDynamicsSnapshot[]> {
+    return mockContestDynamicsSnapshots.filter(s => s.season === season && s.week === week);
+  }
+
+  async getLatest(): Promise<ContestDynamicsSnapshot[]> {
+    if (mockContestDynamicsSnapshots.length === 0) return [];
+    const latestVersion = mockContestDynamicsSnapshots[mockContestDynamicsSnapshots.length - 1].calculation_version;
+    return mockContestDynamicsSnapshots.filter(s => s.calculation_version === latestVersion);
+  }
+
+  async getByEntryId(entryId: string): Promise<ContestDynamicsSnapshot[]> {
+    return mockContestDynamicsSnapshots.filter(s => s.entry_id === entryId);
+  }
+
+  async save(snapshot: ContestDynamicsSnapshot): Promise<ContestDynamicsSnapshot> {
+    const item: ContestDynamicsSnapshot = {
+      ...snapshot,
+      id: snapshot.id || Math.random().toString(36).substr(2, 9),
+      created_at: snapshot.created_at || new Date().toISOString()
+    };
+    mockContestDynamicsSnapshots.push(item);
+    return item;
+  }
+
+  async saveMany(snapshots: ContestDynamicsSnapshot[]): Promise<ContestDynamicsSnapshot[]> {
+    const results: ContestDynamicsSnapshot[] = [];
+    for (const s of snapshots) {
+      const saved = await this.save(s);
+      results.push(saved);
+    }
+    return results;
+  }
+
+  async deleteBySeasonAndWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockContestDynamicsSnapshots.length;
+    mockContestDynamicsSnapshots = mockContestDynamicsSnapshots.filter(s => !(s.season === season && s.week === week));
+    return mockContestDynamicsSnapshots.length < originalLen;
+  }
+}
+
 
 
 

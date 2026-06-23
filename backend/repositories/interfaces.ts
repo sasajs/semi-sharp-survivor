@@ -34,7 +34,9 @@ import {
   EntryMetadata,
   FutureTeamValue,
   SurvivorEquitySnapshot,
-  AuditableRecommendationCandidate
+  AuditableRecommendationCandidate,
+  OwnershipProjection,
+  ContestDynamicsSnapshot
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -315,6 +317,26 @@ export interface IRecommendationCandidateRepository {
   saveMany(candidates: AuditableRecommendationCandidate[]): Promise<AuditableRecommendationCandidate[]>;
   deleteBySeasonAndWeek(season: string, week: number): Promise<boolean>;
 }
+
+export interface IOwnershipProjectionRepository {
+  getAll(): Promise<OwnershipProjection[]>;
+  getBySeasonAndWeek(season: string, week: number): Promise<OwnershipProjection[]>;
+  getLatest(): Promise<OwnershipProjection[]>;
+  save(projection: OwnershipProjection): Promise<OwnershipProjection>;
+  saveMany(projections: OwnershipProjection[]): Promise<OwnershipProjection[]>;
+  deleteBySeasonAndWeek(season: string, week: number): Promise<boolean>;
+}
+
+export interface IContestDynamicsRepository {
+  getAll(): Promise<ContestDynamicsSnapshot[]>;
+  getBySeasonAndWeek(season: string, week: number): Promise<ContestDynamicsSnapshot[]>;
+  getLatest(): Promise<ContestDynamicsSnapshot[]>;
+  getByEntryId(entryId: string): Promise<ContestDynamicsSnapshot[]>;
+  save(snapshot: ContestDynamicsSnapshot): Promise<ContestDynamicsSnapshot>;
+  saveMany(snapshots: ContestDynamicsSnapshot[]): Promise<ContestDynamicsSnapshot[]>;
+  deleteBySeasonAndWeek(season: string, week: number): Promise<boolean>;
+}
+
 
 
 

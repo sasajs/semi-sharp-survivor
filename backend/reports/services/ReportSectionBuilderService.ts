@@ -8,6 +8,7 @@ import {
   ChalkUpsetScenario,
   StrategyComparison
 } from "../models";
+import { OwnershipProjection, ContestDynamicsSnapshot } from "../../../src/types";
 
 export class ReportSectionBuilderService {
   static buildExecutiveSummary(
@@ -300,6 +301,95 @@ ${entriesMarkdown}
     return {
       id: "sec-recommendation-candidates-analysis",
       title: "12. Recommendation Candidate Auditing",
+      type: "inventory_summary",
+      content_markdown: md
+    };
+  }
+
+  static buildOwnershipProjectionSection(projections: OwnershipProjection[], season: string, week: number): WeeklyReportSection {
+    const active = projections.filter(p => p.projected_ownership_pct > 0);
+    const topChalk = [...active].sort((a, b) => b.projected_ownership_pct - a.projected_ownership_pct).slice(0, 5);
+    const topContrarian = [...active].sort((a, b) => a.projected_ownership_pct - b.projected_ownership_pct).slice(0, 5);
+
+    const md = `### Ownership Projection Analysis (v0.34)
+This section evaluates projected ownership across the contest crowd to identify chalk concentrations and unique pivot options.
+
+#### 📈 Top Chalk Teams (Crowd Favorites)
+These teams are highly popular. Picking them offers high survival security but very low differentiation.
+
+| Rank | Team | Projected Ownership % | Ownership Tier | Projection Source |
+|---|---|---|---|---|
+${topChalk.map(p => `| #${p.ownership_rank} | **${p.team_id.toUpperCase()}** | ${p.projected_ownership_pct.toFixed(2)}% | \`${p.ownership_tier}\` | ${p.projection_source} |`).join("\n")}
+
+#### 🛡️ Top Contrarian Teams (Differentiators)
+These teams have positive survival equity but minimal expected ownership, offering strong pivot potential.
+
+| Rank | Team | Projected Ownership % | Ownership Tier | Projection Source |
+|---|---|---|---|---|
+${topContrarian.map(p => `| #${p.ownership_rank} | **${p.team_id.toUpperCase()}** | ${p.projected_ownership_pct.toFixed(2)}% | \`${p.ownership_tier}\` | ${p.projection_source} |`).join("\n")}
+`;
+
+    return {
+      id: "sec-ownership-projections",
+      title: "13. Ownership Projection Analysis",
+      type: "inventory_summary",
+      content_markdown: md
+    };
+  }
+
+  static buildContestDynamicsSection(snapshots: ContestDynamicsSnapshot[], season: string, week: number): WeeklyReportSection {
+    // Top leverage teams (average across entries)
+    const teamsMap = new Map<string, { sumLeverage: number; sumAdj: number; count: number; pct: number; chalk: number; uniq: number }>();
+    for (const s of snapshots) {
+      if (!teamsMap.has(s.team_id)) {
+        teamsMap.set(s.team_id, { sumLeverage: 0, sumAdj: 0, count: 0, pct: s.projected_ownership_pct, chalk: s.chalk_score, uniq: s.uniqueness_score });
+      }
+      const data = teamsMap.get(s.team_id)!;
+      data.sumLeverage += s.leverage_score;
+      data.sumAdj += s.contest_equity_adjustment;
+      data.count++;
+    }
+
+    const teamSummaries = Array.from(teamsMap.entries()).map(([teamId, data]) => ({
+      teamId,
+      avgLeverage: data.sumLeverage / data.count,
+      avgAdj: data.sumAdj / data.count,
+      pct: data.pct,
+      chalk: data.chalk,
+      uniq: data.uniq
+    })).filter(t => t.pct > 0);
+
+    const topLeverage = [...teamSummaries].sort((a, b) => b.avgLeverage - a.avgLeverage).slice(0, 5);
+    const topEquity = [...teamSummaries].sort((a, b) => b.avgAdj - a.avgAdj).slice(0, 5);
+
+    const md = `### Contest Dynamics & Strategic Leverage Analysis (v0.34)
+This section evaluates contest-specific leverage, chalk scores, and uniqueness metrics to optimize game-theoretic expected value.
+
+#### ⚖️ Highest Leverage Options
+These teams maximize contest equity by minimizing crowd correlation.
+
+| Team | Avg Leverage Score | Projected Ownership % | Uniqueness Score |
+|---|---|---|---|
+${topLeverage.map(t => `| **${t.teamId.toUpperCase()}** | ${t.avgLeverage.toFixed(1)} | ${t.pct.toFixed(2)}% | ${t.uniq.toFixed(1)} |`).join("\n")}
+
+#### 💎 Highest Contest Equity Teams (By Strategy Mode)
+These teams represent the optimal trade-off between survival security and leverage based on entry-level strategic profiles.
+
+| Team | Avg Contest Equity Adjustment | Chalk Score | Uniqueness Score | Avg Leverage Score |
+|---|---|---|---|---|
+${topEquity.map(t => `| **${t.teamId.toUpperCase()}** | +${t.avgAdj.toFixed(2)} | ${t.chalk.toFixed(1)} | ${t.uniq.toFixed(1)} | ${t.avgLeverage.toFixed(1)} |`).join("\n")}
+
+#### 🎯 Strategy Impact Summary
+Expected value adjustments dynamically react to Entry Strategy Profiles:
+- **Championship EV**: Highest game-theory emphasis (80% leverage / 20% uniqueness weights, full scale 1.0).
+- **Portfolio EV**: Balanced risk-reward diversification (50% leverage / 50% uniqueness weights, 0.8 scale).
+- **Marketplace Survival**: Immediate progression safety focus (20% leverage / 20% uniqueness weights, 0.3 scale).
+- **Group Survival**: Low-volatility standard profile (5% leverage / 5% uniqueness weights, 0.1 scale).
+`;
+
+    return {
+      id: "sec-contest-dynamics-analysis",
+      title: "14. Contest Dynamics Analysis",
       type: "inventory_summary",
       content_markdown: md
     };

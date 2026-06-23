@@ -972,6 +972,40 @@ export interface AuditableRecommendationCandidate {
   created_at?: string;
 }
 
+export enum OwnershipTier {
+  MEGA_CHALK = "MEGA_CHALK",
+  CHALK = "CHALK",
+  POPULAR = "POPULAR",
+  NEUTRAL = "NEUTRAL",
+  CONTRARIAN = "CONTRARIAN",
+  EXTREME_CONTRARIAN = "EXTREME_CONTRARIAN"
+}
 
+export interface OwnershipProjection {
+  id?: number | string;
+  season: string;
+  week: number;
+  team_id: string;
+  projected_ownership_pct: number;
+  ownership_rank: number;
+  ownership_tier: string; // or OwnershipTier
+  projection_source: string;
+  calculation_version: string;
+  created_at?: string;
+}
 
-
+export interface ContestDynamicsSnapshot {
+  id?: number | string;
+  season: string;
+  week: number;
+  entry_id: string;
+  team_id: string;
+  projected_ownership_pct: number;
+  chalk_score: number;
+  leverage_score: number;
+  uniqueness_score: number;
+  contest_equity_adjustment: number;
+  strategy_profile: string;
+  calculation_version: string;
+  created_at?: string;
+}

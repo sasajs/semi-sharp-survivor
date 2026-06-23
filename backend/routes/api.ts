@@ -57,11 +57,15 @@ import { EntryStrategyService } from "../services/EntryStrategyService";
 import { FutureTeamValueService } from "../services/FutureTeamValueService";
 import { SurvivorEquityService } from "../services/SurvivorEquityService";
 import { RecommendationCandidateService } from "../services/RecommendationCandidateService";
+import { OwnershipProjectionService } from "../services/OwnershipProjectionService";
+import { ContestDynamicsService } from "../services/ContestDynamicsService";
 
 const entryStrategyService = new EntryStrategyService();
 const futureTeamValueService = new FutureTeamValueService();
 const survivorEquityService = new SurvivorEquityService();
 const recommendationCandidateService = new RecommendationCandidateService();
+const ownershipProjectionService = new OwnershipProjectionService();
+const contestDynamicsService = new ContestDynamicsService();
 
 const router = Router();
 
@@ -1965,6 +1969,116 @@ router.post("/recommendation-candidates/calculate", async (req: Request, res: Re
     }
 
     const results = await recommendationCandidateService.calculate(season, weekNum);
+    res.json({ success: true, count: results.length, data: results });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ====================================================================
+ * OWNERSHIP PROJECTION ENDPOINTS (v0.34)
+ * ==================================================================== */
+
+// GET /api/ownership/latest
+router.get("/ownership/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await ownershipProjectionService.getLatest();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/ownership/history
+router.get("/ownership/history", async (req: Request, res: Response) => {
+  try {
+    const list = await ownershipProjectionService.getHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/ownership/rankings
+router.get("/ownership/rankings", async (req: Request, res: Response) => {
+  try {
+    const season = (req.query.season || "2026").toString();
+    const week = parseInt((req.query.week || "1").toString(), 10);
+    const list = await ownershipProjectionService.getRankings(season, week);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/ownership/calculate
+router.post("/ownership/calculate", async (req: Request, res: Response) => {
+  try {
+    const { season, week } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const weekNum = parseInt((week || "1").toString(), 10);
+    if (isNaN(weekNum) || weekNum < 1 || weekNum > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+
+    const results = await ownershipProjectionService.calculate(season, weekNum);
+    res.json({ success: true, count: results.length, data: results });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ====================================================================
+ * CONTEST DYNAMICS SNAPSHOT ENDPOINTS (v0.34)
+ * ==================================================================== */
+
+// GET /api/contest-dynamics/latest
+router.get("/contest-dynamics/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await contestDynamicsService.getLatest();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/contest-dynamics/history
+router.get("/contest-dynamics/history", async (req: Request, res: Response) => {
+  try {
+    const list = await contestDynamicsService.getHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/contest-dynamics/rankings
+router.get("/contest-dynamics/rankings", async (req: Request, res: Response) => {
+  try {
+    const season = (req.query.season || "2026").toString();
+    const week = parseInt((req.query.week || "1").toString(), 10);
+    const list = await contestDynamicsService.getRankings(season, week);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/contest-dynamics/calculate
+router.post("/contest-dynamics/calculate", async (req: Request, res: Response) => {
+  try {
+    const { season, week } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const weekNum = parseInt((week || "1").toString(), 10);
+    if (isNaN(weekNum) || weekNum < 1 || weekNum > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+
+    const results = await contestDynamicsService.calculate(season, weekNum);
     res.json({ success: true, count: results.length, data: results });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
