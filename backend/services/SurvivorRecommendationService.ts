@@ -19,6 +19,7 @@ import { OwnershipProjectionService } from "./OwnershipProjectionService";
 import { ContestDynamicsService } from "./ContestDynamicsService";
 import { RecommendationAuditService } from "./RecommendationAuditService";
 import { RecommendationConfidenceService } from "./RecommendationConfidenceService";
+import { RecommendationConsensusService } from "./RecommendationConsensusService";
 
 export const STRATEGY_RECOMMENDATION_WEIGHTS: Record<StrategyType, {
   candidateWeight: number;      // baseline 40%
@@ -228,6 +229,13 @@ export class SurvivorRecommendationService {
       await this.confidenceService.calculate(season, week, calculationVersion);
     } catch (confErr: any) {
       console.error("[Survivor Recommendation Service] Failed to calculate recommendation confidence snapshots:", confErr.message);
+    }
+
+    // 10. Generate Recommendation Consensus Snapshots (Recommendation Consensus Engine)
+    try {
+      await RecommendationConsensusService.calculateConsensus(season, week, calculationVersion);
+    } catch (consensusErr: any) {
+      console.error("[Survivor Recommendation Service] Failed to calculate recommendation consensus snapshots:", consensusErr.message);
     }
 
     return saved;

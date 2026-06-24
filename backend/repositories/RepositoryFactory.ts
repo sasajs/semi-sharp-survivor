@@ -42,7 +42,8 @@ import {
   MockContestDynamicsRepository,
   MockSurvivorRecommendationRepository,
   MockRecommendationAuditRepository,
-  MockRecommendationConfidenceRepository
+  MockRecommendationConfidenceRepository,
+  MockRecommendationConsensusRepository
 } from "./mockRepositories";
 
 import {
@@ -83,6 +84,7 @@ import { PostgresContestDynamicsRepository } from "./postgres/PostgresContestDyn
 import { PostgresSurvivorRecommendationRepository } from "./postgres/PostgresSurvivorRecommendationRepository";
 import { PostgresRecommendationAuditRepository } from "./postgres/PostgresRecommendationAuditRepository";
 import { PostgresRecommendationConfidenceRepository } from "./postgres/PostgresRecommendationConfidenceRepository";
+import { PostgresRecommendationConsensusRepository } from "./postgres/PostgresRecommendationConsensusRepository";
 
 export let useMock = databaseConfig.useMock;
 
@@ -220,6 +222,9 @@ export class RepositoryFactory {
   }
   static getRecommendationConfidenceRepo() {
     return useMock ? new MockRecommendationConfidenceRepository() : new PostgresRecommendationConfidenceRepository();
+  }
+  static getRecommendationConsensusRepo() {
+    return useMock ? new MockRecommendationConsensusRepository() : new PostgresRecommendationConsensusRepository();
   }
 }
 

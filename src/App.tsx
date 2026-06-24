@@ -15,7 +15,8 @@ import {
   Database,
   Columns,
   History,
-  ShieldCheck
+  ShieldCheck,
+  Zap
 } from "lucide-react";
 
 import { useAppData } from "./hooks/useAppData";
@@ -26,6 +27,7 @@ import { RecommendationTable } from "./components/RecommendationTable";
 import { HolidayInventoryPanel } from "./components/HolidayInventoryPanel";
 import { RecommendationAuditPanel } from "./components/RecommendationAuditPanel";
 import { RecommendationConfidencePanel } from "./components/RecommendationConfidencePanel";
+import { RecommendationConsensusPanel } from "./components/RecommendationConsensusPanel";
 import { AdminDashboard } from "./pages/AdminDashboard";
 
 export default function App() {
@@ -149,6 +151,7 @@ export default function App() {
                 { id: "reports", label: "Contest Equity Report", icon: FileText },
                 { id: "recommendation-audits", label: "Recommendation Audit", icon: History, badge: "New" },
                 { id: "recommendation-confidence", label: "Confidence & Stability", icon: ShieldCheck, badge: "Layer 2" },
+                { id: "recommendation-consensus", label: "Consensus Analysis", icon: Zap, badge: "Layer 2" },
                 { id: "admin", label: "Admin Dashboard", icon: ShieldAlert, badge: "Secure" },
               ].map(tab => {
                 const Icon = tab.icon;
@@ -850,6 +853,13 @@ export default function App() {
 
               {activeTab === "recommendation-confidence" && (
                 <RecommendationConfidencePanel 
+                  entries={entries}
+                  teams={teams}
+                />
+              )}
+
+              {activeTab === "recommendation-consensus" && (
+                <RecommendationConsensusPanel 
                   entries={entries}
                   teams={teams}
                 />

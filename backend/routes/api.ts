@@ -72,6 +72,7 @@ import { RecommendationAuditService } from "../services/RecommendationAuditServi
 const recommendationAuditService = new RecommendationAuditService();
 import { RecommendationConfidenceService } from "../services/RecommendationConfidenceService";
 const recommendationConfidenceService = new RecommendationConfidenceService();
+import { RecommendationConsensusService } from "../services/RecommendationConsensusService";
 
 const router = Router();
 
@@ -2278,6 +2279,70 @@ router.post("/recommendation-confidence/calculate", async (req: Request, res: Re
     }
 
     const snapshots = await recommendationConfidenceService.calculate(season, weekNum, calculationVersion);
+    res.json({ success: true, count: snapshots.length, data: snapshots });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendation-consensus/latest
+router.get("/recommendation-consensus/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await RecommendationConsensusService.getLatest();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendation-consensus/history
+router.get("/recommendation-consensus/history", async (req: Request, res: Response) => {
+  try {
+    const list = await RecommendationConsensusService.getAll();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendation-consensus/by-entry/:entryId
+router.get("/recommendation-consensus/by-entry/:entryId", async (req: Request, res: Response) => {
+  try {
+    const { entryId } = req.params;
+    const list = await RecommendationConsensusService.getByEntryId(entryId);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendation-consensus/top
+router.get("/recommendation-consensus/top", async (req: Request, res: Response) => {
+  try {
+    const limit = parseInt((req.query.limit || "10").toString(), 10);
+    const list = await RecommendationConsensusService.getTopConsensus(limit);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/recommendation-consensus/calculate
+router.post("/recommendation-consensus/calculate", async (req: Request, res: Response) => {
+  try {
+    const { season, week, calculationVersion } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const weekNum = parseInt((week || "1").toString(), 10);
+    if (isNaN(weekNum) || weekNum < 1 || weekNum > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+    if (!calculationVersion) {
+      return res.status(400).json({ error: "Calculation version is required" });
+    }
+
+    const snapshots = await RecommendationConsensusService.calculateConsensus(season, weekNum, calculationVersion);
     res.json({ success: true, count: snapshots.length, data: snapshots });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

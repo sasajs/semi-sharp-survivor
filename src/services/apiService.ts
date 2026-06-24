@@ -180,5 +180,39 @@ export const apiService = {
     });
     if (!res.ok) throw new Error("Failed to calculate recommendation confidence snapshots");
     return res.json();
+  },
+
+  async fetchLatestConsensus(): Promise<any[]> {
+    const res = await fetch("/api/recommendation-consensus/latest");
+    if (!res.ok) throw new Error("Failed to fetch latest consensus snapshots");
+    return res.json();
+  },
+
+  async fetchConsensusHistory(): Promise<any[]> {
+    const res = await fetch("/api/recommendation-consensus/history");
+    if (!res.ok) throw new Error("Failed to fetch consensus history");
+    return res.json();
+  },
+
+  async fetchConsensusByEntry(entryId: string): Promise<any[]> {
+    const res = await fetch(`/api/recommendation-consensus/by-entry/${entryId}`);
+    if (!res.ok) throw new Error("Failed to fetch consensus snapshots for entry " + entryId);
+    return res.json();
+  },
+
+  async fetchTopConsensus(limit: number = 10): Promise<any[]> {
+    const res = await fetch(`/api/recommendation-consensus/top?limit=${limit}`);
+    if (!res.ok) throw new Error("Failed to fetch top consensus snapshots");
+    return res.json();
+  },
+
+  async calculateConsensus(season: string, week: number, calculationVersion: string): Promise<any> {
+    const res = await fetch("/api/recommendation-consensus/calculate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week, calculationVersion })
+    });
+    if (!res.ok) throw new Error("Failed to calculate recommendation consensus snapshots");
+    return res.json();
   }
 };

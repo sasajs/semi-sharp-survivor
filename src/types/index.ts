@@ -1100,4 +1100,33 @@ export interface RecommendationConfidenceSnapshot {
   created_at?: string;
 }
 
+export enum ConsensusTier {
+  ELITE_CONSENSUS = "ELITE_CONSENSUS",
+  STRONG_CONSENSUS = "STRONG_CONSENSUS",
+  MODERATE_CONSENSUS = "MODERATE_CONSENSUS",
+  WEAK_CONSENSUS = "WEAK_CONSENSUS",
+  NO_CONSENSUS = "NO_CONSENSUS"
+}
+
+export interface RecommendationConsensus {
+  id?: number | string;
+  season: string;
+  week: number;
+  entry_id: string;
+  team_id: string;
+  candidate_score: number;
+  survivor_equity_score: number;
+  recommendation_score: number;
+  confidence_score: number;
+  ownership_score: number;
+  future_value_score: number;
+  consensus_score: number;
+  agreement_count: number;
+  consensus_tier: ConsensusTier | string;
+  consensus_summary: string;
+  calculation_version: string;
+  created_at?: string;
+}
+
+
 

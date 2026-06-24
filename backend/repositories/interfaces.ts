@@ -39,7 +39,8 @@ import {
   ContestDynamicsSnapshot,
   SurvivorRecommendation,
   RecommendationAudit,
-  RecommendationConfidenceSnapshot
+  RecommendationConfidenceSnapshot,
+  RecommendationConsensus
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -370,6 +371,18 @@ export interface IRecommendationConfidenceRepository {
   getTopConfidence(limit: number): Promise<RecommendationConfidenceSnapshot[]>;
   save(snapshot: RecommendationConfidenceSnapshot): Promise<RecommendationConfidenceSnapshot>;
   saveMany(snapshots: RecommendationConfidenceSnapshot[]): Promise<RecommendationConfidenceSnapshot[]>;
+  deleteBySeasonAndWeek(season: string, week: number): Promise<boolean>;
+}
+
+export interface IRecommendationConsensusRepository {
+  getAll(): Promise<RecommendationConsensus[]>;
+  getBySeasonAndWeek(season: string, week: number): Promise<RecommendationConsensus[]>;
+  getLatest(): Promise<RecommendationConsensus[]>;
+  getByEntryId(entryId: string): Promise<RecommendationConsensus[]>;
+  getByTeamId(teamId: string): Promise<RecommendationConsensus[]>;
+  getTopConsensus(limit: number): Promise<RecommendationConsensus[]>;
+  save(snapshot: RecommendationConsensus): Promise<RecommendationConsensus>;
+  saveMany(snapshots: RecommendationConsensus[]): Promise<RecommendationConsensus[]>;
   deleteBySeasonAndWeek(season: string, week: number): Promise<boolean>;
 }
 

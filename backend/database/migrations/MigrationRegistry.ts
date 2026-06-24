@@ -66,5 +66,10 @@ export const migrationRegistry: Migration[] = [
     version: "V037",
     description: "Confidence & Recommendation Stability Engine: recommendation_confidence_snapshots table.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "037_recommendation_confidence.sql")
+  },
+  {
+    version: "V038",
+    description: "Recommendation Consensus Engine: recommendation_consensus table.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "038_recommendation_consensus.sql")
   }
 ];
