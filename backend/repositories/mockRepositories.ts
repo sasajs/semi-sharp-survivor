@@ -37,7 +37,9 @@ import {
   SurvivorEquitySnapshot,
   AuditableRecommendationCandidate,
   OwnershipProjection,
-  ContestDynamicsSnapshot
+  ContestDynamicsSnapshot,
+  SurvivorRecommendation,
+  RecommendationAudit
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -79,7 +81,9 @@ import {
   ISurvivorEquityRepository,
   IRecommendationCandidateRepository,
   IOwnershipProjectionRepository,
-  IContestDynamicsRepository
+  IContestDynamicsRepository,
+  ISurvivorRecommendationRepository,
+  IRecommendationAuditRepository
 } from "./interfaces";
 
 /**
@@ -191,6 +195,8 @@ export let mockSurvivorEquitySnapshots: SurvivorEquitySnapshot[] = [];
 export let mockRecommendationCandidates: AuditableRecommendationCandidate[] = [];
 export let mockOwnershipProjections: OwnershipProjection[] = [];
 export let mockContestDynamicsSnapshots: ContestDynamicsSnapshot[] = [];
+export let mockSurvivorRecommendations: SurvivorRecommendation[] = [];
+export let mockRecommendationAudits: RecommendationAudit[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -301,6 +307,8 @@ export function resetMockDatabase(
   mockRecommendationCandidates = [];
   mockOwnershipProjections = [];
   mockContestDynamicsSnapshots = [];
+  mockSurvivorRecommendations = [];
+  mockRecommendationAudits = [];
 }
 
 /**
@@ -1943,6 +1951,101 @@ export class MockContestDynamicsRepository implements IContestDynamicsRepository
     return mockContestDynamicsSnapshots.length < originalLen;
   }
 }
+
+export class MockSurvivorRecommendationRepository implements ISurvivorRecommendationRepository {
+  async getAll(): Promise<SurvivorRecommendation[]> {
+    return [...mockSurvivorRecommendations];
+  }
+
+  async getBySeasonAndWeek(season: string, week: number): Promise<SurvivorRecommendation[]> {
+    return mockSurvivorRecommendations.filter(r => r.season === season && r.week === week);
+  }
+
+  async getLatest(): Promise<SurvivorRecommendation[]> {
+    if (mockSurvivorRecommendations.length === 0) return [];
+    const latestVersion = mockSurvivorRecommendations[mockSurvivorRecommendations.length - 1].calculation_version;
+    return mockSurvivorRecommendations.filter(r => r.calculation_version === latestVersion);
+  }
+
+  async getByEntryId(entryId: string): Promise<SurvivorRecommendation[]> {
+    return mockSurvivorRecommendations.filter(r => r.entry_id === entryId);
+  }
+
+  async save(rec: SurvivorRecommendation): Promise<SurvivorRecommendation> {
+    const item: SurvivorRecommendation = {
+      ...rec,
+      id: rec.id || Math.random().toString(36).substr(2, 9),
+      created_at: rec.created_at || new Date().toISOString()
+    };
+    mockSurvivorRecommendations.push(item);
+    return item;
+  }
+
+  async saveMany(recs: SurvivorRecommendation[]): Promise<SurvivorRecommendation[]> {
+    const results: SurvivorRecommendation[] = [];
+    for (const r of recs) {
+      const saved = await this.save(r);
+      results.push(saved);
+    }
+    return results;
+  }
+
+  async deleteBySeasonAndWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockSurvivorRecommendations.length;
+    mockSurvivorRecommendations = mockSurvivorRecommendations.filter(r => !(r.season === season && r.week === week));
+    return mockSurvivorRecommendations.length < originalLen;
+  }
+}
+
+export class MockRecommendationAuditRepository implements IRecommendationAuditRepository {
+  async getAll(): Promise<RecommendationAudit[]> {
+    return [...mockRecommendationAudits];
+  }
+
+  async getBySeasonAndWeek(season: string, week: number): Promise<RecommendationAudit[]> {
+    return mockRecommendationAudits.filter(a => a.season === season && a.week === week);
+  }
+
+  async getLatest(): Promise<RecommendationAudit[]> {
+    if (mockRecommendationAudits.length === 0) return [];
+    const latestVersion = mockRecommendationAudits[mockRecommendationAudits.length - 1].calculation_version;
+    return mockRecommendationAudits.filter(a => a.calculation_version === latestVersion);
+  }
+
+  async getByEntryId(entryId: string): Promise<RecommendationAudit[]> {
+    return mockRecommendationAudits.filter(a => a.entry_id === entryId);
+  }
+
+  async getByTeamId(teamId: string): Promise<RecommendationAudit[]> {
+    return mockRecommendationAudits.filter(a => a.team_id === teamId);
+  }
+
+  async save(audit: RecommendationAudit): Promise<RecommendationAudit> {
+    const item: RecommendationAudit = {
+      ...audit,
+      id: audit.id || Math.floor(Math.random() * 1000000) + 1,
+      created_at: audit.created_at || new Date().toISOString()
+    };
+    mockRecommendationAudits.push(item);
+    return item;
+  }
+
+  async saveMany(audits: RecommendationAudit[]): Promise<RecommendationAudit[]> {
+    const results: RecommendationAudit[] = [];
+    for (const a of audits) {
+      const saved = await this.save(a);
+      results.push(saved);
+    }
+    return results;
+  }
+
+  async deleteBySeasonAndWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockRecommendationAudits.length;
+    mockRecommendationAudits = mockRecommendationAudits.filter(a => !(a.season === season && a.week === week));
+    return mockRecommendationAudits.length < originalLen;
+  }
+}
+
 
 
 

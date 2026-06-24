@@ -3,6 +3,7 @@ import { resetMockDatabase } from "../repositories/mockRepositories";
 import { FutureTeamValueService } from "./FutureTeamValueService";
 import { SurvivorEquityService } from "./SurvivorEquityService";
 import { RecommendationCandidateService } from "./RecommendationCandidateService";
+import { SurvivorRecommendationService } from "./SurvivorRecommendationService";
 
 export const initialTeams: Team[] = [
   { id: "ari", name: "Arizona Cardinals", abbreviation: "ARI", bye_week: 11, primary_color: "#97233F", secondary_color: "#FFB612" },
@@ -169,7 +170,15 @@ export function buildAndSeedMockState() {
       await eqService.calculate("2026", 1);
       const recService = new RecommendationCandidateService();
       await recService.calculate("2026", 1);
-      console.log("[Mock Seeder] Pre-calculated Future Team Value, Survivor Equity, and Recommendation Candidates snapshotted states successfully.");
+      
+      const survRecService = new SurvivorRecommendationService();
+      // Calculate first time to create the "previous" snapshot
+      await survRecService.calculate("2026", 1);
+      
+      // Calculate second time to trigger comparison & create recommendation audits
+      await survRecService.calculate("2026", 1);
+
+      console.log("[Mock Seeder] Pre-calculated Future Team Value, Survivor Equity, Recommendation Candidates, and comparative Recommendation Audits snapshotted states successfully.");
     } catch (err) {
       console.warn("Failed to pre-calculate mock dashboard metrics:", err);
     }

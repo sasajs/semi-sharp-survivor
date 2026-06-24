@@ -1,10 +1,10 @@
-import { RepositoryFactory } from "../repositories/RepositoryFactory";
+import { entryRepo, entryStrategyProfileRepo as profileRepo, entryMetadataRepo as metadataRepo, pickRepo } from "../repositories/index";
 import { EntryStrategyProfile, EntryMetadata, StrategyType } from "../../src/types";
 
 export class EntryStrategyService {
-  private profileRepo = RepositoryFactory.getEntryStrategyProfileRepo();
-  private metadataRepo = RepositoryFactory.getEntryMetadataRepo();
-  private entryRepo = RepositoryFactory.getEntryRepo();
+  private get profileRepo() { return profileRepo; }
+  private get metadataRepo() { return metadataRepo; }
+  private get entryRepo() { return entryRepo; }
 
   async getProfiles(): Promise<EntryStrategyProfile[]> {
     return this.profileRepo.getAll();
@@ -106,7 +106,6 @@ export class EntryStrategyService {
     const groupEntries = entries.filter(e => entryIds.includes(e.id));
     
     // Fetch picks 
-    const pickRepo = RepositoryFactory.getPickRepo();
     const allPicks = await pickRepo.getAll();
 
     const groupPicks = allPicks.filter(p => entryIds.includes(p.entry_id));

@@ -8,13 +8,13 @@ import {
   teamRepo, 
   recommendationCandidateRepo,
   featureSnapshotRepo,
-  RepositoryFactory
+  entryMetadataRepo as metadataRepo
 } from "../repositories/index";
 import { RecommendationCandidateService } from "./RecommendationCandidateService";
 
 export class OwnershipProjectionService {
   private recCandidateService = new RecommendationCandidateService();
-  private metadataRepo = RepositoryFactory.getEntryMetadataRepo();
+  private get metadataRepo() { return metadataRepo; }
 
   /**
    * Generates and stores projected ownership for a given season and week.

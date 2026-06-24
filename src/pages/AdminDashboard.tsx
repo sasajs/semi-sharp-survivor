@@ -19,6 +19,7 @@ import { EntryStrategyPanel } from "../components/admin/EntryStrategyPanel";
 import { FutureTeamValuePanel } from "../components/admin/FutureTeamValuePanel";
 import { SurvivorEquityPanel } from "../components/admin/SurvivorEquityPanel";
 import { RecommendationCandidatesPanel } from "../components/admin/RecommendationCandidatesPanel";
+import { SurvivorRecommendationsPanel } from "../components/admin/SurvivorRecommendationsPanel";
 import { AdminErrorBoundary } from "../components/admin/AdminErrorBoundary";
 import { AdminLoginPanel } from "../components/admin/AdminLoginPanel";
 import { AuthStatus } from "../types/auth";
@@ -222,6 +223,14 @@ export const AdminDashboard: React.FC = () => {
             <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.48. Recommendation Candidate Engine</span>
           </div>
           <RecommendationCandidatesPanel />
+        </section>
+
+        {/* Section 2.49: Survivor Recommendation Engine (v0.35) */}
+        <section id="admin-section-survivor-recommendations" className="space-y-3">
+          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.49. Survivor Recommendation Engine</span>
+          </div>
+          <SurvivorRecommendationsPanel />
         </section>
 
         {/* Section 2.5: PostgreSQL Cutover Readiness Validation */}

@@ -9,7 +9,8 @@ import {
   entryRepo,
   ownershipProjectionRepo,
   featureSnapshotRepo,
-  RepositoryFactory
+  entryStrategyProfileRepo as profileRepo,
+  entryMetadataRepo as metadataRepo
 } from "../repositories/index";
 import { OwnershipProjectionService } from "./OwnershipProjectionService";
 
@@ -28,8 +29,8 @@ export const STRATEGY_CONTEST_WEIGHTS: Record<StrategyType, StrategyWeightConfig
 
 export class ContestDynamicsService {
   private ownershipService = new OwnershipProjectionService();
-  private profileRepo = RepositoryFactory.getEntryStrategyProfileRepo();
-  private metadataRepo = RepositoryFactory.getEntryMetadataRepo();
+  private get profileRepo() { return profileRepo; }
+  private get metadataRepo() { return metadataRepo; }
 
   /**
    * Generates and stores contest dynamics snapshots for a given season and week.

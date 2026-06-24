@@ -112,5 +112,39 @@ export const apiService = {
     const res = await fetch(`/api/contest-dynamics/rankings?season=${season}&week=${week}`);
     if (!res.ok) throw new Error("Failed to fetch contest dynamics");
     return res.json();
+  },
+
+  async fetchLatestAudits(): Promise<any[]> {
+    const res = await fetch("/api/recommendation-audits/latest");
+    if (!res.ok) throw new Error("Failed to fetch latest audits");
+    return res.json();
+  },
+
+  async fetchAuditsHistory(): Promise<any[]> {
+    const res = await fetch("/api/recommendation-audits/history");
+    if (!res.ok) throw new Error("Failed to fetch audits history");
+    return res.json();
+  },
+
+  async fetchAuditsByEntry(entryId: string): Promise<any[]> {
+    const res = await fetch(`/api/recommendation-audits/by-entry/${entryId}`);
+    if (!res.ok) throw new Error("Failed to fetch audits for entry " + entryId);
+    return res.json();
+  },
+
+  async fetchAuditsByTeam(teamId: string): Promise<any[]> {
+    const res = await fetch(`/api/recommendation-audits/by-team/${teamId}`);
+    if (!res.ok) throw new Error("Failed to fetch audits for team " + teamId);
+    return res.json();
+  },
+
+  async generateAudits(season: string, week: number, calculationVersion: string): Promise<any> {
+    const res = await fetch("/api/recommendation-audits/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week, calculationVersion })
+    });
+    if (!res.ok) throw new Error("Failed to generate recommendation audits");
+    return res.json();
   }
 };

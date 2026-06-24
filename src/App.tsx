@@ -13,7 +13,8 @@ import {
   Settings2, 
   Sparkles, 
   Database,
-  Columns
+  Columns,
+  History
 } from "lucide-react";
 
 import { useAppData } from "./hooks/useAppData";
@@ -22,6 +23,7 @@ import { EntryTable } from "./components/EntryTable";
 import { InventoryTable } from "./components/InventoryTable";
 import { RecommendationTable } from "./components/RecommendationTable";
 import { HolidayInventoryPanel } from "./components/HolidayInventoryPanel";
+import { RecommendationAuditPanel } from "./components/RecommendationAuditPanel";
 import { AdminDashboard } from "./pages/AdminDashboard";
 
 export default function App() {
@@ -143,6 +145,7 @@ export default function App() {
                 { id: "thanksgiving", label: "Thanksgiving Shield", icon: Flame, badge: "Leg 13" },
                 { id: "christmas", label: "Christmas Day Preservation", icon: Sparkles, badge: "Leg 18" },
                 { id: "reports", label: "Contest Equity Report", icon: FileText },
+                { id: "recommendation-audits", label: "Recommendation Audit", icon: History, badge: "New" },
                 { id: "admin", label: "Admin Dashboard", icon: ShieldAlert, badge: "Secure" },
               ].map(tab => {
                 const Icon = tab.icon;
@@ -833,6 +836,13 @@ export default function App() {
                   )}
 
                 </div>
+              )}
+
+              {activeTab === "recommendation-audits" && (
+                <RecommendationAuditPanel 
+                  entries={entries}
+                  teams={teams}
+                />
               )}
 
               {activeTab === "admin" && (

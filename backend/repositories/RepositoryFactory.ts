@@ -39,7 +39,9 @@ import {
   MockSurvivorEquityRepository,
   MockRecommendationCandidateRepository,
   MockOwnershipProjectionRepository,
-  MockContestDynamicsRepository
+  MockContestDynamicsRepository,
+  MockSurvivorRecommendationRepository,
+  MockRecommendationAuditRepository
 } from "./mockRepositories";
 
 import {
@@ -77,6 +79,8 @@ import { PostgresSurvivorEquityRepository } from "./postgres/PostgresSurvivorEqu
 import { PostgresRecommendationCandidateRepository } from "./postgres/PostgresRecommendationCandidateRepository";
 import { PostgresOwnershipProjectionRepository } from "./postgres/PostgresOwnershipProjectionRepository";
 import { PostgresContestDynamicsRepository } from "./postgres/PostgresContestDynamicsRepository";
+import { PostgresSurvivorRecommendationRepository } from "./postgres/PostgresSurvivorRecommendationRepository";
+import { PostgresRecommendationAuditRepository } from "./postgres/PostgresRecommendationAuditRepository";
 
 export let useMock = databaseConfig.useMock;
 
@@ -205,6 +209,12 @@ export class RepositoryFactory {
   }
   static getContestDynamicsRepo() {
     return useMock ? new MockContestDynamicsRepository() : new PostgresContestDynamicsRepository();
+  }
+  static getSurvivorRecommendationRepo() {
+    return useMock ? new MockSurvivorRecommendationRepository() : new PostgresSurvivorRecommendationRepository();
+  }
+  static getRecommendationAuditRepo() {
+    return useMock ? new MockRecommendationAuditRepository() : new PostgresRecommendationAuditRepository();
   }
 }
 

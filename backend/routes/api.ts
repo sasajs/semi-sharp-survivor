@@ -66,6 +66,10 @@ const survivorEquityService = new SurvivorEquityService();
 const recommendationCandidateService = new RecommendationCandidateService();
 const ownershipProjectionService = new OwnershipProjectionService();
 const contestDynamicsService = new ContestDynamicsService();
+import { SurvivorRecommendationService } from "../services/SurvivorRecommendationService";
+const survivorRecommendationService = new SurvivorRecommendationService();
+import { RecommendationAuditService } from "../services/RecommendationAuditService";
+const recommendationAuditService = new RecommendationAuditService();
 
 const router = Router();
 
@@ -2080,6 +2084,135 @@ router.post("/contest-dynamics/calculate", async (req: Request, res: Response) =
 
     const results = await contestDynamicsService.calculate(season, weekNum);
     res.json({ success: true, count: results.length, data: results });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ====================================================================
+ * SURVIVOR RECOMMENDATION ENDPOINTS (v0.35)
+ * ==================================================================== */
+
+// GET /api/recommendations/latest
+router.get("/recommendations/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await survivorRecommendationService.getLatest();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendations/history
+router.get("/recommendations/history", async (req: Request, res: Response) => {
+  try {
+    const list = await survivorRecommendationService.getHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendations/by-entry/:entryId
+router.get("/recommendations/by-entry/:entryId", async (req: Request, res: Response) => {
+  try {
+    const { entryId } = req.params;
+    const list = await survivorRecommendationService.getByEntryId(entryId);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendations/top
+router.get("/recommendations/top", async (req: Request, res: Response) => {
+  try {
+    const limit = parseInt((req.query.limit || "5").toString(), 10);
+    const list = await survivorRecommendationService.getTop(limit);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/recommendations/calculate
+router.post("/recommendations/calculate", async (req: Request, res: Response) => {
+  try {
+    const { season, week } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const weekNum = parseInt((week || "1").toString(), 10);
+    if (isNaN(weekNum) || weekNum < 1 || weekNum > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+
+    const results = await survivorRecommendationService.calculate(season, weekNum);
+    res.json({ success: true, count: results.length, data: results });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendation-audits/latest
+router.get("/recommendation-audits/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await recommendationAuditService.getLatest();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendation-audits/history
+router.get("/recommendation-audits/history", async (req: Request, res: Response) => {
+  try {
+    const list = await recommendationAuditService.getAll();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendation-audits/by-entry/:entryId
+router.get("/recommendation-audits/by-entry/:entryId", async (req: Request, res: Response) => {
+  try {
+    const { entryId } = req.params;
+    const list = await recommendationAuditService.getByEntryId(entryId);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendation-audits/by-team/:teamId
+router.get("/recommendation-audits/by-team/:teamId", async (req: Request, res: Response) => {
+  try {
+    const { teamId } = req.params;
+    const list = await recommendationAuditService.getByTeamId(teamId.toUpperCase());
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/recommendation-audits/generate
+router.post("/recommendation-audits/generate", async (req: Request, res: Response) => {
+  try {
+    const { season, week, calculationVersion } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const weekNum = parseInt((week || "1").toString(), 10);
+    if (isNaN(weekNum) || weekNum < 1 || weekNum > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+    if (!calculationVersion) {
+      return res.status(400).json({ error: "Calculation version is required" });
+    }
+
+    const audits = await recommendationAuditService.generateRecommendationAudits(season, weekNum, calculationVersion);
+    res.json({ success: true, count: audits.length, data: audits });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

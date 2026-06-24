@@ -10,9 +10,9 @@ import {
   legRepo, 
   lineRepo, 
   entryRepo,
-  RepositoryFactory,
   featureSnapshotRepo,
-  futureTeamValueRepo
+  futureTeamValueRepo,
+  entryStrategyProfileRepo as profileRepo
 } from "../repositories/index";
 import { FutureTeamValueService } from "./FutureTeamValueService";
 
@@ -24,7 +24,7 @@ export const STRATEGY_EQUITY_WEIGHTS: Record<StrategyType, { survival: number; f
 };
 
 export class SurvivorEquityService {
-  private profileRepo = RepositoryFactory.getEntryStrategyProfileRepo();
+  private get profileRepo() { return profileRepo; }
   private ftvService = new FutureTeamValueService();
 
   /**

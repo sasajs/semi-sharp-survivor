@@ -10,14 +10,15 @@ import {
   entryRepo,
   pickRepo,
   futureTeamValueRepo,
-  RepositoryFactory
+  entryStrategyProfileRepo as profileRepo,
+  entryMetadataRepo as metadataRepo
 } from "../repositories/index";
 import { SurvivorEquityService } from "./SurvivorEquityService";
 import { FutureTeamValueService } from "./FutureTeamValueService";
 
 export class RecommendationCandidateService {
-  private profileRepo = RepositoryFactory.getEntryStrategyProfileRepo();
-  private metadataRepo = RepositoryFactory.getEntryMetadataRepo();
+  private get profileRepo() { return profileRepo; }
+  private get metadataRepo() { return metadataRepo; }
   private equityService = new SurvivorEquityService();
   private ftvService = new FutureTeamValueService();
 

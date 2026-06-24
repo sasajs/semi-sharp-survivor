@@ -6,6 +6,7 @@ import { SurvivorEquityService } from "../../services/SurvivorEquityService";
 import { RecommendationCandidateService } from "../../services/RecommendationCandidateService";
 import { OwnershipProjectionService } from "../../services/OwnershipProjectionService";
 import { ContestDynamicsService } from "../../services/ContestDynamicsService";
+import { SurvivorRecommendationService } from "../../services/SurvivorRecommendationService";
 
 export class PipelineExecutionService {
   private static executions: PipelineExecution[] = [];
@@ -78,6 +79,8 @@ export class PipelineExecutionService {
               await ownService.calculate("2026", 1);
               const dynService = new ContestDynamicsService();
               await dynService.calculate("2026", 1);
+              const survRecService = new SurvivorRecommendationService();
+              await survRecService.calculate("2026", 1);
             } catch (ftvErr: any) {
               PipelineAuditService.log("WARNING", "PIPELINE_CALC_FAILED", `Traced engine calculations during pipeline execution skipped/warned: ${ftvErr.message}`);
             }

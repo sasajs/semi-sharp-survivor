@@ -121,5 +121,9 @@ export const survivorEquityRepo = createRepositoryProxy(() => RepositoryFactory.
 export const recommendationCandidateRepo = createRepositoryProxy(() => RepositoryFactory.getRecommendationCandidateRepo());
 export const ownershipProjectionRepo = createRepositoryProxy(() => RepositoryFactory.getOwnershipProjectionRepo());
 export const contestDynamicsRepo = createRepositoryProxy(() => RepositoryFactory.getContestDynamicsRepo());
+export const survivorRecommendationRepo = createRepositoryProxy(() => RepositoryFactory.getSurvivorRecommendationRepo());
+export const entryStrategyProfileRepo = createRepositoryProxy(() => RepositoryFactory.getEntryStrategyProfileRepo());
+export const entryMetadataRepo = createRepositoryProxy(() => RepositoryFactory.getEntryMetadataRepo());
+export const recommendationAuditRepo = createRepositoryProxy(() => RepositoryFactory.getRecommendationAuditRepo());
 
 

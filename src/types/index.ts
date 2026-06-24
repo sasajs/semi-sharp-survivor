@@ -1009,3 +1009,67 @@ export interface ContestDynamicsSnapshot {
   calculation_version: string;
   created_at?: string;
 }
+
+export enum RecommendationTier {
+  STRONG_RECOMMENDATION = "STRONG_RECOMMENDATION",
+  RECOMMENDATION = "RECOMMENDATION",
+  VIABLE_OPTION = "VIABLE_OPTION",
+  LONGSHOT = "LONGSHOT"
+}
+
+export interface SurvivorRecommendation {
+  id?: number | string;
+  season: string;
+  week: number;
+  entry_id: string;
+  recommended_team_id: string;
+  recommendation_rank: number;
+  recommendation_score: number;
+  candidate_score: number;
+  survivor_equity_score: number;
+  future_team_value_score: number;
+  projected_ownership_pct: number;
+  contest_equity_adjustment: number;
+  strategy_profile: string;
+  recommendation_tier: string; // RecommendationTier or string
+  recommendation_reason: string;
+  calculation_version: string;
+  created_at?: string;
+}
+
+export enum RecommendationChangeCategory {
+  MAJOR_IMPROVEMENT = "MAJOR_IMPROVEMENT",
+  MINOR_IMPROVEMENT = "MINOR_IMPROVEMENT",
+  UNCHANGED = "UNCHANGED",
+  MINOR_DECLINE = "MINOR_DECLINE",
+  MAJOR_DECLINE = "MAJOR_DECLINE",
+  NEW_RECOMMENDATION = "NEW_RECOMMENDATION",
+  REMOVED_RECOMMENDATION = "REMOVED_RECOMMENDATION"
+}
+
+export interface RecommendationAudit {
+  id?: number | string;
+  season: string;
+  week: number;
+  entry_id: string;
+  team_id: string;
+  previous_rank: number | null;
+  current_rank: number | null;
+  rank_delta: number;
+  previous_score: number | null;
+  current_score: number | null;
+  score_delta: number;
+  previous_tier: string | null;
+  current_tier: string | null;
+  candidate_score_delta: number;
+  survivor_equity_delta: number;
+  future_value_delta: number;
+  ownership_delta: number;
+  contest_dynamics_delta: number;
+  change_category: RecommendationChangeCategory | string;
+  audit_summary: string;
+  calculation_version: string;
+  created_at?: string;
+}
+
+
