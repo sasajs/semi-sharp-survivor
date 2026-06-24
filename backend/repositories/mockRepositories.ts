@@ -39,7 +39,8 @@ import {
   OwnershipProjection,
   ContestDynamicsSnapshot,
   SurvivorRecommendation,
-  RecommendationAudit
+  RecommendationAudit,
+  RecommendationConfidenceSnapshot
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -83,7 +84,8 @@ import {
   IOwnershipProjectionRepository,
   IContestDynamicsRepository,
   ISurvivorRecommendationRepository,
-  IRecommendationAuditRepository
+  IRecommendationAuditRepository,
+  IRecommendationConfidenceRepository
 } from "./interfaces";
 
 /**
@@ -197,6 +199,7 @@ export let mockOwnershipProjections: OwnershipProjection[] = [];
 export let mockContestDynamicsSnapshots: ContestDynamicsSnapshot[] = [];
 export let mockSurvivorRecommendations: SurvivorRecommendation[] = [];
 export let mockRecommendationAudits: RecommendationAudit[] = [];
+export let mockRecommendationConfidenceSnapshots: RecommendationConfidenceSnapshot[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -309,6 +312,7 @@ export function resetMockDatabase(
   mockContestDynamicsSnapshots = [];
   mockSurvivorRecommendations = [];
   mockRecommendationAudits = [];
+  mockRecommendationConfidenceSnapshots = [];
 }
 
 /**
@@ -2043,6 +2047,62 @@ export class MockRecommendationAuditRepository implements IRecommendationAuditRe
     const originalLen = mockRecommendationAudits.length;
     mockRecommendationAudits = mockRecommendationAudits.filter(a => !(a.season === season && a.week === week));
     return mockRecommendationAudits.length < originalLen;
+  }
+}
+
+export class MockRecommendationConfidenceRepository implements IRecommendationConfidenceRepository {
+  async getAll(): Promise<RecommendationConfidenceSnapshot[]> {
+    return [...mockRecommendationConfidenceSnapshots];
+  }
+
+  async getBySeasonAndWeek(season: string, week: number): Promise<RecommendationConfidenceSnapshot[]> {
+    return mockRecommendationConfidenceSnapshots.filter(s => s.season === season && s.week === week);
+  }
+
+  async getLatest(): Promise<RecommendationConfidenceSnapshot[]> {
+    if (mockRecommendationConfidenceSnapshots.length === 0) return [];
+    const latestVersion = mockRecommendationConfidenceSnapshots[mockRecommendationConfidenceSnapshots.length - 1].calculation_version;
+    return mockRecommendationConfidenceSnapshots.filter(s => s.calculation_version === latestVersion);
+  }
+
+  async getByEntryId(entryId: string): Promise<RecommendationConfidenceSnapshot[]> {
+    return mockRecommendationConfidenceSnapshots.filter(s => s.entry_id === entryId);
+  }
+
+  async getByTeamId(teamId: string): Promise<RecommendationConfidenceSnapshot[]> {
+    const upperTeam = teamId.toUpperCase();
+    return mockRecommendationConfidenceSnapshots.filter(s => s.team_id.toUpperCase() === upperTeam);
+  }
+
+  async getTopConfidence(limit: number): Promise<RecommendationConfidenceSnapshot[]> {
+    return [...mockRecommendationConfidenceSnapshots]
+      .sort((a, b) => b.confidence_score - a.confidence_score)
+      .slice(0, limit);
+  }
+
+  async save(snapshot: RecommendationConfidenceSnapshot): Promise<RecommendationConfidenceSnapshot> {
+    const item: RecommendationConfidenceSnapshot = {
+      ...snapshot,
+      id: snapshot.id || Math.floor(Math.random() * 1000000) + 1,
+      created_at: snapshot.created_at || new Date().toISOString()
+    };
+    mockRecommendationConfidenceSnapshots.push(item);
+    return item;
+  }
+
+  async saveMany(snapshots: RecommendationConfidenceSnapshot[]): Promise<RecommendationConfidenceSnapshot[]> {
+    const results: RecommendationConfidenceSnapshot[] = [];
+    for (const s of snapshots) {
+      const saved = await this.save(s);
+      results.push(saved);
+    }
+    return results;
+  }
+
+  async deleteBySeasonAndWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockRecommendationConfidenceSnapshots.length;
+    mockRecommendationConfidenceSnapshots = mockRecommendationConfidenceSnapshots.filter(s => !(s.season === season && s.week === week));
+    return mockRecommendationConfidenceSnapshots.length < originalLen;
   }
 }
 

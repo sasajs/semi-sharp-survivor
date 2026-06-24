@@ -18,6 +18,7 @@ import { RecommendationCandidateService } from "./RecommendationCandidateService
 import { OwnershipProjectionService } from "./OwnershipProjectionService";
 import { ContestDynamicsService } from "./ContestDynamicsService";
 import { RecommendationAuditService } from "./RecommendationAuditService";
+import { RecommendationConfidenceService } from "./RecommendationConfidenceService";
 
 export const STRATEGY_RECOMMENDATION_WEIGHTS: Record<StrategyType, {
   candidateWeight: number;      // baseline 40%
@@ -61,6 +62,7 @@ export class SurvivorRecommendationService {
   private ownershipService = new OwnershipProjectionService();
   private contestDynamicsService = new ContestDynamicsService();
   private auditService = new RecommendationAuditService();
+  private confidenceService = new RecommendationConfidenceService();
   private get profileRepo() { return profileRepo; }
 
   /**
@@ -219,6 +221,13 @@ export class SurvivorRecommendationService {
       await this.auditService.generateRecommendationAudits(season, week, calculationVersion);
     } catch (auditErr: any) {
       console.error("[Survivor Recommendation Service] Failed to generate recommendation audits:", auditErr.message);
+    }
+
+    // 9. Generate Recommendation Confidence Snapshots (Confidence & Recommendation Stability Engine)
+    try {
+      await this.confidenceService.calculate(season, week, calculationVersion);
+    } catch (confErr: any) {
+      console.error("[Survivor Recommendation Service] Failed to calculate recommendation confidence snapshots:", confErr.message);
     }
 
     return saved;

@@ -178,7 +178,7 @@ export function buildAndSeedMockState() {
       // Calculate second time to trigger comparison & create recommendation audits
       await survRecService.calculate("2026", 1);
 
-      console.log("[Mock Seeder] Pre-calculated Future Team Value, Survivor Equity, Recommendation Candidates, and comparative Recommendation Audits snapshotted states successfully.");
+      console.log("[Mock Seeder] Pre-calculated Future Team Value, Survivor Equity, Recommendation Candidates, comparative Recommendation Audits, and Recommendation Confidence snapshotted states successfully.");
     } catch (err) {
       console.warn("Failed to pre-calculate mock dashboard metrics:", err);
     }

@@ -38,7 +38,8 @@ import {
   OwnershipProjection,
   ContestDynamicsSnapshot,
   SurvivorRecommendation,
-  RecommendationAudit
+  RecommendationAudit,
+  RecommendationConfidenceSnapshot
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -357,6 +358,18 @@ export interface IRecommendationAuditRepository {
   getByTeamId(teamId: string): Promise<RecommendationAudit[]>;
   save(audit: RecommendationAudit): Promise<RecommendationAudit>;
   saveMany(audits: RecommendationAudit[]): Promise<RecommendationAudit[]>;
+  deleteBySeasonAndWeek(season: string, week: number): Promise<boolean>;
+}
+
+export interface IRecommendationConfidenceRepository {
+  getAll(): Promise<RecommendationConfidenceSnapshot[]>;
+  getBySeasonAndWeek(season: string, week: number): Promise<RecommendationConfidenceSnapshot[]>;
+  getLatest(): Promise<RecommendationConfidenceSnapshot[]>;
+  getByEntryId(entryId: string): Promise<RecommendationConfidenceSnapshot[]>;
+  getByTeamId(teamId: string): Promise<RecommendationConfidenceSnapshot[]>;
+  getTopConfidence(limit: number): Promise<RecommendationConfidenceSnapshot[]>;
+  save(snapshot: RecommendationConfidenceSnapshot): Promise<RecommendationConfidenceSnapshot>;
+  saveMany(snapshots: RecommendationConfidenceSnapshot[]): Promise<RecommendationConfidenceSnapshot[]>;
   deleteBySeasonAndWeek(season: string, week: number): Promise<boolean>;
 }
 

@@ -70,6 +70,8 @@ import { SurvivorRecommendationService } from "../services/SurvivorRecommendatio
 const survivorRecommendationService = new SurvivorRecommendationService();
 import { RecommendationAuditService } from "../services/RecommendationAuditService";
 const recommendationAuditService = new RecommendationAuditService();
+import { RecommendationConfidenceService } from "../services/RecommendationConfidenceService";
+const recommendationConfidenceService = new RecommendationConfidenceService();
 
 const router = Router();
 
@@ -2213,6 +2215,70 @@ router.post("/recommendation-audits/generate", async (req: Request, res: Respons
 
     const audits = await recommendationAuditService.generateRecommendationAudits(season, weekNum, calculationVersion);
     res.json({ success: true, count: audits.length, data: audits });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendation-confidence/latest
+router.get("/recommendation-confidence/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await recommendationConfidenceService.getLatest();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendation-confidence/history
+router.get("/recommendation-confidence/history", async (req: Request, res: Response) => {
+  try {
+    const list = await recommendationConfidenceService.getAll();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendation-confidence/by-entry/:entryId
+router.get("/recommendation-confidence/by-entry/:entryId", async (req: Request, res: Response) => {
+  try {
+    const { entryId } = req.params;
+    const list = await recommendationConfidenceService.getByEntryId(entryId);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendation-confidence/top
+router.get("/recommendation-confidence/top", async (req: Request, res: Response) => {
+  try {
+    const limit = parseInt((req.query.limit || "10").toString(), 10);
+    const list = await recommendationConfidenceService.getTopConfidence(limit);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/recommendation-confidence/calculate
+router.post("/recommendation-confidence/calculate", async (req: Request, res: Response) => {
+  try {
+    const { season, week, calculationVersion } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const weekNum = parseInt((week || "1").toString(), 10);
+    if (isNaN(weekNum) || weekNum < 1 || weekNum > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+    if (!calculationVersion) {
+      return res.status(400).json({ error: "Calculation version is required" });
+    }
+
+    const snapshots = await recommendationConfidenceService.calculate(season, weekNum, calculationVersion);
+    res.json({ success: true, count: snapshots.length, data: snapshots });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

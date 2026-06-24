@@ -1072,4 +1072,32 @@ export interface RecommendationAudit {
   created_at?: string;
 }
 
+export enum StabilityTier {
+  VERY_STABLE = "VERY_STABLE",
+  STABLE = "STABLE",
+  MODERATE = "MODERATE",
+  UNSTABLE = "UNSTABLE",
+  HIGHLY_UNSTABLE = "HIGHLY_UNSTABLE"
+}
+
+export interface RecommendationConfidenceSnapshot {
+  id?: number | string;
+  season: string;
+  week: number;
+  entry_id: string;
+  team_id: string;
+  recommendation_rank: number;
+  recommendation_score: number;
+  confidence_score: number;
+  stability_score: number;
+  score_gap_to_next: number;
+  score_gap_to_top: number;
+  recommendation_volatility: number;
+  confidence_tier: ConfidenceTier | string;
+  stability_tier: StabilityTier | string;
+  explanation: string;
+  calculation_version: string;
+  created_at?: string;
+}
+
 

@@ -41,7 +41,8 @@ import {
   MockOwnershipProjectionRepository,
   MockContestDynamicsRepository,
   MockSurvivorRecommendationRepository,
-  MockRecommendationAuditRepository
+  MockRecommendationAuditRepository,
+  MockRecommendationConfidenceRepository
 } from "./mockRepositories";
 
 import {
@@ -81,6 +82,7 @@ import { PostgresOwnershipProjectionRepository } from "./postgres/PostgresOwners
 import { PostgresContestDynamicsRepository } from "./postgres/PostgresContestDynamicsRepository";
 import { PostgresSurvivorRecommendationRepository } from "./postgres/PostgresSurvivorRecommendationRepository";
 import { PostgresRecommendationAuditRepository } from "./postgres/PostgresRecommendationAuditRepository";
+import { PostgresRecommendationConfidenceRepository } from "./postgres/PostgresRecommendationConfidenceRepository";
 
 export let useMock = databaseConfig.useMock;
 
@@ -215,6 +217,9 @@ export class RepositoryFactory {
   }
   static getRecommendationAuditRepo() {
     return useMock ? new MockRecommendationAuditRepository() : new PostgresRecommendationAuditRepository();
+  }
+  static getRecommendationConfidenceRepo() {
+    return useMock ? new MockRecommendationConfidenceRepository() : new PostgresRecommendationConfidenceRepository();
   }
 }
 

@@ -146,5 +146,39 @@ export const apiService = {
     });
     if (!res.ok) throw new Error("Failed to generate recommendation audits");
     return res.json();
+  },
+
+  async fetchLatestConfidence(): Promise<any[]> {
+    const res = await fetch("/api/recommendation-confidence/latest");
+    if (!res.ok) throw new Error("Failed to fetch latest confidence snapshots");
+    return res.json();
+  },
+
+  async fetchConfidenceHistory(): Promise<any[]> {
+    const res = await fetch("/api/recommendation-confidence/history");
+    if (!res.ok) throw new Error("Failed to fetch confidence history");
+    return res.json();
+  },
+
+  async fetchConfidenceByEntry(entryId: string): Promise<any[]> {
+    const res = await fetch(`/api/recommendation-confidence/by-entry/${entryId}`);
+    if (!res.ok) throw new Error("Failed to fetch confidence snapshots for entry " + entryId);
+    return res.json();
+  },
+
+  async fetchTopConfidence(limit: number = 10): Promise<any[]> {
+    const res = await fetch(`/api/recommendation-confidence/top?limit=${limit}`);
+    if (!res.ok) throw new Error("Failed to fetch top confidence snapshots");
+    return res.json();
+  },
+
+  async calculateConfidence(season: string, week: number, calculationVersion: string): Promise<any> {
+    const res = await fetch("/api/recommendation-confidence/calculate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week, calculationVersion })
+    });
+    if (!res.ok) throw new Error("Failed to calculate recommendation confidence snapshots");
+    return res.json();
   }
 };
