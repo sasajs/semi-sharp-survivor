@@ -46,7 +46,8 @@ import {
   MockRecommendationConsensusRepository,
   MockRecommendationPortfolioRepository,
   MockContestEVRepository,
-  MockOwnershipCalibrationRepository
+  MockOwnershipCalibrationRepository,
+  MockMarketCalibrationRepository
 } from "./mockRepositories";
 
 import {
@@ -91,6 +92,7 @@ import { PostgresRecommendationConsensusRepository } from "./postgres/PostgresRe
 import { PostgresRecommendationPortfolioRepository } from "./postgres/PostgresRecommendationPortfolioRepository";
 import { PostgresContestEVRepository } from "./postgres/PostgresContestEVRepository";
 import { PostgresOwnershipCalibrationRepository } from "./postgres/PostgresOwnershipCalibrationRepository";
+import { PostgresMarketCalibrationRepository } from "./postgres/PostgresMarketCalibrationRepository";
 
 export let useMock = databaseConfig.useMock;
 
@@ -240,6 +242,9 @@ export class RepositoryFactory {
   }
   static getOwnershipCalibrationRepo() {
     return useMock ? new MockOwnershipCalibrationRepository() : new PostgresOwnershipCalibrationRepository();
+  }
+  static getMarketCalibrationRepo() {
+    return useMock ? new MockMarketCalibrationRepository() : new PostgresMarketCalibrationRepository();
   }
 }
 

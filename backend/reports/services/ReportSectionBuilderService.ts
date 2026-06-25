@@ -8,7 +8,7 @@ import {
   ChalkUpsetScenario,
   StrategyComparison
 } from "../models";
-import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV } from "../../../src/types";
+import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV, MarketCalibration } from "../../../src/types";
 
 export class ReportSectionBuilderService {
   static buildExecutiveSummary(
@@ -503,6 +503,37 @@ Expected value adjustments dynamically react to Entry Strategy Profiles:
     return {
       id: "sec-contest-ev-analysis",
       title: "16. Contest Expected Value Analysis",
+      type: "inventory_summary",
+      content_markdown: md
+    };
+  }
+
+  static buildMarketCalibrationSection(calibrations: MarketCalibration[], season: string, week: number): WeeklyReportSection {
+    let md = `### ⚖️ Market Calibration & Closing Line Value (CLV) Engine (v0.42)\n`;
+    md += `This section monitors predictive performance against real closing market lines, tracing spread CLV, total CLV, model edge, and absolute prediction errors. A higher CLV proves the model is consistently beating the market movement.\n\n`;
+
+    md += `| Team Matchup | Opening Line | Closing Line | Model Line | Spread CLV | Total CLV | Market Edge | Prediction Error | Calibration Score |\n`;
+    md += `|---|---|---|---|---|---|---|---|---|\n`;
+
+    const tableRows = calibrations.map(item => {
+      const qScore = Math.max(0, Math.min(100, Math.round(75 + (item.spread_clv * 15) - (item.prediction_error * 2))));
+      const formatNum = (num: number) => num > 0 ? `+${num}` : `${num}`;
+      const clvSign = item.spread_clv > 0 ? `+` : ``;
+      const totSign = item.total_clv > 0 ? `+` : ``;
+
+      return `| **${item.team_id.toUpperCase()}** | ${formatNum(item.opening_spread)} | ${formatNum(item.closing_spread)} | **${formatNum(item.model_spread)}** | **${clvSign}${item.spread_clv}** | ${totSign}${item.total_clv} | ${item.market_edge.toFixed(2)} | ${item.prediction_error.toFixed(2)} | **${qScore}** |`;
+    }).join("\n");
+
+    md += tableRows + "\n\n";
+
+    md += `#### 🧠 Closed-Loop Calibration Learning Feedback\n`;
+    md += `- **Opening vs Closing lines**: Measuring spread drift confirms the velocity of sharp market sentiment.\n`;
+    md += `- **Spread CLV**: Positive closing value is mathematically correlated with long-term profitability.\n`;
+    md += `- **Calibration score (0-100)**: Assesses precision where +CLV increases ratings and MAE (absolute error) deducts points.\n`;
+
+    return {
+      id: "sec-market-calibration-analysis",
+      title: "17. Market Calibration & Closing Line Value (CLV) Analysis",
       type: "inventory_summary",
       content_markdown: md
     };

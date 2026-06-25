@@ -33,6 +33,7 @@ import { OwnershipProjectionService } from "../../services/OwnershipProjectionSe
 import { ContestDynamicsService } from "../../services/ContestDynamicsService";
 import { SurvivorRecommendationService } from "../../services/SurvivorRecommendationService";
 import { ContestEVService } from "../../services/ContestEVService";
+import { MarketCalibrationService } from "../../services/MarketCalibrationService";
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
 
 // Persistent state storage for generated reports and report runs
@@ -361,6 +362,19 @@ export class WeeklyReportService {
       sections.push(evSection);
     } catch (evErr: any) {
       console.warn("Could not append Contest Expected Value (Contest EV) section to weekly report:", evErr.message);
+    }
+
+    // Market Calibration & Closing Line Value Engine (v0.42 Engine)
+    try {
+      let calibrations = await MarketCalibrationService.getHistory();
+      calibrations = calibrations.filter(c => c.season === season.toString() && c.week === week);
+      if (calibrations.length === 0) {
+        calibrations = await MarketCalibrationService.calculate(season.toString(), week, "v1.0.0");
+      }
+      const mktSection = ReportSectionBuilderService.buildMarketCalibrationSection(calibrations, season.toString(), week);
+      sections.push(mktSection);
+    } catch (mktErr: any) {
+      console.warn("Could not append Market Calibration section to weekly report:", mktErr.message);
     }
 
     const reportHash = ReportAuditService.createReportHash(reportShell);

@@ -76,6 +76,7 @@ import { RecommendationConsensusService } from "../services/RecommendationConsen
 import { RecommendationPortfolioOptimizerService } from "../services/RecommendationPortfolioOptimizerService";
 import { ContestEVService } from "../services/ContestEVService";
 import { OwnershipCalibrationService } from "../services/OwnershipCalibrationService";
+import { MarketCalibrationService } from "../services/MarketCalibrationService";
 
 const router = Router();
 
@@ -2505,6 +2506,59 @@ router.post("/ownership-calibration/generate", async (req: Request, res: Respons
     }
 
     const list = await OwnershipCalibrationService.calculate(season, weekNum, calculationVersion);
+    res.json({ success: true, count: list.length, data: list });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/market-calibration/latest
+router.get("/market-calibration/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await MarketCalibrationService.getLatest();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/market-calibration/history
+router.get("/market-calibration/history", async (req: Request, res: Response) => {
+  try {
+    const list = await MarketCalibrationService.getHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/market-calibration/:gameId
+router.get("/market-calibration/:gameId", async (req: Request, res: Response) => {
+  try {
+    const { gameId } = req.params;
+    const list = await MarketCalibrationService.getByGameId(gameId);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/market-calibration/generate
+router.post("/market-calibration/generate", async (req: Request, res: Response) => {
+  try {
+    const { season, week, calculationVersion } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const weekNum = parseInt((week || "1").toString(), 10);
+    if (isNaN(weekNum) || weekNum < 1 || weekNum > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+    if (!calculationVersion) {
+      return res.status(400).json({ error: "Calculation version is required" });
+    }
+
+    const list = await MarketCalibrationService.calculate(season, weekNum, calculationVersion);
     res.json({ success: true, count: list.length, data: list });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

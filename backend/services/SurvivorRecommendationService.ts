@@ -22,6 +22,8 @@ import { RecommendationConfidenceService } from "./RecommendationConfidenceServi
 import { RecommendationConsensusService } from "./RecommendationConsensusService";
 import { RecommendationPortfolioOptimizerService } from "./RecommendationPortfolioOptimizerService";
 import { ContestEVService } from "./ContestEVService";
+import { OwnershipCalibrationService } from "./OwnershipCalibrationService";
+import { MarketCalibrationService } from "./MarketCalibrationService";
 
 export const STRATEGY_RECOMMENDATION_WEIGHTS: Record<StrategyType, {
   candidateWeight: number;      // baseline 40%
@@ -252,6 +254,20 @@ export class SurvivorRecommendationService {
       await ContestEVService.calculate(season, week, calculationVersion);
     } catch (contestEVErr: any) {
       console.error("[Survivor Recommendation Service] Failed to calculate contest expected value:", contestEVErr.message);
+    }
+
+    // 13. Generate Ownership Calibration (Ownership Calibration Engine)
+    try {
+      await OwnershipCalibrationService.calculate(season, week, calculationVersion);
+    } catch (ownershipCalibErr: any) {
+      console.error("[Survivor Recommendation Service] Failed to calculate ownership calibration:", ownershipCalibErr.message);
+    }
+
+    // 14. Generate Market Calibration & Closing Line Value Engine (Market Calibration Engine)
+    try {
+      await MarketCalibrationService.calculate(season, week, calculationVersion);
+    } catch (mktCalibErr: any) {
+      console.error("[Survivor Recommendation Service] Failed to calculate market calibration:", mktCalibErr.message);
     }
 
     return saved;

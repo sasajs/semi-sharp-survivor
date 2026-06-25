@@ -44,7 +44,8 @@ import {
   RecommendationConsensus,
   RecommendationPortfolio,
   ContestEV,
-  OwnershipCalibration
+  OwnershipCalibration,
+  MarketCalibration
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -93,7 +94,8 @@ import {
   IRecommendationConsensusRepository,
   IRecommendationPortfolioRepository,
   IContestEVRepository,
-  IOwnershipCalibrationRepository
+  IOwnershipCalibrationRepository,
+  IMarketCalibrationRepository
 } from "./interfaces";
 
 /**
@@ -212,6 +214,7 @@ export let mockRecommendationConsensus: RecommendationConsensus[] = [];
 export let mockRecommendationPortfolios: RecommendationPortfolio[] = [];
 export let mockContestEVs: ContestEV[] = [];
 export let mockOwnershipCalibrations: OwnershipCalibration[] = [];
+export let mockMarketCalibrations: MarketCalibration[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -329,6 +332,7 @@ export function resetMockDatabase(
   mockRecommendationPortfolios = [];
   mockContestEVs = [];
   mockOwnershipCalibrations = [];
+  mockMarketCalibrations = [];
 }
 
 /**
@@ -2283,6 +2287,42 @@ export class MockOwnershipCalibrationRepository implements IOwnershipCalibration
     const originalLen = mockOwnershipCalibrations.length;
     mockOwnershipCalibrations = mockOwnershipCalibrations.filter(s => !(s.season === season && s.week === week));
     return mockOwnershipCalibrations.length < originalLen;
+  }
+}
+
+export class MockMarketCalibrationRepository implements IMarketCalibrationRepository {
+  async saveCalibration(calibrations: MarketCalibration[]): Promise<MarketCalibration[]> {
+    const results: MarketCalibration[] = [];
+    for (const c of calibrations) {
+      const item: MarketCalibration = {
+        ...c,
+        id: c.id || Math.floor(Math.random() * 1000000) + 1,
+        created_at: c.created_at || new Date().toISOString()
+      };
+      mockMarketCalibrations.push(item);
+      results.push(item);
+    }
+    return results;
+  }
+
+  async getLatestCalibration(): Promise<MarketCalibration[]> {
+    if (mockMarketCalibrations.length === 0) return [];
+    const latestVersion = mockMarketCalibrations[mockMarketCalibrations.length - 1].calculation_version;
+    return mockMarketCalibrations.filter(s => s.calculation_version === latestVersion);
+  }
+
+  async getCalibrationByGame(gameId: string): Promise<MarketCalibration[]> {
+    return mockMarketCalibrations.filter(s => s.game_id === gameId);
+  }
+
+  async getCalibrationHistory(): Promise<MarketCalibration[]> {
+    return [...mockMarketCalibrations];
+  }
+
+  async deleteWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockMarketCalibrations.length;
+    mockMarketCalibrations = mockMarketCalibrations.filter(s => !(s.season === season && s.week === week));
+    return mockMarketCalibrations.length < originalLen;
   }
 }
 

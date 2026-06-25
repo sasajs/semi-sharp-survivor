@@ -298,5 +298,33 @@ export const apiService = {
     });
     if (!res.ok) throw new Error("Failed to generate ownership calibration calculations");
     return res.json();
+  },
+
+  async fetchLatestMarketCalibration(): Promise<any[]> {
+    const res = await fetch("/api/market-calibration/latest");
+    if (!res.ok) throw new Error("Failed to fetch latest market calibration snapshots");
+    return res.json();
+  },
+
+  async fetchMarketCalibrationHistory(): Promise<any[]> {
+    const res = await fetch("/api/market-calibration/history");
+    if (!res.ok) throw new Error("Failed to fetch market calibration history");
+    return res.json();
+  },
+
+  async fetchMarketCalibrationByGameId(gameId: string): Promise<any[]> {
+    const res = await fetch(`/api/market-calibration/${gameId}`);
+    if (!res.ok) throw new Error("Failed to fetch market calibration for game: " + gameId);
+    return res.json();
+  },
+
+  async generateMarketCalibration(season: string, week: number, calculationVersion: string): Promise<any> {
+    const res = await fetch("/api/market-calibration/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week, calculationVersion })
+    });
+    if (!res.ok) throw new Error("Failed to generate market calibration calculations");
+    return res.json();
   }
 };

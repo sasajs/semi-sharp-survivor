@@ -1203,6 +1203,28 @@ export interface OwnershipCalibration {
   created_at?: string;
 }
 
+export interface MarketCalibration {
+  id?: number | string;
+  season: string;
+  week: number;
+  game_id: string;
+  team_id: string;
+  opening_spread: number;
+  closing_spread: number;
+  model_spread: number;
+  spread_clv: number;
+  opening_total: number;
+  closing_total: number;
+  model_total: number;
+  total_clv: number;
+  market_direction: string;
+  prediction_error: number;
+  market_edge: number;
+  calibration_weight: number;
+  calculation_version: string;
+  created_at?: string;
+}
+
 
 
 

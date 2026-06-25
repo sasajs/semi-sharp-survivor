@@ -130,5 +130,6 @@ export const recommendationConsensusRepo = createRepositoryProxy(() => Repositor
 export const recommendationPortfolioRepo = createRepositoryProxy(() => RepositoryFactory.getRecommendationPortfolioRepo());
 export const contestEVRepo = createRepositoryProxy(() => RepositoryFactory.getContestEVRepo());
 export const ownershipCalibrationRepo = createRepositoryProxy(() => RepositoryFactory.getOwnershipCalibrationRepo());
+export const marketCalibrationRepo = createRepositoryProxy(() => RepositoryFactory.getMarketCalibrationRepo());
 
 
