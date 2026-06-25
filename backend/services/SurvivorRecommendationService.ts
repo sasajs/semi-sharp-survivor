@@ -21,6 +21,7 @@ import { RecommendationAuditService } from "./RecommendationAuditService";
 import { RecommendationConfidenceService } from "./RecommendationConfidenceService";
 import { RecommendationConsensusService } from "./RecommendationConsensusService";
 import { RecommendationPortfolioOptimizerService } from "./RecommendationPortfolioOptimizerService";
+import { ContestEVService } from "./ContestEVService";
 
 export const STRATEGY_RECOMMENDATION_WEIGHTS: Record<StrategyType, {
   candidateWeight: number;      // baseline 40%
@@ -244,6 +245,13 @@ export class SurvivorRecommendationService {
       await RecommendationPortfolioOptimizerService.calculate(season, week, calculationVersion);
     } catch (portfolioErr: any) {
       console.error("[Survivor Recommendation Service] Failed to calculate recommendation portfolio optimization:", portfolioErr.message);
+    }
+
+    // 12. Generate Contest Expected Value Optimization (Contest EV Engine)
+    try {
+      await ContestEVService.calculate(season, week, calculationVersion);
+    } catch (contestEVErr: any) {
+      console.error("[Survivor Recommendation Service] Failed to calculate contest expected value:", contestEVErr.message);
     }
 
     return saved;

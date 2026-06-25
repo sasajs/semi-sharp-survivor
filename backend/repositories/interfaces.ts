@@ -41,7 +41,8 @@ import {
   RecommendationAudit,
   RecommendationConfidenceSnapshot,
   RecommendationConsensus,
-  RecommendationPortfolio
+  RecommendationPortfolio,
+  ContestEV
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -392,6 +393,14 @@ export interface IRecommendationPortfolioRepository {
   getLatestPortfolio(): Promise<RecommendationPortfolio[]>;
   getPortfolioById(portfolioId: string): Promise<RecommendationPortfolio[]>;
   getPortfolioHistory(): Promise<RecommendationPortfolio[]>;
+  deleteWeek(season: string, week: number): Promise<boolean>;
+}
+
+export interface IContestEVRepository {
+  saveContestEV(snapshots: ContestEV[]): Promise<ContestEV[]>;
+  getLatestContestEV(): Promise<ContestEV[]>;
+  getContestEV(contestId: string): Promise<ContestEV[]>;
+  getContestHistory(): Promise<ContestEV[]>;
   deleteWeek(season: string, week: number): Promise<boolean>;
 }
 

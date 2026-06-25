@@ -76,5 +76,10 @@ export const migrationRegistry: Migration[] = [
     version: "V039",
     description: "Recommendation Portfolio Optimizer Engine: recommendation_portfolios table.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "039_recommendation_portfolios.sql")
+  },
+  {
+    version: "V040",
+    description: "Contest Expected Value Engine: contest_ev table.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "040_contest_ev.sql")
   }
 ];

@@ -30,6 +30,7 @@ import { RecommendationAuditPanel } from "./components/RecommendationAuditPanel"
 import { RecommendationConfidencePanel } from "./components/RecommendationConfidencePanel";
 import { RecommendationConsensusPanel } from "./components/RecommendationConsensusPanel";
 import { RecommendationPortfolioPanel } from "./components/RecommendationPortfolioPanel";
+import { ContestEVPanel } from "./components/ContestEVPanel";
 import { AdminDashboard } from "./pages/AdminDashboard";
 
 export default function App() {
@@ -155,6 +156,7 @@ export default function App() {
                 { id: "recommendation-confidence", label: "Confidence & Stability", icon: ShieldCheck, badge: "Layer 2" },
                 { id: "recommendation-consensus", label: "Consensus Analysis", icon: Zap, badge: "Layer 2" },
                 { id: "recommendation-portfolio", label: "Portfolio Optimizer", icon: Layers, badge: "v0.39" },
+                { id: "contest-ev", label: "Contest EV Optimizer", icon: Award, badge: "v0.40" },
                 { id: "admin", label: "Admin Dashboard", icon: ShieldAlert, badge: "Secure" },
               ].map(tab => {
                 const Icon = tab.icon;
@@ -889,6 +891,13 @@ export default function App() {
 
               {activeTab === "recommendation-portfolio" && (
                 <RecommendationPortfolioPanel 
+                  entries={entries}
+                  teams={teams}
+                />
+              )}
+
+              {activeTab === "contest-ev" && (
+                <ContestEVPanel 
                   entries={entries}
                   teams={teams}
                 />

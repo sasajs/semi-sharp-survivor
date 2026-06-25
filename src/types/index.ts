@@ -1154,6 +1154,39 @@ export interface RecommendationPortfolio {
   created_at?: string;
 }
 
+export enum ContestType {
+  PUBLIC = "PUBLIC",
+  PRIVATE = "PRIVATE",
+  GROUP = "GROUP",
+  HIGH_STAKES = "HIGH_STAKES",
+  MARKETPLACE = "MARKETPLACE"
+}
+
+export interface ContestEV {
+  id?: number | string;
+  season: string;
+  week: number;
+  contest_id: string;
+  entry_id: string;
+  recommended_team_id: string;
+  contest_size: number;
+  remaining_entries: number;
+  estimated_ownership: number;
+  win_probability: number;
+  future_team_value: number;
+  survivor_equity: number;
+  portfolio_score: number;
+  consensus_score: number;
+  contest_ev_score: number;
+  championship_probability: number;
+  risk_adjustment: number;
+  explanation: string;
+  calculation_version: string;
+  created_at?: string;
+  contest_type?: ContestType | string;
+}
+
+
 
 
 

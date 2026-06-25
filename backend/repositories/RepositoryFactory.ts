@@ -44,7 +44,8 @@ import {
   MockRecommendationAuditRepository,
   MockRecommendationConfidenceRepository,
   MockRecommendationConsensusRepository,
-  MockRecommendationPortfolioRepository
+  MockRecommendationPortfolioRepository,
+  MockContestEVRepository
 } from "./mockRepositories";
 
 import {
@@ -87,6 +88,7 @@ import { PostgresRecommendationAuditRepository } from "./postgres/PostgresRecomm
 import { PostgresRecommendationConfidenceRepository } from "./postgres/PostgresRecommendationConfidenceRepository";
 import { PostgresRecommendationConsensusRepository } from "./postgres/PostgresRecommendationConsensusRepository";
 import { PostgresRecommendationPortfolioRepository } from "./postgres/PostgresRecommendationPortfolioRepository";
+import { PostgresContestEVRepository } from "./postgres/PostgresContestEVRepository";
 
 export let useMock = databaseConfig.useMock;
 
@@ -230,6 +232,9 @@ export class RepositoryFactory {
   }
   static getRecommendationPortfolioRepo() {
     return useMock ? new MockRecommendationPortfolioRepository() : new PostgresRecommendationPortfolioRepository();
+  }
+  static getContestEVRepo() {
+    return useMock ? new MockContestEVRepository() : new PostgresContestEVRepository();
   }
 }
 

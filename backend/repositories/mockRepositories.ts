@@ -42,7 +42,8 @@ import {
   RecommendationAudit,
   RecommendationConfidenceSnapshot,
   RecommendationConsensus,
-  RecommendationPortfolio
+  RecommendationPortfolio,
+  ContestEV
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -89,7 +90,8 @@ import {
   IRecommendationAuditRepository,
   IRecommendationConfidenceRepository,
   IRecommendationConsensusRepository,
-  IRecommendationPortfolioRepository
+  IRecommendationPortfolioRepository,
+  IContestEVRepository
 } from "./interfaces";
 
 /**
@@ -206,6 +208,7 @@ export let mockRecommendationAudits: RecommendationAudit[] = [];
 export let mockRecommendationConfidenceSnapshots: RecommendationConfidenceSnapshot[] = [];
 export let mockRecommendationConsensus: RecommendationConsensus[] = [];
 export let mockRecommendationPortfolios: RecommendationPortfolio[] = [];
+export let mockContestEVs: ContestEV[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -321,6 +324,7 @@ export function resetMockDatabase(
   mockRecommendationConfidenceSnapshots = [];
   mockRecommendationConsensus = [];
   mockRecommendationPortfolios = [];
+  mockContestEVs = [];
 }
 
 /**
@@ -2203,6 +2207,42 @@ export class MockRecommendationPortfolioRepository implements IRecommendationPor
     const originalLen = mockRecommendationPortfolios.length;
     mockRecommendationPortfolios = mockRecommendationPortfolios.filter(s => !(s.season === season && s.week === week));
     return mockRecommendationPortfolios.length < originalLen;
+  }
+}
+
+export class MockContestEVRepository implements IContestEVRepository {
+  async saveContestEV(snapshots: ContestEV[]): Promise<ContestEV[]> {
+    const results: ContestEV[] = [];
+    for (const snapshot of snapshots) {
+      const item: ContestEV = {
+        ...snapshot,
+        id: snapshot.id || Math.floor(Math.random() * 1000000) + 1,
+        created_at: snapshot.created_at || new Date().toISOString()
+      };
+      mockContestEVs.push(item);
+      results.push(item);
+    }
+    return results;
+  }
+
+  async getLatestContestEV(): Promise<ContestEV[]> {
+    if (mockContestEVs.length === 0) return [];
+    const latestVersion = mockContestEVs[mockContestEVs.length - 1].calculation_version;
+    return mockContestEVs.filter(s => s.calculation_version === latestVersion);
+  }
+
+  async getContestEV(contestId: string): Promise<ContestEV[]> {
+    return mockContestEVs.filter(s => s.contest_id === contestId);
+  }
+
+  async getContestHistory(): Promise<ContestEV[]> {
+    return [...mockContestEVs];
+  }
+
+  async deleteWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockContestEVs.length;
+    mockContestEVs = mockContestEVs.filter(s => !(s.season === season && s.week === week));
+    return mockContestEVs.length < originalLen;
   }
 }
 

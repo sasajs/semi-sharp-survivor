@@ -242,5 +242,33 @@ export const apiService = {
     });
     if (!res.ok) throw new Error("Failed to calculate recommendation portfolio optimization");
     return res.json();
+  },
+
+  async fetchLatestContestEV(): Promise<any[]> {
+    const res = await fetch("/api/contest-ev/latest");
+    if (!res.ok) throw new Error("Failed to fetch latest contest EV snapshots");
+    return res.json();
+  },
+
+  async fetchContestEVHistory(): Promise<any[]> {
+    const res = await fetch("/api/contest-ev/history");
+    if (!res.ok) throw new Error("Failed to fetch contest EV history");
+    return res.json();
+  },
+
+  async fetchContestEVById(contestId: string): Promise<any[]> {
+    const res = await fetch(`/api/contest-ev/${contestId}`);
+    if (!res.ok) throw new Error("Failed to fetch contest EV for: " + contestId);
+    return res.json();
+  },
+
+  async generateContestEV(season: string, week: number, calculationVersion: string): Promise<any> {
+    const res = await fetch("/api/contest-ev/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week, calculationVersion })
+    });
+    if (!res.ok) throw new Error("Failed to generate contest EV calculations");
+    return res.json();
   }
 };

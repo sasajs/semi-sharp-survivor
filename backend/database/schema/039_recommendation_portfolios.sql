@@ -20,8 +20,7 @@ CREATE TABLE IF NOT EXISTS recommendation_portfolios (
 
 CREATE INDEX IF NOT EXISTS idx_rec_port_season_week ON recommendation_portfolios(season, week);
 CREATE INDEX IF NOT EXISTS idx_rec_port_portfolio ON recommendation_portfolios(portfolio_id);
-CREATE INDEX IF NOT EXISTS idx_rec_port_strategy ON recommendation_portfolios(strategy);
 CREATE INDEX IF NOT EXISTS idx_rec_port_entry ON recommendation_portfolios(entry_id);
 CREATE INDEX IF NOT EXISTS idx_rec_port_team ON recommendation_portfolios(recommended_team_id);
-
+CREATE INDEX IF NOT EXISTS idx_rec_port_strategy ON recommendation_portfolios(strategy);
 

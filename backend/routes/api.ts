@@ -74,6 +74,7 @@ import { RecommendationConfidenceService } from "../services/RecommendationConfi
 const recommendationConfidenceService = new RecommendationConfidenceService();
 import { RecommendationConsensusService } from "../services/RecommendationConsensusService";
 import { RecommendationPortfolioOptimizerService } from "../services/RecommendationPortfolioOptimizerService";
+import { ContestEVService } from "../services/ContestEVService";
 
 const router = Router();
 
@@ -2397,6 +2398,59 @@ router.post("/portfolio-optimizer/calculate", async (req: Request, res: Response
     }
 
     const list = await RecommendationPortfolioOptimizerService.calculate(season, weekNum, calculationVersion);
+    res.json({ success: true, count: list.length, data: list });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/contest-ev/latest
+router.get("/contest-ev/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await ContestEVService.getLatest();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/contest-ev/history
+router.get("/contest-ev/history", async (req: Request, res: Response) => {
+  try {
+    const list = await ContestEVService.getHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/contest-ev/:contestId
+router.get("/contest-ev/:contestId", async (req: Request, res: Response) => {
+  try {
+    const { contestId } = req.params;
+    const list = await ContestEVService.getById(contestId);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/contest-ev/generate
+router.post("/contest-ev/generate", async (req: Request, res: Response) => {
+  try {
+    const { season, week, calculationVersion } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const weekNum = parseInt((week || "1").toString(), 10);
+    if (isNaN(weekNum) || weekNum < 1 || weekNum > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+    if (!calculationVersion) {
+      return res.status(400).json({ error: "Calculation version is required" });
+    }
+
+    const list = await ContestEVService.calculate(season, weekNum, calculationVersion);
     res.json({ success: true, count: list.length, data: list });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
