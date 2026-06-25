@@ -42,7 +42,8 @@ import {
   RecommendationConfidenceSnapshot,
   RecommendationConsensus,
   RecommendationPortfolio,
-  ContestEV
+  ContestEV,
+  OwnershipCalibration
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -401,6 +402,14 @@ export interface IContestEVRepository {
   getLatestContestEV(): Promise<ContestEV[]>;
   getContestEV(contestId: string): Promise<ContestEV[]>;
   getContestHistory(): Promise<ContestEV[]>;
+  deleteWeek(season: string, week: number): Promise<boolean>;
+}
+
+export interface IOwnershipCalibrationRepository {
+  saveCalibration(calibrations: OwnershipCalibration[]): Promise<OwnershipCalibration[]>;
+  getLatestCalibration(): Promise<OwnershipCalibration[]>;
+  getCalibration(contestId: string): Promise<OwnershipCalibration[]>;
+  getCalibrationHistory(): Promise<OwnershipCalibration[]>;
   deleteWeek(season: string, week: number): Promise<boolean>;
 }
 

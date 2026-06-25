@@ -81,5 +81,10 @@ export const migrationRegistry: Migration[] = [
     version: "V040",
     description: "Contest Expected Value Engine: contest_ev table.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "040_contest_ev.sql")
+  },
+  {
+    version: "V041",
+    description: "Ownership Calibration Engine: ownership_calibration table.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "041_ownership_calibration.sql")
   }
 ];

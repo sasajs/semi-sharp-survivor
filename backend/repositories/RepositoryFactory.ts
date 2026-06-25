@@ -45,7 +45,8 @@ import {
   MockRecommendationConfidenceRepository,
   MockRecommendationConsensusRepository,
   MockRecommendationPortfolioRepository,
-  MockContestEVRepository
+  MockContestEVRepository,
+  MockOwnershipCalibrationRepository
 } from "./mockRepositories";
 
 import {
@@ -89,6 +90,7 @@ import { PostgresRecommendationConfidenceRepository } from "./postgres/PostgresR
 import { PostgresRecommendationConsensusRepository } from "./postgres/PostgresRecommendationConsensusRepository";
 import { PostgresRecommendationPortfolioRepository } from "./postgres/PostgresRecommendationPortfolioRepository";
 import { PostgresContestEVRepository } from "./postgres/PostgresContestEVRepository";
+import { PostgresOwnershipCalibrationRepository } from "./postgres/PostgresOwnershipCalibrationRepository";
 
 export let useMock = databaseConfig.useMock;
 
@@ -235,6 +237,9 @@ export class RepositoryFactory {
   }
   static getContestEVRepo() {
     return useMock ? new MockContestEVRepository() : new PostgresContestEVRepository();
+  }
+  static getOwnershipCalibrationRepo() {
+    return useMock ? new MockOwnershipCalibrationRepository() : new PostgresOwnershipCalibrationRepository();
   }
 }
 

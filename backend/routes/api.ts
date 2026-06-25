@@ -75,6 +75,7 @@ const recommendationConfidenceService = new RecommendationConfidenceService();
 import { RecommendationConsensusService } from "../services/RecommendationConsensusService";
 import { RecommendationPortfolioOptimizerService } from "../services/RecommendationPortfolioOptimizerService";
 import { ContestEVService } from "../services/ContestEVService";
+import { OwnershipCalibrationService } from "../services/OwnershipCalibrationService";
 
 const router = Router();
 
@@ -2451,6 +2452,59 @@ router.post("/contest-ev/generate", async (req: Request, res: Response) => {
     }
 
     const list = await ContestEVService.calculate(season, weekNum, calculationVersion);
+    res.json({ success: true, count: list.length, data: list });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/ownership-calibration/latest
+router.get("/ownership-calibration/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await OwnershipCalibrationService.getLatest();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/ownership-calibration/history
+router.get("/ownership-calibration/history", async (req: Request, res: Response) => {
+  try {
+    const list = await OwnershipCalibrationService.getHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/ownership-calibration/:contestId
+router.get("/ownership-calibration/:contestId", async (req: Request, res: Response) => {
+  try {
+    const { contestId } = req.params;
+    const list = await OwnershipCalibrationService.getByContestId(contestId);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/ownership-calibration/generate
+router.post("/ownership-calibration/generate", async (req: Request, res: Response) => {
+  try {
+    const { season, week, calculationVersion } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const weekNum = parseInt((week || "1").toString(), 10);
+    if (isNaN(weekNum) || weekNum < 1 || weekNum > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+    if (!calculationVersion) {
+      return res.status(400).json({ error: "Calculation version is required" });
+    }
+
+    const list = await OwnershipCalibrationService.calculate(season, weekNum, calculationVersion);
     res.json({ success: true, count: list.length, data: list });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

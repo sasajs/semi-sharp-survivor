@@ -8,7 +8,7 @@ import {
   ChalkUpsetScenario,
   StrategyComparison
 } from "../models";
-import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation } from "../../../src/types";
+import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV } from "../../../src/types";
 
 export class ReportSectionBuilderService {
   static buildExecutiveSummary(
@@ -450,6 +450,59 @@ Expected value adjustments dynamically react to Entry Strategy Profiles:
     return {
       id: "sec-survivor-recommendations",
       title: "15. Survivor Recommendations Analysis",
+      type: "inventory_summary",
+      content_markdown: md
+    };
+  }
+
+  static buildContestEVSection(evs: ContestEV[], season: string, week: number): WeeklyReportSection {
+    // Group EV calculations by Contest ID
+    const contestsMap = new Map<string, ContestEV[]>();
+    for (const ev of evs) {
+      if (!contestsMap.has(ev.contest_id)) {
+        contestsMap.set(ev.contest_id, []);
+      }
+      contestsMap.get(ev.contest_id)!.push(ev);
+    }
+
+    let md = `### 🏆 Contest Expected Value (Contest EV) Optimization (v0.40)\n`;
+    md += `This section displays the game-theoretic Contest Expected Value (Contest EV) optimizations across active contests. Calculations integrate win probabilities, survivor equity hedging, future value preservation, consensus alignment, and contest-specific public ownership risk adjustments.\n\n`;
+
+    for (const [contestId, contestEVList] of contestsMap.entries()) {
+      const sorted = [...contestEVList].sort((a, b) => b.contest_ev_score - a.contest_ev_score);
+      const topEV = sorted[0];
+
+      md += `#### 🏛️ Contest: **${contestId.toUpperCase()}** (Type: *${topEV?.contest_type || "PUBLIC"}* | Size: ${topEV?.contest_size.toLocaleString() || "1,000"})\n`;
+      md += `Strategic modeling uses specific risk profiles matching this pool's participant behavior and scale.\n\n`;
+
+      if (topEV) {
+        md += `⭐ **Highest EV Selection**: **${topEV.recommended_team_id.toUpperCase()}** (Contest EV Score: **${topEV.contest_ev_score.toFixed(1)}** | Champ Prob: **${topEV.championship_probability.toFixed(4)}%**)\n`;
+        md += `> **Audit Explanation**: ${topEV.explanation}\n\n`;
+      }
+
+      md += `| Team | Entry ID | Contest EV | Champ Prob | Est Ownership | Win Prob | FTV Score | Survivor Equity | Portfolio Score | Risk Adj |\n`;
+      md += `|---|---|---|---|---|---|---|---|---|---|\n`;
+
+      const tableRows = sorted.slice(0, 10).map(ev => {
+        return `| **${ev.recommended_team_id.toUpperCase()}** | ${ev.entry_id} | **${ev.contest_ev_score.toFixed(1)}** | ${ev.championship_probability.toFixed(4)}% | ${ev.estimated_ownership.toFixed(1)}% | ${((ev.win_probability || 0.75) * 100).toFixed(0)}% | ${ev.future_team_value.toFixed(0)} | ${ev.survivor_equity.toFixed(0)} | ${ev.portfolio_score.toFixed(0)} | -${ev.risk_adjustment.toFixed(1)} |`;
+      }).join("\n");
+
+      md += tableRows + "\n\n";
+    }
+
+    md += `#### ⚙️ Contest EV Calibration Framework (Layer 5/v0.40 Engine Config)\n`;
+    md += `Contest Expected Value combines 6 major core pillars of the intelligence suite:\n`;
+    md += `- **Win Probability** (25% weight): Represents pure schedule safety.\n`;
+    md += `- **Survivor Equity** (20% weight): Hedges the portfolio's underlying asset value.\n`;
+    md += `- **Future Team Value** (15% weight): Prevents short-sighted schedule exhaustion.\n`;
+    md += `- **Portfolio Alignment** (15% weight): Enforces optimal distribution and constraints.\n`;
+    md += `- **Consensus Score** (10% weight): Protects against variance and market deviations.\n`;
+    md += `- **Ownership Leverage** (15% weight): Multiplies returns via contrarian anti-chalk selections.\n`;
+    md += `- **Risk Adjustment**: Subtracts a calibrated deduction based on contest-type specific ownership concentrations.\n`;
+
+    return {
+      id: "sec-contest-ev-analysis",
+      title: "16. Contest Expected Value Analysis",
       type: "inventory_summary",
       content_markdown: md
     };

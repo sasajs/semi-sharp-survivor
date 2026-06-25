@@ -1186,6 +1186,23 @@ export interface ContestEV {
   contest_type?: ContestType | string;
 }
 
+export interface OwnershipCalibration {
+  id?: number | string;
+  season: string;
+  week: number;
+  team_id: string;
+  contest_id: string;
+  baseline_ownership: number;
+  calibrated_ownership: number;
+  sharp_multiplier: number;
+  contest_size_factor: number;
+  variance_index: number;
+  calibration_score: number;
+  explanation: string;
+  calculation_version: string;
+  created_at?: string;
+}
+
 
 
 

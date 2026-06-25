@@ -270,5 +270,33 @@ export const apiService = {
     });
     if (!res.ok) throw new Error("Failed to generate contest EV calculations");
     return res.json();
+  },
+
+  async fetchLatestOwnershipCalibration(): Promise<any[]> {
+    const res = await fetch("/api/ownership-calibration/latest");
+    if (!res.ok) throw new Error("Failed to fetch latest ownership calibration snapshots");
+    return res.json();
+  },
+
+  async fetchOwnershipCalibrationHistory(): Promise<any[]> {
+    const res = await fetch("/api/ownership-calibration/history");
+    if (!res.ok) throw new Error("Failed to fetch ownership calibration history");
+    return res.json();
+  },
+
+  async fetchOwnershipCalibrationByContestId(contestId: string): Promise<any[]> {
+    const res = await fetch(`/api/ownership-calibration/${contestId}`);
+    if (!res.ok) throw new Error("Failed to fetch ownership calibration for: " + contestId);
+    return res.json();
+  },
+
+  async generateOwnershipCalibration(season: string, week: number, calculationVersion: string): Promise<any> {
+    const res = await fetch("/api/ownership-calibration/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week, calculationVersion })
+    });
+    if (!res.ok) throw new Error("Failed to generate ownership calibration calculations");
+    return res.json();
   }
 };

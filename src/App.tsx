@@ -17,7 +17,8 @@ import {
   History,
   ShieldCheck,
   Zap,
-  Layers
+  Layers,
+  Sliders
 } from "lucide-react";
 
 import { useAppData } from "./hooks/useAppData";
@@ -31,6 +32,7 @@ import { RecommendationConfidencePanel } from "./components/RecommendationConfid
 import { RecommendationConsensusPanel } from "./components/RecommendationConsensusPanel";
 import { RecommendationPortfolioPanel } from "./components/RecommendationPortfolioPanel";
 import { ContestEVPanel } from "./components/ContestEVPanel";
+import { OwnershipCalibrationPanel } from "./components/OwnershipCalibrationPanel";
 import { AdminDashboard } from "./pages/AdminDashboard";
 
 export default function App() {
@@ -157,6 +159,7 @@ export default function App() {
                 { id: "recommendation-consensus", label: "Consensus Analysis", icon: Zap, badge: "Layer 2" },
                 { id: "recommendation-portfolio", label: "Portfolio Optimizer", icon: Layers, badge: "v0.39" },
                 { id: "contest-ev", label: "Contest EV Optimizer", icon: Award, badge: "v0.40" },
+                { id: "ownership-calibration", label: "Ownership Calibration", icon: Sliders, badge: "v0.41" },
                 { id: "admin", label: "Admin Dashboard", icon: ShieldAlert, badge: "Secure" },
               ].map(tab => {
                 const Icon = tab.icon;
@@ -899,6 +902,12 @@ export default function App() {
               {activeTab === "contest-ev" && (
                 <ContestEVPanel 
                   entries={entries}
+                  teams={teams}
+                />
+              )}
+
+              {activeTab === "ownership-calibration" && (
+                <OwnershipCalibrationPanel 
                   teams={teams}
                 />
               )}

@@ -41,7 +41,11 @@ export const initialTeams: Team[] = [
 ];
 
 export const initialContests: Contest[] = [
-  { id: "circa-2026", name: "Circa Survivor 2026", year: 2026, status: "active" }
+  { id: "circa-2026", name: "Circa Survivor 2026", year: 2026, status: "active" },
+  { id: "public-mega", name: "Public Mega Contest", year: 2026, status: "active" },
+  { id: "private-highroller", name: "Private High-Roller Pool", year: 2026, status: "active" },
+  { id: "group-office", name: "Office Group Pool", year: 2026, status: "active" },
+  { id: "marketplace-champ", name: "Marketplace Championship", year: 2026, status: "active" }
 ];
 
 export const initialLegs: ContestLeg[] = [

@@ -43,7 +43,8 @@ import {
   RecommendationConfidenceSnapshot,
   RecommendationConsensus,
   RecommendationPortfolio,
-  ContestEV
+  ContestEV,
+  OwnershipCalibration
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -91,7 +92,8 @@ import {
   IRecommendationConfidenceRepository,
   IRecommendationConsensusRepository,
   IRecommendationPortfolioRepository,
-  IContestEVRepository
+  IContestEVRepository,
+  IOwnershipCalibrationRepository
 } from "./interfaces";
 
 /**
@@ -209,6 +211,7 @@ export let mockRecommendationConfidenceSnapshots: RecommendationConfidenceSnapsh
 export let mockRecommendationConsensus: RecommendationConsensus[] = [];
 export let mockRecommendationPortfolios: RecommendationPortfolio[] = [];
 export let mockContestEVs: ContestEV[] = [];
+export let mockOwnershipCalibrations: OwnershipCalibration[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -325,6 +328,7 @@ export function resetMockDatabase(
   mockRecommendationConsensus = [];
   mockRecommendationPortfolios = [];
   mockContestEVs = [];
+  mockOwnershipCalibrations = [];
 }
 
 /**
@@ -2243,6 +2247,42 @@ export class MockContestEVRepository implements IContestEVRepository {
     const originalLen = mockContestEVs.length;
     mockContestEVs = mockContestEVs.filter(s => !(s.season === season && s.week === week));
     return mockContestEVs.length < originalLen;
+  }
+}
+
+export class MockOwnershipCalibrationRepository implements IOwnershipCalibrationRepository {
+  async saveCalibration(calibrations: OwnershipCalibration[]): Promise<OwnershipCalibration[]> {
+    const results: OwnershipCalibration[] = [];
+    for (const c of calibrations) {
+      const item: OwnershipCalibration = {
+        ...c,
+        id: c.id || Math.floor(Math.random() * 1000000) + 1,
+        created_at: c.created_at || new Date().toISOString()
+      };
+      mockOwnershipCalibrations.push(item);
+      results.push(item);
+    }
+    return results;
+  }
+
+  async getLatestCalibration(): Promise<OwnershipCalibration[]> {
+    if (mockOwnershipCalibrations.length === 0) return [];
+    const latestVersion = mockOwnershipCalibrations[mockOwnershipCalibrations.length - 1].calculation_version;
+    return mockOwnershipCalibrations.filter(s => s.calculation_version === latestVersion);
+  }
+
+  async getCalibration(contestId: string): Promise<OwnershipCalibration[]> {
+    return mockOwnershipCalibrations.filter(s => s.contest_id === contestId);
+  }
+
+  async getCalibrationHistory(): Promise<OwnershipCalibration[]> {
+    return [...mockOwnershipCalibrations];
+  }
+
+  async deleteWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockOwnershipCalibrations.length;
+    mockOwnershipCalibrations = mockOwnershipCalibrations.filter(s => !(s.season === season && s.week === week));
+    return mockOwnershipCalibrations.length < originalLen;
   }
 }
 
