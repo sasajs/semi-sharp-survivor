@@ -214,5 +214,33 @@ export const apiService = {
     });
     if (!res.ok) throw new Error("Failed to calculate recommendation consensus snapshots");
     return res.json();
+  },
+
+  async fetchLatestPortfolio(): Promise<any[]> {
+    const res = await fetch("/api/portfolio-optimizer/latest");
+    if (!res.ok) throw new Error("Failed to fetch latest portfolio optimizer recommendations");
+    return res.json();
+  },
+
+  async fetchPortfolioHistory(): Promise<any[]> {
+    const res = await fetch("/api/portfolio-optimizer/history");
+    if (!res.ok) throw new Error("Failed to fetch portfolio optimizer history");
+    return res.json();
+  },
+
+  async fetchPortfolioById(portfolioId: string): Promise<any[]> {
+    const res = await fetch(`/api/portfolio-optimizer/by-id/${portfolioId}`);
+    if (!res.ok) throw new Error("Failed to fetch portfolio: " + portfolioId);
+    return res.json();
+  },
+
+  async calculatePortfolio(season: string, week: number, calculationVersion: string): Promise<any> {
+    const res = await fetch("/api/portfolio-optimizer/calculate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week, calculationVersion })
+    });
+    if (!res.ok) throw new Error("Failed to calculate recommendation portfolio optimization");
+    return res.json();
   }
 };

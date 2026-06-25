@@ -1128,5 +1128,32 @@ export interface RecommendationConsensus {
   created_at?: string;
 }
 
+export enum PortfolioTier {
+  AGGRESSIVE_DIVERSIFIED = "AGGRESSIVE_DIVERSIFIED",
+  BALANCED = "BALANCED",
+  HIGH_CONSENSUS = "HIGH_CONSENSUS",
+  MAX_SURVIVAL = "MAX_SURVIVAL"
+}
+
+export interface RecommendationPortfolio {
+  id?: number | string;
+  season: string;
+  week: number;
+  portfolio_id: string;
+  entry_id: string;
+  recommended_team_id: string;
+  recommendation_score: number;
+  confidence_score: number;
+  consensus_score: number;
+  allocation_rank: number;
+  diversification_score: number;
+  correlation_penalty: number;
+  portfolio_score: number;
+  allocation_reason: string;
+  calculation_version: string;
+  created_at?: string;
+}
+
+
 
 

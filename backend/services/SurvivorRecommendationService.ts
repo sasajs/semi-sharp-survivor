@@ -20,6 +20,7 @@ import { ContestDynamicsService } from "./ContestDynamicsService";
 import { RecommendationAuditService } from "./RecommendationAuditService";
 import { RecommendationConfidenceService } from "./RecommendationConfidenceService";
 import { RecommendationConsensusService } from "./RecommendationConsensusService";
+import { RecommendationPortfolioOptimizerService } from "./RecommendationPortfolioOptimizerService";
 
 export const STRATEGY_RECOMMENDATION_WEIGHTS: Record<StrategyType, {
   candidateWeight: number;      // baseline 40%
@@ -236,6 +237,13 @@ export class SurvivorRecommendationService {
       await RecommendationConsensusService.calculateConsensus(season, week, calculationVersion);
     } catch (consensusErr: any) {
       console.error("[Survivor Recommendation Service] Failed to calculate recommendation consensus snapshots:", consensusErr.message);
+    }
+
+    // 11. Generate Recommendation Portfolio Optimization (Portfolio Optimizer Engine)
+    try {
+      await RecommendationPortfolioOptimizerService.calculate(season, week, calculationVersion);
+    } catch (portfolioErr: any) {
+      console.error("[Survivor Recommendation Service] Failed to calculate recommendation portfolio optimization:", portfolioErr.message);
     }
 
     return saved;

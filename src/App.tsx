@@ -16,7 +16,8 @@ import {
   Columns,
   History,
   ShieldCheck,
-  Zap
+  Zap,
+  Layers
 } from "lucide-react";
 
 import { useAppData } from "./hooks/useAppData";
@@ -28,6 +29,7 @@ import { HolidayInventoryPanel } from "./components/HolidayInventoryPanel";
 import { RecommendationAuditPanel } from "./components/RecommendationAuditPanel";
 import { RecommendationConfidencePanel } from "./components/RecommendationConfidencePanel";
 import { RecommendationConsensusPanel } from "./components/RecommendationConsensusPanel";
+import { RecommendationPortfolioPanel } from "./components/RecommendationPortfolioPanel";
 import { AdminDashboard } from "./pages/AdminDashboard";
 
 export default function App() {
@@ -152,6 +154,7 @@ export default function App() {
                 { id: "recommendation-audits", label: "Recommendation Audit", icon: History, badge: "New" },
                 { id: "recommendation-confidence", label: "Confidence & Stability", icon: ShieldCheck, badge: "Layer 2" },
                 { id: "recommendation-consensus", label: "Consensus Analysis", icon: Zap, badge: "Layer 2" },
+                { id: "recommendation-portfolio", label: "Portfolio Optimizer", icon: Layers, badge: "v0.39" },
                 { id: "admin", label: "Admin Dashboard", icon: ShieldAlert, badge: "Secure" },
               ].map(tab => {
                 const Icon = tab.icon;
@@ -834,6 +837,25 @@ export default function App() {
                         setActiveTab={setActiveTab}
                       />
 
+                      {/* Portfolio Allocation Integration */}
+                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 mt-6" id="report-portfolio-integration">
+                        <div className="flex justify-between items-center">
+                          <h4 className="text-sm font-black text-slate-950 flex items-center gap-1.5">
+                            <Layers className="w-4 h-4 text-emerald-600" />
+                            Multi-Entry Portfolio Hedging &amp; Allocation
+                          </h4>
+                          <button 
+                            onClick={() => setActiveTab("recommendation-portfolio")}
+                            className="text-xs text-emerald-700 hover:text-emerald-800 font-extrabold transition duration-150 cursor-pointer"
+                          >
+                            Open Portfolio Optimizer →
+                          </button>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                          Version 0.39 introduces multi-entry portfolio optimization. Instead of choosing identical chalk selections on every entry, the system evaluates all active entries simultaneously to minimize correlation failure risk, apply diversification benefits, and maximize collective contest survival probability.
+                        </p>
+                      </div>
+
                     </div>
                   ) : (
                     <div className="text-center py-10 bg-slate-50 border rounded-xl">
@@ -860,6 +882,13 @@ export default function App() {
 
               {activeTab === "recommendation-consensus" && (
                 <RecommendationConsensusPanel 
+                  entries={entries}
+                  teams={teams}
+                />
+              )}
+
+              {activeTab === "recommendation-portfolio" && (
+                <RecommendationPortfolioPanel 
                   entries={entries}
                   teams={teams}
                 />

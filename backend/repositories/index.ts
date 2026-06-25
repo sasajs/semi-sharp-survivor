@@ -127,5 +127,6 @@ export const entryMetadataRepo = createRepositoryProxy(() => RepositoryFactory.g
 export const recommendationAuditRepo = createRepositoryProxy(() => RepositoryFactory.getRecommendationAuditRepo());
 export const recommendationConfidenceRepo = createRepositoryProxy(() => RepositoryFactory.getRecommendationConfidenceRepo());
 export const recommendationConsensusRepo = createRepositoryProxy(() => RepositoryFactory.getRecommendationConsensusRepo());
+export const recommendationPortfolioRepo = createRepositoryProxy(() => RepositoryFactory.getRecommendationPortfolioRepo());
 
 

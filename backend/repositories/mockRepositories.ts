@@ -41,7 +41,8 @@ import {
   SurvivorRecommendation,
   RecommendationAudit,
   RecommendationConfidenceSnapshot,
-  RecommendationConsensus
+  RecommendationConsensus,
+  RecommendationPortfolio
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -87,7 +88,8 @@ import {
   ISurvivorRecommendationRepository,
   IRecommendationAuditRepository,
   IRecommendationConfidenceRepository,
-  IRecommendationConsensusRepository
+  IRecommendationConsensusRepository,
+  IRecommendationPortfolioRepository
 } from "./interfaces";
 
 /**
@@ -203,6 +205,7 @@ export let mockSurvivorRecommendations: SurvivorRecommendation[] = [];
 export let mockRecommendationAudits: RecommendationAudit[] = [];
 export let mockRecommendationConfidenceSnapshots: RecommendationConfidenceSnapshot[] = [];
 export let mockRecommendationConsensus: RecommendationConsensus[] = [];
+export let mockRecommendationPortfolios: RecommendationPortfolio[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -317,6 +320,7 @@ export function resetMockDatabase(
   mockRecommendationAudits = [];
   mockRecommendationConfidenceSnapshots = [];
   mockRecommendationConsensus = [];
+  mockRecommendationPortfolios = [];
 }
 
 /**
@@ -2163,6 +2167,42 @@ export class MockRecommendationConsensusRepository implements IRecommendationCon
     const originalLen = mockRecommendationConsensus.length;
     mockRecommendationConsensus = mockRecommendationConsensus.filter(s => !(s.season === season && s.week === week));
     return mockRecommendationConsensus.length < originalLen;
+  }
+}
+
+export class MockRecommendationPortfolioRepository implements IRecommendationPortfolioRepository {
+  async savePortfolioRecommendations(snapshots: RecommendationPortfolio[]): Promise<RecommendationPortfolio[]> {
+    const results: RecommendationPortfolio[] = [];
+    for (const snapshot of snapshots) {
+      const item: RecommendationPortfolio = {
+        ...snapshot,
+        id: snapshot.id || Math.floor(Math.random() * 1000000) + 1,
+        created_at: snapshot.created_at || new Date().toISOString()
+      };
+      mockRecommendationPortfolios.push(item);
+      results.push(item);
+    }
+    return results;
+  }
+
+  async getLatestPortfolio(): Promise<RecommendationPortfolio[]> {
+    if (mockRecommendationPortfolios.length === 0) return [];
+    const latestVersion = mockRecommendationPortfolios[mockRecommendationPortfolios.length - 1].calculation_version;
+    return mockRecommendationPortfolios.filter(s => s.calculation_version === latestVersion);
+  }
+
+  async getPortfolioById(portfolioId: string): Promise<RecommendationPortfolio[]> {
+    return mockRecommendationPortfolios.filter(s => s.portfolio_id === portfolioId);
+  }
+
+  async getPortfolioHistory(): Promise<RecommendationPortfolio[]> {
+    return [...mockRecommendationPortfolios];
+  }
+
+  async deleteWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockRecommendationPortfolios.length;
+    mockRecommendationPortfolios = mockRecommendationPortfolios.filter(s => !(s.season === season && s.week === week));
+    return mockRecommendationPortfolios.length < originalLen;
   }
 }
 

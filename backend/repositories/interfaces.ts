@@ -40,7 +40,8 @@ import {
   SurvivorRecommendation,
   RecommendationAudit,
   RecommendationConfidenceSnapshot,
-  RecommendationConsensus
+  RecommendationConsensus,
+  RecommendationPortfolio
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -384,6 +385,14 @@ export interface IRecommendationConsensusRepository {
   save(snapshot: RecommendationConsensus): Promise<RecommendationConsensus>;
   saveMany(snapshots: RecommendationConsensus[]): Promise<RecommendationConsensus[]>;
   deleteBySeasonAndWeek(season: string, week: number): Promise<boolean>;
+}
+
+export interface IRecommendationPortfolioRepository {
+  savePortfolioRecommendations(snapshots: RecommendationPortfolio[]): Promise<RecommendationPortfolio[]>;
+  getLatestPortfolio(): Promise<RecommendationPortfolio[]>;
+  getPortfolioById(portfolioId: string): Promise<RecommendationPortfolio[]>;
+  getPortfolioHistory(): Promise<RecommendationPortfolio[]>;
+  deleteWeek(season: string, week: number): Promise<boolean>;
 }
 
 

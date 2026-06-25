@@ -73,6 +73,7 @@ const recommendationAuditService = new RecommendationAuditService();
 import { RecommendationConfidenceService } from "../services/RecommendationConfidenceService";
 const recommendationConfidenceService = new RecommendationConfidenceService();
 import { RecommendationConsensusService } from "../services/RecommendationConsensusService";
+import { RecommendationPortfolioOptimizerService } from "../services/RecommendationPortfolioOptimizerService";
 
 const router = Router();
 
@@ -2344,6 +2345,59 @@ router.post("/recommendation-consensus/calculate", async (req: Request, res: Res
 
     const snapshots = await RecommendationConsensusService.calculateConsensus(season, weekNum, calculationVersion);
     res.json({ success: true, count: snapshots.length, data: snapshots });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/portfolio-optimizer/latest
+router.get("/portfolio-optimizer/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await RecommendationPortfolioOptimizerService.getLatest();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/portfolio-optimizer/history
+router.get("/portfolio-optimizer/history", async (req: Request, res: Response) => {
+  try {
+    const list = await RecommendationPortfolioOptimizerService.getHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/portfolio-optimizer/by-id/:portfolioId
+router.get("/portfolio-optimizer/by-id/:portfolioId", async (req: Request, res: Response) => {
+  try {
+    const { portfolioId } = req.params;
+    const list = await RecommendationPortfolioOptimizerService.getById(portfolioId);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/portfolio-optimizer/calculate
+router.post("/portfolio-optimizer/calculate", async (req: Request, res: Response) => {
+  try {
+    const { season, week, calculationVersion } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const weekNum = parseInt((week || "1").toString(), 10);
+    if (isNaN(weekNum) || weekNum < 1 || weekNum > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+    if (!calculationVersion) {
+      return res.status(400).json({ error: "Calculation version is required" });
+    }
+
+    const list = await RecommendationPortfolioOptimizerService.calculate(season, weekNum, calculationVersion);
+    res.json({ success: true, count: list.length, data: list });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
