@@ -101,5 +101,10 @@ export const migrationRegistry: Migration[] = [
     version: "V044",
     description: "Rolling Validation & Backtesting Engine: rolling_validation table.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "044_rolling_validation.sql")
+  },
+  {
+    version: "V045",
+    description: "Model Drift Detection & Recalibration Recommendation Engine: model_drift table.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "045_model_drift.sql")
   }
 ];

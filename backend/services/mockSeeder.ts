@@ -4,6 +4,7 @@ import { FutureTeamValueService } from "./FutureTeamValueService";
 import { SurvivorEquityService } from "./SurvivorEquityService";
 import { RecommendationCandidateService } from "./RecommendationCandidateService";
 import { SurvivorRecommendationService } from "./SurvivorRecommendationService";
+import { ModelDriftService } from "./ModelDriftService";
 
 export const initialTeams: Team[] = [
   { id: "ari", name: "Arizona Cardinals", abbreviation: "ARI", bye_week: 11, primary_color: "#97233F", secondary_color: "#FFB612" },
@@ -182,7 +183,10 @@ export function buildAndSeedMockState() {
       // Calculate second time to trigger comparison & create recommendation audits
       await survRecService.calculate("2026", 1);
 
-      console.log("[Mock Seeder] Pre-calculated Future Team Value, Survivor Equity, Recommendation Candidates, comparative Recommendation Audits, and Recommendation Confidence snapshotted states successfully.");
+      // Pre-calculate model drift & recalibration recommendations
+      await ModelDriftService.calculate("2026", 1, "1.0.0");
+
+      console.log("[Mock Seeder] Pre-calculated Future Team Value, Survivor Equity, Recommendation Candidates, comparative Recommendation Audits, Recommendation Confidence, and Model Drift snapshotted states successfully.");
     } catch (err) {
       console.warn("Failed to pre-calculate mock dashboard metrics:", err);
     }

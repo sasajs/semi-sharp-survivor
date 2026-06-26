@@ -46,7 +46,8 @@ import {
   OwnershipCalibration,
   MarketCalibration,
   ModelPerformance,
-  RollingValidation
+  RollingValidation,
+  ModelDrift
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -439,6 +440,15 @@ export interface IRollingValidationRepository {
   getValidationHistory(): Promise<RollingValidation[]>;
   deleteWeekRange(season: string, startWeek: number, endWeek: number): Promise<boolean>;
 }
+
+export interface IModelDriftRepository {
+  saveDrift(drifts: ModelDrift[]): Promise<ModelDrift[]>;
+  getLatestDrift(): Promise<ModelDrift[]>;
+  getDriftByModel(modelName: string): Promise<ModelDrift[]>;
+  getDriftHistory(): Promise<ModelDrift[]>;
+  deleteDriftWeek(season: string, week: number): Promise<boolean>;
+}
+
 
 
 

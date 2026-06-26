@@ -382,5 +382,33 @@ export const apiService = {
     });
     if (!res.ok) throw new Error("Failed to run rolling validation & backtesting engine");
     return res.json();
+  },
+
+  async fetchLatestModelDrift(): Promise<any[]> {
+    const res = await fetch("/api/model-drift/latest");
+    if (!res.ok) throw new Error("Failed to fetch latest model drift snapshot");
+    return res.json();
+  },
+
+  async fetchModelDriftHistory(): Promise<any[]> {
+    const res = await fetch("/api/model-drift/history");
+    if (!res.ok) throw new Error("Failed to fetch model drift history");
+    return res.json();
+  },
+
+  async fetchModelDriftByModel(modelName: string): Promise<any[]> {
+    const res = await fetch(`/api/model-drift/${encodeURIComponent(modelName)}`);
+    if (!res.ok) throw new Error("Failed to fetch model drift for: " + modelName);
+    return res.json();
+  },
+
+  async runModelDriftCalculate(season: string, week: number, calculationVersion: string): Promise<any> {
+    const res = await fetch("/api/model-drift/calculate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week, calculationVersion })
+    });
+    if (!res.ok) throw new Error("Failed to run model drift calculation engine");
+    return res.json();
   }
 };

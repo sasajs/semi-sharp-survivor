@@ -8,7 +8,7 @@ import {
   ChalkUpsetScenario,
   StrategyComparison
 } from "../models";
-import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV, MarketCalibration, ModelPerformance, RollingValidation } from "../../../src/types";
+import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV, MarketCalibration, ModelPerformance, RollingValidation, ModelDrift } from "../../../src/types";
 
 export class ReportSectionBuilderService {
   static buildExecutiveSummary(
@@ -594,6 +594,39 @@ Expected value adjustments dynamically react to Entry Strategy Profiles:
     return {
       id: "sec-rolling-validation-analysis",
       title: "19. Rolling Validation & Backtesting Performance Analysis",
+      type: "inventory_summary",
+      content_markdown: md
+    };
+  }
+
+  static buildModelDriftSection(drifts: ModelDrift[], season: string, week: number): WeeklyReportSection {
+    let md = `### 📉 Model Drift Detection & Recalibration Recommendation Engine (v0.45)\n`;
+    md += `This section monitors statistical drift and model decay for season ${season}, Week ${week}. By comparing current backtesting metrics against historical baseline training standards, the engine identifies degraded predictive accuracy and recommends automated retraining/recalibration lifecycles.\n\n`;
+
+    md += `| Prediction Model | Drift Score | Status / Level | Recommended Action | Priority | Accuracy Delta | Brier Delta | CLV Delta | Explanation |\n`;
+    md += `|---|---|---|---|---|---|---|---|---|\n`;
+
+    const tableRows = drifts.map(item => {
+      const statusIcon = item.drift_level === "STABLE" ? "🟢" : item.drift_level === "MONITOR" ? "🟡" : item.drift_level === "WARNING" ? "🟠" : "🔴";
+      const priorityBadge = `\`${item.recommended_priority}\``;
+      const accDeltaSign = item.accuracy_delta > 0 ? "+" : "";
+      const brierDeltaSign = item.brier_delta > 0 ? "+" : "";
+      const clvDeltaSign = item.clv_delta > 0 ? "+" : "";
+
+      return `| **${item.model_name}** | **${item.drift_score.toFixed(1)}** | ${statusIcon} **${item.drift_level}** | \`${item.recommended_action}\` | ${priorityBadge} | ${accDeltaSign}${item.accuracy_delta}% | ${brierDeltaSign}${item.brier_delta.toFixed(4)} | ${clvDeltaSign}${item.clv_delta.toFixed(2)} | ${item.explanation} |`;
+    }).join("\n");
+
+    md += tableRows + "\n\n";
+
+    md += `#### 🛠️ Recalibration Action Matrix\n`;
+    md += `- **🟢 STABLE (Action: NONE)**: Performance metrics are within standard deviation parameters. Maintain deployment.\n`;
+    md += `- **🟡 MONITOR (Action: INVESTIGATE)**: Minor predictive shifts detected. Put model on watch list and inspect features.\n`;
+    md += `- **🟠 WARNING (Action: RECALIBRATE)**: Medium-level drift detected. Recommend scheduled parameter recalibration.\n`;
+    md += `- **🔴 CRITICAL (Action: RETRAIN)**: Severe statistical decay detected. Immediate weight-retraining cycle required.\n`;
+
+    return {
+      id: "sec-model-drift-analysis",
+      title: "20. Model Drift & Recalibration Recommendations",
       type: "inventory_summary",
       content_markdown: md
     };

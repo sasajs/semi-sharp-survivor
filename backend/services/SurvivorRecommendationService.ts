@@ -26,6 +26,7 @@ import { OwnershipCalibrationService } from "./OwnershipCalibrationService";
 import { MarketCalibrationService } from "./MarketCalibrationService";
 import { ModelPerformanceService } from "./ModelPerformanceService";
 import { RollingValidationService } from "./RollingValidationService";
+import { ModelDriftService } from "./ModelDriftService";
 
 export const STRATEGY_RECOMMENDATION_WEIGHTS: Record<StrategyType, {
   candidateWeight: number;      // baseline 40%
@@ -285,6 +286,13 @@ export class SurvivorRecommendationService {
       await RollingValidationService.calculate(season, 1, week, calculationVersion);
     } catch (rollValErr: any) {
       console.error("[Survivor Recommendation Service] Failed to calculate rolling validation & backtesting:", rollValErr.message);
+    }
+
+    // 17. Generate Model Drift Detection & Recalibration Recommendations (Model Drift Engine)
+    try {
+      await ModelDriftService.calculate(season, week, calculationVersion);
+    } catch (driftErr: any) {
+      console.error("[Survivor Recommendation Service] Failed to calculate model drift & recommendations:", driftErr.message);
     }
 
     return saved;

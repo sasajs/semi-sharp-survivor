@@ -1276,6 +1276,32 @@ export interface RollingValidation {
   created_at?: string;
 }
 
+export interface ModelDrift {
+  id?: number | string;
+  season: string;
+  week: number;
+  model_name: string;
+  model_version: string;
+  prediction_type: string;
+  baseline_accuracy: number;
+  current_accuracy: number;
+  accuracy_delta: number;
+  baseline_brier_score: number;
+  current_brier_score: number;
+  brier_delta: number;
+  baseline_clv: number;
+  current_clv: number;
+  clv_delta: number;
+  drift_score: number;
+  drift_level: string; // STABLE, MONITOR, WARNING, CRITICAL
+  recommended_action: string; // NONE, RECALIBRATE, RETRAIN, INVESTIGATE
+  recommended_priority: string; // LOW, MEDIUM, HIGH, CRITICAL
+  explanation: string;
+  calculation_version: string;
+  created_at?: string;
+}
+
+
 
 
 

@@ -133,5 +133,7 @@ export const ownershipCalibrationRepo = createRepositoryProxy(() => RepositoryFa
 export const marketCalibrationRepo = createRepositoryProxy(() => RepositoryFactory.getMarketCalibrationRepo());
 export const modelPerformanceRepo = createRepositoryProxy(() => RepositoryFactory.getModelPerformanceRepo());
 export const rollingValidationRepo = createRepositoryProxy(() => RepositoryFactory.getRollingValidationRepo());
+export const modelDriftRepo = createRepositoryProxy(() => RepositoryFactory.getModelDriftRepo());
+
 
 

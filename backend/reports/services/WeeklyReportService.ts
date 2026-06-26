@@ -36,6 +36,7 @@ import { ContestEVService } from "../../services/ContestEVService";
 import { MarketCalibrationService } from "../../services/MarketCalibrationService";
 import { ModelPerformanceService } from "../../services/ModelPerformanceService";
 import { RollingValidationService } from "../../services/RollingValidationService";
+import { ModelDriftService } from "../../services/ModelDriftService";
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
 
 // Persistent state storage for generated reports and report runs
@@ -403,6 +404,19 @@ export class WeeklyReportService {
       sections.push(rollValSection);
     } catch (rollValErr: any) {
       console.warn("Could not append Rolling Validation section to weekly report:", rollValErr.message);
+    }
+
+    // Model Drift Detection & Recalibration Engine (v0.45 Engine)
+    try {
+      let drifts = await ModelDriftService.getHistory();
+      drifts = drifts.filter(d => d.season === season.toString() && d.week === week);
+      if (drifts.length === 0) {
+        drifts = await ModelDriftService.calculate(season.toString(), week, "1.0.0");
+      }
+      const driftSection = ReportSectionBuilderService.buildModelDriftSection(drifts, season.toString(), week);
+      sections.push(driftSection);
+    } catch (driftErr: any) {
+      console.warn("Could not append Model Drift section to weekly report:", driftErr.message);
     }
 
     const reportHash = ReportAuditService.createReportHash(reportShell);

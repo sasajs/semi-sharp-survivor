@@ -79,6 +79,7 @@ import { OwnershipCalibrationService } from "../services/OwnershipCalibrationSer
 import { MarketCalibrationService } from "../services/MarketCalibrationService";
 import { ModelPerformanceService } from "../services/ModelPerformanceService";
 import { RollingValidationService } from "../services/RollingValidationService";
+import { ModelDriftService } from "../services/ModelDriftService";
 
 const router = Router();
 
@@ -2667,6 +2668,57 @@ router.post("/rolling-validation/run", async (req: Request, res: Response) => {
     const version = calculationVersion || "v1.0.0";
 
     const list = await RollingValidationService.calculate(season, startW, endW, version);
+    res.json({ success: true, count: list.length, data: list });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/model-drift/latest
+router.get("/model-drift/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await ModelDriftService.getLatest();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/model-drift/history
+router.get("/model-drift/history", async (req: Request, res: Response) => {
+  try {
+    const list = await ModelDriftService.getHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/model-drift/:modelName
+router.get("/model-drift/:modelName", async (req: Request, res: Response) => {
+  try {
+    const { modelName } = req.params;
+    const list = await ModelDriftService.getByModel(modelName);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/model-drift/calculate
+router.post("/model-drift/calculate", async (req: Request, res: Response) => {
+  try {
+    const { season, week, calculationVersion } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const w = parseInt((week || "1").toString(), 10);
+    if (isNaN(w) || w < 1 || w > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+    const version = calculationVersion || "v1.0.0";
+
+    const list = await ModelDriftService.calculate(season, w, version);
     res.json({ success: true, count: list.length, data: list });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

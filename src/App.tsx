@@ -20,7 +20,8 @@ import {
   Layers,
   Sliders,
   Scale,
-  Target
+  Target,
+  Shield
 } from "lucide-react";
 
 import { useAppData } from "./hooks/useAppData";
@@ -38,6 +39,7 @@ import { OwnershipCalibrationPanel } from "./components/OwnershipCalibrationPane
 import { MarketCalibrationPanel } from "./components/MarketCalibrationPanel";
 import { ModelPerformancePanel } from "./components/ModelPerformancePanel";
 import { RollingValidationPanel } from "./components/RollingValidationPanel";
+import { ModelDriftPanel } from "./components/ModelDriftPanel";
 import { AdminDashboard } from "./pages/AdminDashboard";
 
 export default function App() {
@@ -168,6 +170,7 @@ export default function App() {
                 { id: "market-calibration", label: "Market Calibration", icon: Scale, badge: "v0.42" },
                 { id: "model-performance", label: "Model Performance", icon: Target, badge: "v0.43" },
                 { id: "rolling-validation", label: "Rolling Validation", icon: History, badge: "v0.44" },
+                { id: "model-drift", label: "Model Drift Analysis", icon: Shield, badge: "v0.45" },
                 { id: "admin", label: "Admin Dashboard", icon: ShieldAlert, badge: "Secure" },
               ].map(tab => {
                 const Icon = tab.icon;
@@ -932,6 +935,10 @@ export default function App() {
 
               {activeTab === "rolling-validation" && (
                 <RollingValidationPanel />
+              )}
+
+              {activeTab === "model-drift" && (
+                <ModelDriftPanel />
               )}
 
               {activeTab === "admin" && (

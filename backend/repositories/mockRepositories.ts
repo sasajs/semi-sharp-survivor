@@ -47,7 +47,8 @@ import {
   OwnershipCalibration,
   MarketCalibration,
   ModelPerformance,
-  RollingValidation
+  RollingValidation,
+  ModelDrift
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -99,7 +100,8 @@ import {
   IOwnershipCalibrationRepository,
   IMarketCalibrationRepository,
   IModelPerformanceRepository,
-  IRollingValidationRepository
+  IRollingValidationRepository,
+  IModelDriftRepository
 } from "./interfaces";
 
 /**
@@ -221,6 +223,7 @@ export let mockOwnershipCalibrations: OwnershipCalibration[] = [];
 export let mockMarketCalibrations: MarketCalibration[] = [];
 export let mockModelPerformances: ModelPerformance[] = [];
 export let mockRollingValidations: RollingValidation[] = [];
+export let mockModelDrifts: ModelDrift[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -341,6 +344,7 @@ export function resetMockDatabase(
   mockMarketCalibrations = [];
   mockModelPerformances = [];
   mockRollingValidations = [];
+  mockModelDrifts = [];
 }
 
 /**
@@ -2405,6 +2409,43 @@ export class MockRollingValidationRepository implements IRollingValidationReposi
     return mockRollingValidations.length < originalLen;
   }
 }
+
+export class MockModelDriftRepository implements IModelDriftRepository {
+  async saveDrift(drifts: ModelDrift[]): Promise<ModelDrift[]> {
+    const results: ModelDrift[] = [];
+    for (const d of drifts) {
+      const item: ModelDrift = {
+        ...d,
+        id: d.id || Math.floor(Math.random() * 1000000) + 1,
+        created_at: d.created_at || new Date().toISOString()
+      };
+      mockModelDrifts.push(item);
+      results.push(item);
+    }
+    return results;
+  }
+
+  async getLatestDrift(): Promise<ModelDrift[]> {
+    if (mockModelDrifts.length === 0) return [];
+    const latestVersion = mockModelDrifts[mockModelDrifts.length - 1].calculation_version;
+    return mockModelDrifts.filter(s => s.calculation_version === latestVersion);
+  }
+
+  async getDriftByModel(modelName: string): Promise<ModelDrift[]> {
+    return mockModelDrifts.filter(s => s.model_name.toLowerCase() === modelName.toLowerCase());
+  }
+
+  async getDriftHistory(): Promise<ModelDrift[]> {
+    return [...mockModelDrifts];
+  }
+
+  async deleteDriftWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockModelDrifts.length;
+    mockModelDrifts = mockModelDrifts.filter(s => !(s.season === season && s.week === week));
+    return mockModelDrifts.length < originalLen;
+  }
+}
+
 
 
 
