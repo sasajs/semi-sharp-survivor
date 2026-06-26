@@ -51,7 +51,8 @@ import {
   MockModelPerformanceRepository,
   MockRollingValidationRepository,
   MockModelDriftRepository,
-  MockAdaptiveModelWeightRepository
+  MockAdaptiveModelWeightRepository,
+  MockEnsemblePredictionRepository
 } from "./mockRepositories";
 
 import {
@@ -101,6 +102,7 @@ import { PostgresModelPerformanceRepository } from "./postgres/PostgresModelPerf
 import { PostgresRollingValidationRepository } from "./postgres/PostgresRollingValidationRepository";
 import { PostgresModelDriftRepository } from "./postgres/PostgresModelDriftRepository";
 import { PostgresAdaptiveModelWeightRepository } from "./postgres/PostgresAdaptiveModelWeightRepository";
+import { PostgresEnsemblePredictionRepository } from "./postgres/PostgresEnsemblePredictionRepository";
 
 export let useMock = databaseConfig.useMock;
 
@@ -265,6 +267,9 @@ export class RepositoryFactory {
   }
   static getAdaptiveModelWeightRepo() {
     return useMock ? new MockAdaptiveModelWeightRepository() : new PostgresAdaptiveModelWeightRepository();
+  }
+  static getEnsemblePredictionRepo() {
+    return useMock ? new MockEnsemblePredictionRepository() : new PostgresEnsemblePredictionRepository();
   }
 }
 

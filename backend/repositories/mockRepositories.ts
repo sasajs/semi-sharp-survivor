@@ -49,7 +49,8 @@ import {
   ModelPerformance,
   RollingValidation,
   ModelDrift,
-  AdaptiveModelWeight
+  AdaptiveModelWeight,
+  EnsemblePrediction
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -103,7 +104,8 @@ import {
   IModelPerformanceRepository,
   IRollingValidationRepository,
   IModelDriftRepository,
-  IAdaptiveModelWeightRepository
+  IAdaptiveModelWeightRepository,
+  IEnsemblePredictionRepository
 } from "./interfaces";
 
 /**
@@ -227,6 +229,7 @@ export let mockModelPerformances: ModelPerformance[] = [];
 export let mockRollingValidations: RollingValidation[] = [];
 export let mockModelDrifts: ModelDrift[] = [];
 export let mockAdaptiveModelWeights: AdaptiveModelWeight[] = [];
+export let mockEnsemblePredictions: EnsemblePrediction[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -349,6 +352,7 @@ export function resetMockDatabase(
   mockRollingValidations = [];
   mockModelDrifts = [];
   mockAdaptiveModelWeights = [];
+  mockEnsemblePredictions = [];
 }
 
 /**
@@ -2485,6 +2489,43 @@ export class MockAdaptiveModelWeightRepository implements IAdaptiveModelWeightRe
     return mockAdaptiveModelWeights.length < originalLen;
   }
 }
+
+export class MockEnsemblePredictionRepository implements IEnsemblePredictionRepository {
+  async savePredictions(predictions: EnsemblePrediction[]): Promise<EnsemblePrediction[]> {
+    const results: EnsemblePrediction[] = [];
+    for (const p of predictions) {
+      const item: EnsemblePrediction = {
+        ...p,
+        id: p.id || Math.floor(Math.random() * 1000000) + 1,
+        created_at: p.created_at || new Date().toISOString()
+      };
+      mockEnsemblePredictions.push(item);
+      results.push(item);
+    }
+    return results;
+  }
+
+  async getLatestPredictions(): Promise<EnsemblePrediction[]> {
+    if (mockEnsemblePredictions.length === 0) return [];
+    const latestVersion = mockEnsemblePredictions[mockEnsemblePredictions.length - 1].calculation_version;
+    return mockEnsemblePredictions.filter(s => s.calculation_version === latestVersion);
+  }
+
+  async getPredictionsByGame(gameId: string): Promise<EnsemblePrediction[]> {
+    return mockEnsemblePredictions.filter(s => s.game_id.toLowerCase() === gameId.toLowerCase());
+  }
+
+  async getPredictionsHistory(): Promise<EnsemblePrediction[]> {
+    return [...mockEnsemblePredictions];
+  }
+
+  async deletePredictionsWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockEnsemblePredictions.length;
+    mockEnsemblePredictions = mockEnsemblePredictions.filter(s => !(s.season === season && s.week === week));
+    return mockEnsemblePredictions.length < originalLen;
+  }
+}
+
 
 
 

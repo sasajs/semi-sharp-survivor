@@ -1323,6 +1323,28 @@ export interface AdaptiveModelWeight {
   created_at?: string;
 }
 
+export interface EnsemblePrediction {
+  id?: number | string;
+  season: string;
+  week: number;
+  game_id: string;
+  prediction_type: string;
+  ensemble_prediction: number;
+  prediction_std_dev: number;
+  prediction_variance: number;
+  confidence_interval_low: number;
+  confidence_interval_high: number;
+  model_count: number;
+  weighted_prediction: number;
+  agreement_score: number;
+  disagreement_score: number;
+  confidence_score: number;
+  recommended_usage: string; // SAFE, NORMAL, LOW_CONFIDENCE, DO_NOT_BET
+  calculation_version: string;
+  created_at?: string;
+}
+
+
 
 
 

@@ -135,6 +135,8 @@ export const modelPerformanceRepo = createRepositoryProxy(() => RepositoryFactor
 export const rollingValidationRepo = createRepositoryProxy(() => RepositoryFactory.getRollingValidationRepo());
 export const modelDriftRepo = createRepositoryProxy(() => RepositoryFactory.getModelDriftRepo());
 export const adaptiveModelWeightRepo = createRepositoryProxy(() => RepositoryFactory.getAdaptiveModelWeightRepo());
+export const ensemblePredictionRepo = createRepositoryProxy(() => RepositoryFactory.getEnsemblePredictionRepo());
+
 
 
 

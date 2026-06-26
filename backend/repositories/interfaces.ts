@@ -48,7 +48,8 @@ import {
   ModelPerformance,
   RollingValidation,
   ModelDrift,
-  AdaptiveModelWeight
+  AdaptiveModelWeight,
+  EnsemblePrediction
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -457,6 +458,15 @@ export interface IAdaptiveModelWeightRepository {
   getWeightsHistory(): Promise<AdaptiveModelWeight[]>;
   deleteWeightsWeek(season: string, week: number): Promise<boolean>;
 }
+
+export interface IEnsemblePredictionRepository {
+  savePredictions(predictions: EnsemblePrediction[]): Promise<EnsemblePrediction[]>;
+  getLatestPredictions(): Promise<EnsemblePrediction[]>;
+  getPredictionsByGame(gameId: string): Promise<EnsemblePrediction[]>;
+  getPredictionsHistory(): Promise<EnsemblePrediction[]>;
+  deletePredictionsWeek(season: string, week: number): Promise<boolean>;
+}
+
 
 
 
