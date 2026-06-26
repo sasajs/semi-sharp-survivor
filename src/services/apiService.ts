@@ -410,5 +410,33 @@ export const apiService = {
     });
     if (!res.ok) throw new Error("Failed to run model drift calculation engine");
     return res.json();
+  },
+
+  async fetchLatestModelWeights(): Promise<any[]> {
+    const res = await fetch("/api/model-weights/latest");
+    if (!res.ok) throw new Error("Failed to fetch latest adaptive model weights");
+    return res.json();
+  },
+
+  async fetchModelWeightsHistory(): Promise<any[]> {
+    const res = await fetch("/api/model-weights/history");
+    if (!res.ok) throw new Error("Failed to fetch adaptive model weights history");
+    return res.json();
+  },
+
+  async fetchModelWeightsByModel(modelName: string): Promise<any[]> {
+    const res = await fetch(`/api/model-weights/${encodeURIComponent(modelName)}`);
+    if (!res.ok) throw new Error("Failed to fetch adaptive model weights for: " + modelName);
+    return res.json();
+  },
+
+  async runModelWeightsRecalculate(season: string, week: number, calculationVersion: string): Promise<any> {
+    const res = await fetch("/api/model-weights/recalculate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week, calculationVersion })
+    });
+    if (!res.ok) throw new Error("Failed to run adaptive model weights recalculation");
+    return res.json();
   }
 };

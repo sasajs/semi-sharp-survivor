@@ -40,6 +40,7 @@ import { MarketCalibrationPanel } from "./components/MarketCalibrationPanel";
 import { ModelPerformancePanel } from "./components/ModelPerformancePanel";
 import { RollingValidationPanel } from "./components/RollingValidationPanel";
 import { ModelDriftPanel } from "./components/ModelDriftPanel";
+import { AdaptiveModelWeightPanel } from "./components/AdaptiveModelWeightPanel";
 import { AdminDashboard } from "./pages/AdminDashboard";
 
 export default function App() {
@@ -171,6 +172,7 @@ export default function App() {
                 { id: "model-performance", label: "Model Performance", icon: Target, badge: "v0.43" },
                 { id: "rolling-validation", label: "Rolling Validation", icon: History, badge: "v0.44" },
                 { id: "model-drift", label: "Model Drift Analysis", icon: Shield, badge: "v0.45" },
+                { id: "model-weights", label: "Adaptive Weights", icon: Scale, badge: "v0.46" },
                 { id: "admin", label: "Admin Dashboard", icon: ShieldAlert, badge: "Secure" },
               ].map(tab => {
                 const Icon = tab.icon;
@@ -939,6 +941,10 @@ export default function App() {
 
               {activeTab === "model-drift" && (
                 <ModelDriftPanel />
+              )}
+
+              {activeTab === "model-weights" && (
+                <AdaptiveModelWeightPanel />
               )}
 
               {activeTab === "admin" && (

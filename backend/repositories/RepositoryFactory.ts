@@ -50,7 +50,8 @@ import {
   MockMarketCalibrationRepository,
   MockModelPerformanceRepository,
   MockRollingValidationRepository,
-  MockModelDriftRepository
+  MockModelDriftRepository,
+  MockAdaptiveModelWeightRepository
 } from "./mockRepositories";
 
 import {
@@ -99,6 +100,7 @@ import { PostgresMarketCalibrationRepository } from "./postgres/PostgresMarketCa
 import { PostgresModelPerformanceRepository } from "./postgres/PostgresModelPerformanceRepository";
 import { PostgresRollingValidationRepository } from "./postgres/PostgresRollingValidationRepository";
 import { PostgresModelDriftRepository } from "./postgres/PostgresModelDriftRepository";
+import { PostgresAdaptiveModelWeightRepository } from "./postgres/PostgresAdaptiveModelWeightRepository";
 
 export let useMock = databaseConfig.useMock;
 
@@ -260,6 +262,9 @@ export class RepositoryFactory {
   }
   static getModelDriftRepo() {
     return useMock ? new MockModelDriftRepository() : new PostgresModelDriftRepository();
+  }
+  static getAdaptiveModelWeightRepo() {
+    return useMock ? new MockAdaptiveModelWeightRepository() : new PostgresAdaptiveModelWeightRepository();
   }
 }
 

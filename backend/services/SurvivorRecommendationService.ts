@@ -27,6 +27,7 @@ import { MarketCalibrationService } from "./MarketCalibrationService";
 import { ModelPerformanceService } from "./ModelPerformanceService";
 import { RollingValidationService } from "./RollingValidationService";
 import { ModelDriftService } from "./ModelDriftService";
+import { AdaptiveModelWeightService } from "./AdaptiveModelWeightService";
 
 export const STRATEGY_RECOMMENDATION_WEIGHTS: Record<StrategyType, {
   candidateWeight: number;      // baseline 40%
@@ -293,6 +294,13 @@ export class SurvivorRecommendationService {
       await ModelDriftService.calculate(season, week, calculationVersion);
     } catch (driftErr: any) {
       console.error("[Survivor Recommendation Service] Failed to calculate model drift & recommendations:", driftErr.message);
+    }
+
+    // 18. Generate Adaptive Model Weights (Adaptive Ensemble Weighting Engine)
+    try {
+      await AdaptiveModelWeightService.calculateWeights(season, week, calculationVersion);
+    } catch (weightErr: any) {
+      console.error("[Survivor Recommendation Service] Failed to calculate adaptive model weights:", weightErr.message);
     }
 
     return saved;

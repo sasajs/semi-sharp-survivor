@@ -37,6 +37,8 @@ import { MarketCalibrationService } from "../../services/MarketCalibrationServic
 import { ModelPerformanceService } from "../../services/ModelPerformanceService";
 import { RollingValidationService } from "../../services/RollingValidationService";
 import { ModelDriftService } from "../../services/ModelDriftService";
+import { AdaptiveModelWeightService } from "../../services/AdaptiveModelWeightService";
+import { adaptiveModelWeightRepo } from "../../repositories";
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
 
 // Persistent state storage for generated reports and report runs
@@ -417,6 +419,19 @@ export class WeeklyReportService {
       sections.push(driftSection);
     } catch (driftErr: any) {
       console.warn("Could not append Model Drift section to weekly report:", driftErr.message);
+    }
+
+    // Adaptive Model Weighting Engine (v0.46 Engine)
+    try {
+      let weights = await adaptiveModelWeightRepo.getWeightsHistory();
+      weights = weights.filter(w => w.season === season.toString() && w.week === week);
+      if (weights.length === 0) {
+        weights = await AdaptiveModelWeightService.calculateWeights(season.toString(), week, "1.0.0");
+      }
+      const weightSection = ReportSectionBuilderService.buildAdaptiveModelWeightsSection(weights, season.toString(), week);
+      sections.push(weightSection);
+    } catch (weightErr: any) {
+      console.warn("Could not append Adaptive Model Weighting section to weekly report:", weightErr.message);
     }
 
     const reportHash = ReportAuditService.createReportHash(reportShell);

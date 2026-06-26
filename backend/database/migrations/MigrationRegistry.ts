@@ -106,5 +106,10 @@ export const migrationRegistry: Migration[] = [
     version: "V045",
     description: "Model Drift Detection & Recalibration Recommendation Engine: model_drift table.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "045_model_drift.sql")
+  },
+  {
+    version: "V046",
+    description: "Adaptive Ensemble Weighting Engine: adaptive_model_weights table.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "046_adaptive_model_weights.sql")
   }
 ];

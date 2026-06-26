@@ -47,7 +47,8 @@ import {
   MarketCalibration,
   ModelPerformance,
   RollingValidation,
-  ModelDrift
+  ModelDrift,
+  AdaptiveModelWeight
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -448,6 +449,15 @@ export interface IModelDriftRepository {
   getDriftHistory(): Promise<ModelDrift[]>;
   deleteDriftWeek(season: string, week: number): Promise<boolean>;
 }
+
+export interface IAdaptiveModelWeightRepository {
+  saveWeights(weights: AdaptiveModelWeight[]): Promise<AdaptiveModelWeight[]>;
+  getLatestWeights(): Promise<AdaptiveModelWeight[]>;
+  getWeightsByModel(modelName: string): Promise<AdaptiveModelWeight[]>;
+  getWeightsHistory(): Promise<AdaptiveModelWeight[]>;
+  deleteWeightsWeek(season: string, week: number): Promise<boolean>;
+}
+
 
 
 

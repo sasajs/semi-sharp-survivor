@@ -80,6 +80,8 @@ import { MarketCalibrationService } from "../services/MarketCalibrationService";
 import { ModelPerformanceService } from "../services/ModelPerformanceService";
 import { RollingValidationService } from "../services/RollingValidationService";
 import { ModelDriftService } from "../services/ModelDriftService";
+import { AdaptiveModelWeightService } from "../services/AdaptiveModelWeightService";
+import { adaptiveModelWeightRepo } from "../repositories/index";
 
 const router = Router();
 
@@ -2719,6 +2721,57 @@ router.post("/model-drift/calculate", async (req: Request, res: Response) => {
     const version = calculationVersion || "v1.0.0";
 
     const list = await ModelDriftService.calculate(season, w, version);
+    res.json({ success: true, count: list.length, data: list });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/model-weights/latest
+router.get("/model-weights/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await adaptiveModelWeightRepo.getLatestWeights();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/model-weights/history
+router.get("/model-weights/history", async (req: Request, res: Response) => {
+  try {
+    const list = await adaptiveModelWeightRepo.getWeightsHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/model-weights/:modelName
+router.get("/model-weights/:modelName", async (req: Request, res: Response) => {
+  try {
+    const { modelName } = req.params;
+    const list = await adaptiveModelWeightRepo.getWeightsByModel(modelName);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/model-weights/recalculate
+router.post("/model-weights/recalculate", async (req: Request, res: Response) => {
+  try {
+    const { season, week, calculationVersion } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const w = parseInt((week || "1").toString(), 10);
+    if (isNaN(w) || w < 1 || w > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+    const version = calculationVersion || "v1.0.0";
+
+    const list = await AdaptiveModelWeightService.calculateWeights(season, w, version);
     res.json({ success: true, count: list.length, data: list });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

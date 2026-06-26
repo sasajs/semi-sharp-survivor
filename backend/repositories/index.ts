@@ -134,6 +134,7 @@ export const marketCalibrationRepo = createRepositoryProxy(() => RepositoryFacto
 export const modelPerformanceRepo = createRepositoryProxy(() => RepositoryFactory.getModelPerformanceRepo());
 export const rollingValidationRepo = createRepositoryProxy(() => RepositoryFactory.getRollingValidationRepo());
 export const modelDriftRepo = createRepositoryProxy(() => RepositoryFactory.getModelDriftRepo());
+export const adaptiveModelWeightRepo = createRepositoryProxy(() => RepositoryFactory.getAdaptiveModelWeightRepo());
 
 
 

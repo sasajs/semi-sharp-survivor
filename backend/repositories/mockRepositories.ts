@@ -48,7 +48,8 @@ import {
   MarketCalibration,
   ModelPerformance,
   RollingValidation,
-  ModelDrift
+  ModelDrift,
+  AdaptiveModelWeight
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -101,7 +102,8 @@ import {
   IMarketCalibrationRepository,
   IModelPerformanceRepository,
   IRollingValidationRepository,
-  IModelDriftRepository
+  IModelDriftRepository,
+  IAdaptiveModelWeightRepository
 } from "./interfaces";
 
 /**
@@ -224,6 +226,7 @@ export let mockMarketCalibrations: MarketCalibration[] = [];
 export let mockModelPerformances: ModelPerformance[] = [];
 export let mockRollingValidations: RollingValidation[] = [];
 export let mockModelDrifts: ModelDrift[] = [];
+export let mockAdaptiveModelWeights: AdaptiveModelWeight[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -345,6 +348,7 @@ export function resetMockDatabase(
   mockModelPerformances = [];
   mockRollingValidations = [];
   mockModelDrifts = [];
+  mockAdaptiveModelWeights = [];
 }
 
 /**
@@ -2443,6 +2447,42 @@ export class MockModelDriftRepository implements IModelDriftRepository {
     const originalLen = mockModelDrifts.length;
     mockModelDrifts = mockModelDrifts.filter(s => !(s.season === season && s.week === week));
     return mockModelDrifts.length < originalLen;
+  }
+}
+
+export class MockAdaptiveModelWeightRepository implements IAdaptiveModelWeightRepository {
+  async saveWeights(weights: AdaptiveModelWeight[]): Promise<AdaptiveModelWeight[]> {
+    const results: AdaptiveModelWeight[] = [];
+    for (const w of weights) {
+      const item: AdaptiveModelWeight = {
+        ...w,
+        id: w.id || Math.floor(Math.random() * 1000000) + 1,
+        created_at: w.created_at || new Date().toISOString()
+      };
+      mockAdaptiveModelWeights.push(item);
+      results.push(item);
+    }
+    return results;
+  }
+
+  async getLatestWeights(): Promise<AdaptiveModelWeight[]> {
+    if (mockAdaptiveModelWeights.length === 0) return [];
+    const latestVersion = mockAdaptiveModelWeights[mockAdaptiveModelWeights.length - 1].calculation_version;
+    return mockAdaptiveModelWeights.filter(s => s.calculation_version === latestVersion);
+  }
+
+  async getWeightsByModel(modelName: string): Promise<AdaptiveModelWeight[]> {
+    return mockAdaptiveModelWeights.filter(s => s.model_name.toLowerCase() === modelName.toLowerCase());
+  }
+
+  async getWeightsHistory(): Promise<AdaptiveModelWeight[]> {
+    return [...mockAdaptiveModelWeights];
+  }
+
+  async deleteWeightsWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockAdaptiveModelWeights.length;
+    mockAdaptiveModelWeights = mockAdaptiveModelWeights.filter(s => !(s.season === season && s.week === week));
+    return mockAdaptiveModelWeights.length < originalLen;
   }
 }
 

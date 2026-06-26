@@ -1301,6 +1301,29 @@ export interface ModelDrift {
   created_at?: string;
 }
 
+export interface AdaptiveModelWeight {
+  id?: number | string;
+  season: string;
+  week: number;
+  model_name: string;
+  model_version: string;
+  prediction_type: string;
+  previous_weight: number;
+  recommended_weight: number;
+  weight_delta: number;
+  performance_score: number;
+  rolling_validation_score: number;
+  calibration_score: number;
+  clv_score: number;
+  drift_penalty: number;
+  confidence_score: number;
+  final_weight: number;
+  recommendation_reason: string;
+  calculation_version: string;
+  created_at?: string;
+}
+
+
 
 
 

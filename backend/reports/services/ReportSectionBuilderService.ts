@@ -8,7 +8,7 @@ import {
   ChalkUpsetScenario,
   StrategyComparison
 } from "../models";
-import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV, MarketCalibration, ModelPerformance, RollingValidation, ModelDrift } from "../../../src/types";
+import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV, MarketCalibration, ModelPerformance, RollingValidation, ModelDrift, AdaptiveModelWeight } from "../../../src/types";
 
 export class ReportSectionBuilderService {
   static buildExecutiveSummary(
@@ -627,6 +627,41 @@ Expected value adjustments dynamically react to Entry Strategy Profiles:
     return {
       id: "sec-model-drift-analysis",
       title: "20. Model Drift & Recalibration Recommendations",
+      type: "inventory_summary",
+      content_markdown: md
+    };
+  }
+
+  static buildAdaptiveModelWeightsSection(weights: AdaptiveModelWeight[], season: string, week: number): WeeklyReportSection {
+    let md = `### ⚖️ Adaptive Ensemble Weighting Engine (v0.46)\n`;
+    md += `This section monitors the continuous adaptation of predictive model weights for season ${season}, Week ${week}. By analyzing live performance, backtesting, calibration alignment, and drift status, the engine shifts authority to high-performing models and penalizes drifting models.\n\n`;
+
+    md += `| Prediction Model | Previous Weight | Final Weight | Weight Shift | Confidence Score | Performance Score | Calibration Score | Drift Penalty | Recommendation Summary |\n`;
+    md += `|---|---|---|---|---|---|---|---|---|\n`;
+
+    const tableRows = weights.map(item => {
+      const shiftSign = item.weight_delta > 0 ? "+" : "";
+      const shiftColor = item.weight_delta > 0 ? "🟢" : item.weight_delta < 0 ? "🔴" : "⚪";
+      return `| **${item.model_name}** | ${item.previous_weight.toFixed(1)}% | **${item.final_weight.toFixed(1)}%** | ${shiftColor} **${shiftSign}${item.weight_delta.toFixed(1)}%** | \`${item.confidence_score.toFixed(1)}\` | ${item.performance_score.toFixed(1)} | ${item.calibration_score.toFixed(1)} | -${item.drift_penalty.toFixed(1)} | ${item.recommendation_reason} |`;
+    }).join("\n");
+
+    md += tableRows + "\n\n";
+
+    // Add highlighted insights
+    const sorted = [...weights].sort((a, b) => b.final_weight - a.final_weight);
+    const topModel = sorted[0];
+    const sortedDeltas = [...weights].sort((a, b) => a.weight_delta - b.weight_delta);
+    const penalizedModel = sortedDeltas[0];
+
+    md += `#### 🔍 Key Weighting Adjustments\n`;
+    md += `- **🏆 Top Weighted Model**: **${topModel.model_name}** is the primary driver of the ensemble with an active weight of **${topModel.final_weight.toFixed(1)}%** (Confidence score: \`${topModel.confidence_score.toFixed(1)}\`).\n`;
+    if (penalizedModel && penalizedModel.weight_delta < 0) {
+      md += `- **⚠️ Maximum Penalty Applied**: **${penalizedModel.model_name}** received the largest allocation reduction of **${penalizedModel.weight_delta.toFixed(1)}%** due to active recalibration indicators and drift penalties.\n`;
+    }
+
+    return {
+      id: "sec-adaptive-model-weights",
+      title: "21. Adaptive Ensemble Weighting Analysis",
       type: "inventory_summary",
       content_markdown: md
     };
