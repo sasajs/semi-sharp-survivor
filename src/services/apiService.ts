@@ -354,5 +354,33 @@ export const apiService = {
     });
     if (!res.ok) throw new Error("Failed to trigger model performance calculations");
     return res.json();
+  },
+
+  async fetchLatestRollingValidation(): Promise<any[]> {
+    const res = await fetch("/api/rolling-validation/latest");
+    if (!res.ok) throw new Error("Failed to fetch latest rolling validation snapshot");
+    return res.json();
+  },
+
+  async fetchRollingValidationHistory(): Promise<any[]> {
+    const res = await fetch("/api/rolling-validation/history");
+    if (!res.ok) throw new Error("Failed to fetch rolling validation history");
+    return res.json();
+  },
+
+  async fetchRollingValidationByModel(modelName: string): Promise<any[]> {
+    const res = await fetch(`/api/rolling-validation/${encodeURIComponent(modelName)}`);
+    if (!res.ok) throw new Error("Failed to fetch rolling validation for: " + modelName);
+    return res.json();
+  },
+
+  async runRollingValidation(season: string, startWeek: number, endWeek: number, calculationVersion: string): Promise<any> {
+    const res = await fetch("/api/rolling-validation/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, startWeek, endWeek, calculationVersion })
+    });
+    if (!res.ok) throw new Error("Failed to run rolling validation & backtesting engine");
+    return res.json();
   }
 };

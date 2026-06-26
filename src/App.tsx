@@ -37,6 +37,7 @@ import { ContestEVPanel } from "./components/ContestEVPanel";
 import { OwnershipCalibrationPanel } from "./components/OwnershipCalibrationPanel";
 import { MarketCalibrationPanel } from "./components/MarketCalibrationPanel";
 import { ModelPerformancePanel } from "./components/ModelPerformancePanel";
+import { RollingValidationPanel } from "./components/RollingValidationPanel";
 import { AdminDashboard } from "./pages/AdminDashboard";
 
 export default function App() {
@@ -166,6 +167,7 @@ export default function App() {
                 { id: "ownership-calibration", label: "Ownership Calibration", icon: Sliders, badge: "v0.41" },
                 { id: "market-calibration", label: "Market Calibration", icon: Scale, badge: "v0.42" },
                 { id: "model-performance", label: "Model Performance", icon: Target, badge: "v0.43" },
+                { id: "rolling-validation", label: "Rolling Validation", icon: History, badge: "v0.44" },
                 { id: "admin", label: "Admin Dashboard", icon: ShieldAlert, badge: "Secure" },
               ].map(tab => {
                 const Icon = tab.icon;
@@ -926,6 +928,10 @@ export default function App() {
 
               {activeTab === "model-performance" && (
                 <ModelPerformancePanel />
+              )}
+
+              {activeTab === "rolling-validation" && (
+                <RollingValidationPanel />
               )}
 
               {activeTab === "admin" && (

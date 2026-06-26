@@ -78,6 +78,7 @@ import { ContestEVService } from "../services/ContestEVService";
 import { OwnershipCalibrationService } from "../services/OwnershipCalibrationService";
 import { MarketCalibrationService } from "../services/MarketCalibrationService";
 import { ModelPerformanceService } from "../services/ModelPerformanceService";
+import { RollingValidationService } from "../services/RollingValidationService";
 
 const router = Router();
 
@@ -2611,6 +2612,61 @@ router.post("/model-performance/calculate", async (req: Request, res: Response) 
     const version = calculationVersion || "v1.0.0";
 
     const list = await ModelPerformanceService.calculate(season, weekNum, version);
+    res.json({ success: true, count: list.length, data: list });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/rolling-validation/latest
+router.get("/rolling-validation/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await RollingValidationService.getLatest();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/rolling-validation/history
+router.get("/rolling-validation/history", async (req: Request, res: Response) => {
+  try {
+    const list = await RollingValidationService.getHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/rolling-validation/:model
+router.get("/rolling-validation/:model", async (req: Request, res: Response) => {
+  try {
+    const { model } = req.params;
+    const list = await RollingValidationService.getByModel(model);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/rolling-validation/run
+router.post("/rolling-validation/run", async (req: Request, res: Response) => {
+  try {
+    const { season, startWeek, endWeek, calculationVersion } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const startW = parseInt((startWeek || "1").toString(), 10);
+    const endW = parseInt((endWeek || "1").toString(), 10);
+    if (isNaN(startW) || startW < 1 || startW > 18 || isNaN(endW) || endW < 1 || endW > 18) {
+      return res.status(400).json({ error: "startWeek and endWeek must be between 1 and 18" });
+    }
+    if (startW > endW) {
+      return res.status(400).json({ error: "startWeek cannot be greater than endWeek" });
+    }
+    const version = calculationVersion || "v1.0.0";
+
+    const list = await RollingValidationService.calculate(season, startW, endW, version);
     res.json({ success: true, count: list.length, data: list });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

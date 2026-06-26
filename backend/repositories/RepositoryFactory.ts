@@ -48,7 +48,8 @@ import {
   MockContestEVRepository,
   MockOwnershipCalibrationRepository,
   MockMarketCalibrationRepository,
-  MockModelPerformanceRepository
+  MockModelPerformanceRepository,
+  MockRollingValidationRepository
 } from "./mockRepositories";
 
 import {
@@ -95,6 +96,7 @@ import { PostgresContestEVRepository } from "./postgres/PostgresContestEVReposit
 import { PostgresOwnershipCalibrationRepository } from "./postgres/PostgresOwnershipCalibrationRepository";
 import { PostgresMarketCalibrationRepository } from "./postgres/PostgresMarketCalibrationRepository";
 import { PostgresModelPerformanceRepository } from "./postgres/PostgresModelPerformanceRepository";
+import { PostgresRollingValidationRepository } from "./postgres/PostgresRollingValidationRepository";
 
 export let useMock = databaseConfig.useMock;
 
@@ -250,6 +252,9 @@ export class RepositoryFactory {
   }
   static getModelPerformanceRepo() {
     return useMock ? new MockModelPerformanceRepository() : new PostgresModelPerformanceRepository();
+  }
+  static getRollingValidationRepo() {
+    return useMock ? new MockRollingValidationRepository() : new PostgresRollingValidationRepository();
   }
 }
 

@@ -35,6 +35,7 @@ import { SurvivorRecommendationService } from "../../services/SurvivorRecommenda
 import { ContestEVService } from "../../services/ContestEVService";
 import { MarketCalibrationService } from "../../services/MarketCalibrationService";
 import { ModelPerformanceService } from "../../services/ModelPerformanceService";
+import { RollingValidationService } from "../../services/RollingValidationService";
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
 
 // Persistent state storage for generated reports and report runs
@@ -389,6 +390,19 @@ export class WeeklyReportService {
       sections.push(perfSection);
     } catch (perfErr: any) {
       console.warn("Could not append Model Performance section to weekly report:", perfErr.message);
+    }
+
+    // Rolling Validation & Backtesting Engine (v0.44 Engine)
+    try {
+      let validations = await RollingValidationService.getHistory();
+      validations = validations.filter(v => v.season === season.toString() && v.start_week === 1 && v.end_week === week);
+      if (validations.length === 0) {
+        validations = await RollingValidationService.calculate(season.toString(), 1, week, "1.0.0");
+      }
+      const rollValSection = ReportSectionBuilderService.buildRollingValidationSection(validations, season.toString(), 1, week);
+      sections.push(rollValSection);
+    } catch (rollValErr: any) {
+      console.warn("Could not append Rolling Validation section to weekly report:", rollValErr.message);
     }
 
     const reportHash = ReportAuditService.createReportHash(reportShell);

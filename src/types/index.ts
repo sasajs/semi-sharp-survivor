@@ -1251,6 +1251,31 @@ export interface ModelPerformance {
   created_at?: string;
 }
 
+export interface RollingValidation {
+  id?: number | string;
+  season: string;
+  start_week: number;
+  end_week: number;
+  model_name: string;
+  model_version: string;
+  prediction_type: string;
+  games_evaluated: number;
+  wins: number;
+  losses: number;
+  accuracy: number;
+  brier_score: number;
+  log_loss: number;
+  rmse: number;
+  mae: number;
+  spread_clv: number;
+  total_clv: number;
+  rolling_score: number;
+  drift_score: number;
+  recommended_action: string;
+  calculation_version: string;
+  created_at?: string;
+}
+
 
 
 

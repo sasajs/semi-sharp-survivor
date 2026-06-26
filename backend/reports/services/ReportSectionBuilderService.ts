@@ -8,7 +8,7 @@ import {
   ChalkUpsetScenario,
   StrategyComparison
 } from "../models";
-import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV, MarketCalibration, ModelPerformance } from "../../../src/types";
+import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV, MarketCalibration, ModelPerformance, RollingValidation } from "../../../src/types";
 
 export class ReportSectionBuilderService {
   static buildExecutiveSummary(
@@ -564,6 +564,36 @@ Expected value adjustments dynamically react to Entry Strategy Profiles:
     return {
       id: "sec-model-performance-analysis",
       title: "18. Model Performance & Dynamic Weighting Analysis",
+      type: "inventory_summary",
+      content_markdown: md
+    };
+  }
+
+  static buildRollingValidationSection(validations: RollingValidation[], season: string, startWeek: number, endWeek: number): WeeklyReportSection {
+    let md = `### 🔄 Rolling Validation & Backtesting Engine (v0.44)\n`;
+    md += `This section evaluates model forecasting over a rolling timeline (NFL Weeks ${startWeek} through ${endWeek}) to identify predictive drift, compile robust error metrics, and suggest remediation plans.\n\n`;
+
+    md += `| Prediction Model | Week Range | Games | Accuracy | Brier Score | Log Loss | RMSE / MAE | Spread CLV | Calibration Score | Drift Score | Recommended Action |\n`;
+    md += `|---|---|---|---|---|---|---|---|---|---|---|\n`;
+
+    const tableRows = validations.map(item => {
+      const errorMetric = `${item.rmse.toFixed(1)} / ${item.mae.toFixed(1)}`;
+      const statusIcon = item.recommended_action === "KEEP" ? "🟢" : item.recommended_action === "WATCH" ? "🟡" : item.recommended_action === "RECALIBRATE" ? "🟠" : "🔴";
+
+      return `| **${item.model_name}** | W${item.start_week}-W${item.end_week} | ${item.games_evaluated} | ${item.accuracy.toFixed(1)}% | ${item.brier_score.toFixed(4)} | ${item.log_loss.toFixed(4)} | ${errorMetric} | **${item.spread_clv > 0 ? "+" : ""}${item.spread_clv}** | **${Math.round(item.rolling_score)}** | **${item.drift_score.toFixed(1)}** | ${statusIcon} **${item.recommended_action}** |`;
+    }).join("\n");
+
+    md += tableRows + "\n\n";
+
+    md += `#### 🛠️ Automated Model Lifecycle Recommendations\n`;
+    md += `- **0–10 Stable (KEEP)**: No drift detected. The model maintains standard high predictive power.\n`;
+    md += `- **10–20 Watch (WATCH)**: Minimal divergence from closing lines. Flagged for close observation.\n`;
+    md += `- **20–35 Recalibrate (RECALIBRATE)**: Predictive accuracy or CLV degrading. Model requires hyperparameter fine-tuning.\n`;
+    md += `- **35+ Retrain (RETRAIN)**: Severe drift detected. The model should be retrained on newer historical datasets.\n`;
+
+    return {
+      id: "sec-rolling-validation-analysis",
+      title: "19. Rolling Validation & Backtesting Performance Analysis",
       type: "inventory_summary",
       content_markdown: md
     };

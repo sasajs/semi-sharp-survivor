@@ -25,6 +25,7 @@ import { ContestEVService } from "./ContestEVService";
 import { OwnershipCalibrationService } from "./OwnershipCalibrationService";
 import { MarketCalibrationService } from "./MarketCalibrationService";
 import { ModelPerformanceService } from "./ModelPerformanceService";
+import { RollingValidationService } from "./RollingValidationService";
 
 export const STRATEGY_RECOMMENDATION_WEIGHTS: Record<StrategyType, {
   candidateWeight: number;      // baseline 40%
@@ -276,6 +277,14 @@ export class SurvivorRecommendationService {
       await ModelPerformanceService.calculate(season, week, calculationVersion);
     } catch (modelPerfErr: any) {
       console.error("[Survivor Recommendation Service] Failed to calculate model performance & weights:", modelPerfErr.message);
+    }
+
+    // 16. Generate Rolling Validation & Backtesting (Rolling Validation Engine)
+    try {
+      // Backtest from Week 1 to current Week
+      await RollingValidationService.calculate(season, 1, week, calculationVersion);
+    } catch (rollValErr: any) {
+      console.error("[Survivor Recommendation Service] Failed to calculate rolling validation & backtesting:", rollValErr.message);
     }
 
     return saved;

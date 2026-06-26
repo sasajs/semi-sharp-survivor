@@ -45,7 +45,8 @@ import {
   ContestEV,
   OwnershipCalibration,
   MarketCalibration,
-  ModelPerformance
+  ModelPerformance,
+  RollingValidation
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -429,6 +430,14 @@ export interface IModelPerformanceRepository {
   getPerformanceByName(modelName: string): Promise<ModelPerformance[]>;
   getPerformanceHistory(): Promise<ModelPerformance[]>;
   deleteWeek(season: string, week: number): Promise<boolean>;
+}
+
+export interface IRollingValidationRepository {
+  saveValidation(validations: RollingValidation[]): Promise<RollingValidation[]>;
+  getLatestValidation(): Promise<RollingValidation[]>;
+  getValidationByModel(modelName: string): Promise<RollingValidation[]>;
+  getValidationHistory(): Promise<RollingValidation[]>;
+  deleteWeekRange(season: string, startWeek: number, endWeek: number): Promise<boolean>;
 }
 
 

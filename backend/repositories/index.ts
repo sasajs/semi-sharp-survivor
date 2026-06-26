@@ -132,5 +132,6 @@ export const contestEVRepo = createRepositoryProxy(() => RepositoryFactory.getCo
 export const ownershipCalibrationRepo = createRepositoryProxy(() => RepositoryFactory.getOwnershipCalibrationRepo());
 export const marketCalibrationRepo = createRepositoryProxy(() => RepositoryFactory.getMarketCalibrationRepo());
 export const modelPerformanceRepo = createRepositoryProxy(() => RepositoryFactory.getModelPerformanceRepo());
+export const rollingValidationRepo = createRepositoryProxy(() => RepositoryFactory.getRollingValidationRepo());
 
 

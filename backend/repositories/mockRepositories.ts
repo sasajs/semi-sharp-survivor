@@ -46,7 +46,8 @@ import {
   ContestEV,
   OwnershipCalibration,
   MarketCalibration,
-  ModelPerformance
+  ModelPerformance,
+  RollingValidation
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -97,7 +98,8 @@ import {
   IContestEVRepository,
   IOwnershipCalibrationRepository,
   IMarketCalibrationRepository,
-  IModelPerformanceRepository
+  IModelPerformanceRepository,
+  IRollingValidationRepository
 } from "./interfaces";
 
 /**
@@ -218,6 +220,7 @@ export let mockContestEVs: ContestEV[] = [];
 export let mockOwnershipCalibrations: OwnershipCalibration[] = [];
 export let mockMarketCalibrations: MarketCalibration[] = [];
 export let mockModelPerformances: ModelPerformance[] = [];
+export let mockRollingValidations: RollingValidation[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -337,6 +340,7 @@ export function resetMockDatabase(
   mockOwnershipCalibrations = [];
   mockMarketCalibrations = [];
   mockModelPerformances = [];
+  mockRollingValidations = [];
 }
 
 /**
@@ -2365,6 +2369,43 @@ export class MockModelPerformanceRepository implements IModelPerformanceReposito
     return mockModelPerformances.length < originalLen;
   }
 }
+
+export class MockRollingValidationRepository implements IRollingValidationRepository {
+  async saveValidation(validations: RollingValidation[]): Promise<RollingValidation[]> {
+    const results: RollingValidation[] = [];
+    for (const v of validations) {
+      const item: RollingValidation = {
+        ...v,
+        id: v.id || Math.floor(Math.random() * 1000000) + 1,
+        created_at: v.created_at || new Date().toISOString()
+      };
+      mockRollingValidations.push(item);
+      results.push(item);
+    }
+    return results;
+  }
+
+  async getLatestValidation(): Promise<RollingValidation[]> {
+    if (mockRollingValidations.length === 0) return [];
+    const latestVersion = mockRollingValidations[mockRollingValidations.length - 1].calculation_version;
+    return mockRollingValidations.filter(s => s.calculation_version === latestVersion);
+  }
+
+  async getValidationByModel(modelName: string): Promise<RollingValidation[]> {
+    return mockRollingValidations.filter(s => s.model_name.toLowerCase() === modelName.toLowerCase());
+  }
+
+  async getValidationHistory(): Promise<RollingValidation[]> {
+    return [...mockRollingValidations];
+  }
+
+  async deleteWeekRange(season: string, startWeek: number, endWeek: number): Promise<boolean> {
+    const originalLen = mockRollingValidations.length;
+    mockRollingValidations = mockRollingValidations.filter(s => !(s.season === season && s.start_week === startWeek && s.end_week === endWeek));
+    return mockRollingValidations.length < originalLen;
+  }
+}
+
 
 
 
