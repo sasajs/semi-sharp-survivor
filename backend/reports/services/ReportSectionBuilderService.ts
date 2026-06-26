@@ -8,7 +8,7 @@ import {
   ChalkUpsetScenario,
   StrategyComparison
 } from "../models";
-import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV, MarketCalibration } from "../../../src/types";
+import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV, MarketCalibration, ModelPerformance } from "../../../src/types";
 
 export class ReportSectionBuilderService {
   static buildExecutiveSummary(
@@ -534,6 +534,36 @@ Expected value adjustments dynamically react to Entry Strategy Profiles:
     return {
       id: "sec-market-calibration-analysis",
       title: "17. Market Calibration & Closing Line Value (CLV) Analysis",
+      type: "inventory_summary",
+      content_markdown: md
+    };
+  }
+
+  static buildModelPerformanceSection(performances: ModelPerformance[], season: string, week: number): WeeklyReportSection {
+    let md = `### 🎯 Model Performance & Dynamic Weighting Engine (v0.43)\n`;
+    md += `This section reviews the continuously calculated performance ratings of the main projection engines and explains their dynamically self-adjusting active weights.\n\n`;
+
+    md += `| Prediction Model | Type | Accuracy | Brier Score | Log Loss | MAE / RMSE | Spread CLV | Calibration Score | Active Weight | Status | Trend |\n`;
+    md += `|---|---|---|---|---|---|---|---|---|---|---|\n`;
+
+    const tableRows = performances.map(item => {
+      const errorMetric = `${item.mae.toFixed(1)} / ${item.rmse.toFixed(1)}`;
+      const statusIcon = item.status === "IMPROVING" ? "🟢" : item.status === "STABLE" ? "🟡" : "🔴";
+      const trendIcon = item.active_weight > 1.0 ? "📈" : item.active_weight < 1.0 ? "📉" : "➡️";
+
+      return `| **${item.model_name}** | ${item.prediction_type} | ${item.accuracy.toFixed(1)}% | ${item.brier_score.toFixed(4)} | ${item.log_loss.toFixed(4)} | ${errorMetric} | **${item.spread_clv > 0 ? "+" : ""}${item.spread_clv}** | **${Math.round(item.calibration_score)}** | **${item.active_weight.toFixed(2)}x** | ${statusIcon} ${item.status} | ${trendIcon} |`;
+    }).join("\n");
+
+    md += tableRows + "\n\n";
+
+    md += `#### 🧠 Self-Adjusting Machine Learning Feedback loop\n`;
+    md += `- **Active Weight adjustment**: Weekly ratings smoothly shift via a 80% previous and 20% current allocation formula.\n`;
+    md += `- **Performance boundaries**: Weight ranges are bounded strictly between **0.10** and **3.00** to guarantee stability.\n`;
+    md += `- **Performance Status indicator**: Green represents high accuracy and CLV, yellow is standard operations, red alerts require manual model optimization.\n`;
+
+    return {
+      id: "sec-model-performance-analysis",
+      title: "18. Model Performance & Dynamic Weighting Analysis",
       type: "inventory_summary",
       content_markdown: md
     };

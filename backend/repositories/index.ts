@@ -131,5 +131,6 @@ export const recommendationPortfolioRepo = createRepositoryProxy(() => Repositor
 export const contestEVRepo = createRepositoryProxy(() => RepositoryFactory.getContestEVRepo());
 export const ownershipCalibrationRepo = createRepositoryProxy(() => RepositoryFactory.getOwnershipCalibrationRepo());
 export const marketCalibrationRepo = createRepositoryProxy(() => RepositoryFactory.getMarketCalibrationRepo());
+export const modelPerformanceRepo = createRepositoryProxy(() => RepositoryFactory.getModelPerformanceRepo());
 
 

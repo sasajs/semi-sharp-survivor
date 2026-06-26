@@ -24,6 +24,7 @@ import { RecommendationPortfolioOptimizerService } from "./RecommendationPortfol
 import { ContestEVService } from "./ContestEVService";
 import { OwnershipCalibrationService } from "./OwnershipCalibrationService";
 import { MarketCalibrationService } from "./MarketCalibrationService";
+import { ModelPerformanceService } from "./ModelPerformanceService";
 
 export const STRATEGY_RECOMMENDATION_WEIGHTS: Record<StrategyType, {
   candidateWeight: number;      // baseline 40%
@@ -268,6 +269,13 @@ export class SurvivorRecommendationService {
       await MarketCalibrationService.calculate(season, week, calculationVersion);
     } catch (mktCalibErr: any) {
       console.error("[Survivor Recommendation Service] Failed to calculate market calibration:", mktCalibErr.message);
+    }
+
+    // 15. Generate Model Performance & Dynamic Weighting (Model Performance Engine)
+    try {
+      await ModelPerformanceService.calculate(season, week, calculationVersion);
+    } catch (modelPerfErr: any) {
+      console.error("[Survivor Recommendation Service] Failed to calculate model performance & weights:", modelPerfErr.message);
     }
 
     return saved;

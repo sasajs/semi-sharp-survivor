@@ -45,7 +45,8 @@ import {
   RecommendationPortfolio,
   ContestEV,
   OwnershipCalibration,
-  MarketCalibration
+  MarketCalibration,
+  ModelPerformance
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -95,7 +96,8 @@ import {
   IRecommendationPortfolioRepository,
   IContestEVRepository,
   IOwnershipCalibrationRepository,
-  IMarketCalibrationRepository
+  IMarketCalibrationRepository,
+  IModelPerformanceRepository
 } from "./interfaces";
 
 /**
@@ -215,6 +217,7 @@ export let mockRecommendationPortfolios: RecommendationPortfolio[] = [];
 export let mockContestEVs: ContestEV[] = [];
 export let mockOwnershipCalibrations: OwnershipCalibration[] = [];
 export let mockMarketCalibrations: MarketCalibration[] = [];
+export let mockModelPerformances: ModelPerformance[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -333,6 +336,7 @@ export function resetMockDatabase(
   mockContestEVs = [];
   mockOwnershipCalibrations = [];
   mockMarketCalibrations = [];
+  mockModelPerformances = [];
 }
 
 /**
@@ -2323,6 +2327,42 @@ export class MockMarketCalibrationRepository implements IMarketCalibrationReposi
     const originalLen = mockMarketCalibrations.length;
     mockMarketCalibrations = mockMarketCalibrations.filter(s => !(s.season === season && s.week === week));
     return mockMarketCalibrations.length < originalLen;
+  }
+}
+
+export class MockModelPerformanceRepository implements IModelPerformanceRepository {
+  async savePerformance(performances: ModelPerformance[]): Promise<ModelPerformance[]> {
+    const results: ModelPerformance[] = [];
+    for (const p of performances) {
+      const item: ModelPerformance = {
+        ...p,
+        id: p.id || Math.floor(Math.random() * 1000000) + 1,
+        created_at: p.created_at || new Date().toISOString()
+      };
+      mockModelPerformances.push(item);
+      results.push(item);
+    }
+    return results;
+  }
+
+  async getLatestPerformance(): Promise<ModelPerformance[]> {
+    if (mockModelPerformances.length === 0) return [];
+    const latestVersion = mockModelPerformances[mockModelPerformances.length - 1].calculation_version;
+    return mockModelPerformances.filter(s => s.calculation_version === latestVersion);
+  }
+
+  async getPerformanceByName(modelName: string): Promise<ModelPerformance[]> {
+    return mockModelPerformances.filter(s => s.model_name.toLowerCase() === modelName.toLowerCase());
+  }
+
+  async getPerformanceHistory(): Promise<ModelPerformance[]> {
+    return [...mockModelPerformances];
+  }
+
+  async deleteWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockModelPerformances.length;
+    mockModelPerformances = mockModelPerformances.filter(s => !(s.season === season && s.week === week));
+    return mockModelPerformances.length < originalLen;
   }
 }
 

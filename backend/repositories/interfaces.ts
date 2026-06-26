@@ -44,7 +44,8 @@ import {
   RecommendationPortfolio,
   ContestEV,
   OwnershipCalibration,
-  MarketCalibration
+  MarketCalibration,
+  ModelPerformance
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -419,6 +420,14 @@ export interface IMarketCalibrationRepository {
   getLatestCalibration(): Promise<MarketCalibration[]>;
   getCalibrationByGame(gameId: string): Promise<MarketCalibration[]>;
   getCalibrationHistory(): Promise<MarketCalibration[]>;
+  deleteWeek(season: string, week: number): Promise<boolean>;
+}
+
+export interface IModelPerformanceRepository {
+  savePerformance(performances: ModelPerformance[]): Promise<ModelPerformance[]>;
+  getLatestPerformance(): Promise<ModelPerformance[]>;
+  getPerformanceByName(modelName: string): Promise<ModelPerformance[]>;
+  getPerformanceHistory(): Promise<ModelPerformance[]>;
   deleteWeek(season: string, week: number): Promise<boolean>;
 }
 

@@ -77,6 +77,7 @@ import { RecommendationPortfolioOptimizerService } from "../services/Recommendat
 import { ContestEVService } from "../services/ContestEVService";
 import { OwnershipCalibrationService } from "../services/OwnershipCalibrationService";
 import { MarketCalibrationService } from "../services/MarketCalibrationService";
+import { ModelPerformanceService } from "../services/ModelPerformanceService";
 
 const router = Router();
 
@@ -2559,6 +2560,57 @@ router.post("/market-calibration/generate", async (req: Request, res: Response) 
     }
 
     const list = await MarketCalibrationService.calculate(season, weekNum, calculationVersion);
+    res.json({ success: true, count: list.length, data: list });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/model-performance/latest
+router.get("/model-performance/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await ModelPerformanceService.getLatest();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/model-performance/history
+router.get("/model-performance/history", async (req: Request, res: Response) => {
+  try {
+    const list = await ModelPerformanceService.getHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/model-performance/:modelName
+router.get("/model-performance/:modelName", async (req: Request, res: Response) => {
+  try {
+    const { modelName } = req.params;
+    const list = await ModelPerformanceService.getByModelName(modelName);
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/model-performance/calculate
+router.post("/model-performance/calculate", async (req: Request, res: Response) => {
+  try {
+    const { season, week, calculationVersion } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const weekNum = parseInt((week || "1").toString(), 10);
+    if (isNaN(weekNum) || weekNum < 1 || weekNum > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+    const version = calculationVersion || "v1.0.0";
+
+    const list = await ModelPerformanceService.calculate(season, weekNum, version);
     res.json({ success: true, count: list.length, data: list });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

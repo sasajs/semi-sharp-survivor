@@ -91,5 +91,10 @@ export const migrationRegistry: Migration[] = [
     version: "V042",
     description: "Market Calibration & Closing Line Value (CLV) Engine: market_calibration table.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "042_market_calibration.sql")
+  },
+  {
+    version: "V043",
+    description: "Adaptive Model Performance & Dynamic Weighting Engine: model_performance table.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "043_model_performance.sql")
   }
 ];

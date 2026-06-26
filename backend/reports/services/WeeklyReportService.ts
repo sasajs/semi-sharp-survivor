@@ -34,6 +34,7 @@ import { ContestDynamicsService } from "../../services/ContestDynamicsService";
 import { SurvivorRecommendationService } from "../../services/SurvivorRecommendationService";
 import { ContestEVService } from "../../services/ContestEVService";
 import { MarketCalibrationService } from "../../services/MarketCalibrationService";
+import { ModelPerformanceService } from "../../services/ModelPerformanceService";
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
 
 // Persistent state storage for generated reports and report runs
@@ -375,6 +376,19 @@ export class WeeklyReportService {
       sections.push(mktSection);
     } catch (mktErr: any) {
       console.warn("Could not append Market Calibration section to weekly report:", mktErr.message);
+    }
+
+    // Model Performance & Dynamic Weighting Engine (v0.43 Engine)
+    try {
+      let performances = await ModelPerformanceService.getHistory();
+      performances = performances.filter(p => p.season === season.toString() && p.week === week);
+      if (performances.length === 0) {
+        performances = await ModelPerformanceService.calculate(season.toString(), week, "1.0.0");
+      }
+      const perfSection = ReportSectionBuilderService.buildModelPerformanceSection(performances, season.toString(), week);
+      sections.push(perfSection);
+    } catch (perfErr: any) {
+      console.warn("Could not append Model Performance section to weekly report:", perfErr.message);
     }
 
     const reportHash = ReportAuditService.createReportHash(reportShell);

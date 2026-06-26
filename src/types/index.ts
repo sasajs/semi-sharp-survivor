@@ -1225,6 +1225,32 @@ export interface MarketCalibration {
   created_at?: string;
 }
 
+export interface ModelPerformance {
+  id?: number | string;
+  season: string;
+  week: number;
+  model_name: string;
+  model_version: string;
+  prediction_type: string;
+  games_evaluated: number;
+  correct_predictions: number;
+  accuracy: number;
+  brier_score: number;
+  log_loss: number;
+  rmse: number;
+  mae: number;
+  spread_clv: number;
+  total_clv: number;
+  calibration_score: number;
+  rolling_score: number;
+  performance_weight: number;
+  recommended_weight: number;
+  active_weight: number;
+  status: string;
+  calculation_version: string;
+  created_at?: string;
+}
+
 
 
 

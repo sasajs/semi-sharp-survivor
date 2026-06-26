@@ -326,5 +326,33 @@ export const apiService = {
     });
     if (!res.ok) throw new Error("Failed to generate market calibration calculations");
     return res.json();
+  },
+
+  async fetchLatestModelPerformance(): Promise<any[]> {
+    const res = await fetch("/api/model-performance/latest");
+    if (!res.ok) throw new Error("Failed to fetch latest model performance snapshots");
+    return res.json();
+  },
+
+  async fetchModelPerformanceHistory(): Promise<any[]> {
+    const res = await fetch("/api/model-performance/history");
+    if (!res.ok) throw new Error("Failed to fetch model performance history");
+    return res.json();
+  },
+
+  async fetchModelPerformanceByName(modelName: string): Promise<any[]> {
+    const res = await fetch(`/api/model-performance/${encodeURIComponent(modelName)}`);
+    if (!res.ok) throw new Error("Failed to fetch model performance for: " + modelName);
+    return res.json();
+  },
+
+  async calculateModelPerformance(season: string, week: number, calculationVersion: string): Promise<any> {
+    const res = await fetch("/api/model-performance/calculate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week, calculationVersion })
+    });
+    if (!res.ok) throw new Error("Failed to trigger model performance calculations");
+    return res.json();
   }
 };

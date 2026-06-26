@@ -19,7 +19,8 @@ import {
   Zap,
   Layers,
   Sliders,
-  Scale
+  Scale,
+  Target
 } from "lucide-react";
 
 import { useAppData } from "./hooks/useAppData";
@@ -35,6 +36,7 @@ import { RecommendationPortfolioPanel } from "./components/RecommendationPortfol
 import { ContestEVPanel } from "./components/ContestEVPanel";
 import { OwnershipCalibrationPanel } from "./components/OwnershipCalibrationPanel";
 import { MarketCalibrationPanel } from "./components/MarketCalibrationPanel";
+import { ModelPerformancePanel } from "./components/ModelPerformancePanel";
 import { AdminDashboard } from "./pages/AdminDashboard";
 
 export default function App() {
@@ -163,6 +165,7 @@ export default function App() {
                 { id: "contest-ev", label: "Contest EV Optimizer", icon: Award, badge: "v0.40" },
                 { id: "ownership-calibration", label: "Ownership Calibration", icon: Sliders, badge: "v0.41" },
                 { id: "market-calibration", label: "Market Calibration", icon: Scale, badge: "v0.42" },
+                { id: "model-performance", label: "Model Performance", icon: Target, badge: "v0.43" },
                 { id: "admin", label: "Admin Dashboard", icon: ShieldAlert, badge: "Secure" },
               ].map(tab => {
                 const Icon = tab.icon;
@@ -919,6 +922,10 @@ export default function App() {
                 <MarketCalibrationPanel 
                   teams={teams}
                 />
+              )}
+
+              {activeTab === "model-performance" && (
+                <ModelPerformancePanel />
               )}
 
               {activeTab === "admin" && (
