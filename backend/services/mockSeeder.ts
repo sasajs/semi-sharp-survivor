@@ -8,6 +8,7 @@ import { ModelDriftService } from "./ModelDriftService";
 import { AdaptiveModelWeightService } from "./AdaptiveModelWeightService";
 import { EnsemblePredictionService } from "./EnsemblePredictionService";
 import { DecisionPolicyService } from "./DecisionPolicyService";
+import { SurvivorDecisionAgentService } from "./SurvivorDecisionAgentService";
 
 export const initialTeams: Team[] = [
   { id: "ari", name: "Arizona Cardinals", abbreviation: "ARI", bye_week: 11, primary_color: "#97233F", secondary_color: "#FFB612" },
@@ -198,7 +199,10 @@ export function buildAndSeedMockState() {
       // Pre-calculate decision policies (v0.48)
       await DecisionPolicyService.calculate("2026", 1, "1.0.0");
 
-      console.log("[Mock Seeder] Pre-calculated Future Team Value, Survivor Equity, Recommendation Candidates, comparative Recommendation Audits, Recommendation Confidence, Model Drift, Adaptive Model Weights, Ensemble Predictions, and Decision Policies snapshotted states successfully.");
+      // Pre-calculate survivor decisions (v0.49)
+      await SurvivorDecisionAgentService.calculate("2026", 1, "v0.49");
+
+      console.log("[Mock Seeder] Pre-calculated Future Team Value, Survivor Equity, Recommendation Candidates, comparative Recommendation Audits, Recommendation Confidence, Model Drift, Adaptive Model Weights, Ensemble Predictions, Decision Policies, and Survivor Decisions snapshotted states successfully.");
     } catch (err) {
       console.warn("Failed to pre-calculate mock dashboard metrics:", err);
     }

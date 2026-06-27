@@ -83,7 +83,8 @@ import { ModelDriftService } from "../services/ModelDriftService";
 import { AdaptiveModelWeightService } from "../services/AdaptiveModelWeightService";
 import { EnsemblePredictionService } from "../services/EnsemblePredictionService";
 import { DecisionPolicyService } from "../services/DecisionPolicyService";
-import { adaptiveModelWeightRepo, ensemblePredictionRepo, decisionPolicyRepo } from "../repositories/index";
+import { SurvivorDecisionAgentService } from "../services/SurvivorDecisionAgentService";
+import { adaptiveModelWeightRepo, ensemblePredictionRepo, decisionPolicyRepo, survivorDecisionRepo } from "../repositories/index";
 
 const router = Router();
 
@@ -2814,6 +2815,46 @@ router.post("/decision-policies/calculate", async (req: Request, res: Response) 
     const version = calculationVersion || "v1.0.0";
 
     const list = await DecisionPolicyService.calculate(season, w, version);
+    res.json({ success: true, count: list.length, data: list });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/survivor-decisions/latest
+router.get("/survivor-decisions/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await survivorDecisionRepo.getLatestDecisions();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/survivor-decisions/history
+router.get("/survivor-decisions/history", async (req: Request, res: Response) => {
+  try {
+    const list = await survivorDecisionRepo.getDecisionsHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/survivor-decisions/calculate
+router.post("/survivor-decisions/calculate", async (req: Request, res: Response) => {
+  try {
+    const { season, week, agentVersion } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const w = parseInt((week || "1").toString(), 10);
+    if (isNaN(w) || w < 1 || w > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+    const version = agentVersion || "v0.49";
+
+    const list = await SurvivorDecisionAgentService.calculate(season, w, version);
     res.json({ success: true, count: list.length, data: list });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

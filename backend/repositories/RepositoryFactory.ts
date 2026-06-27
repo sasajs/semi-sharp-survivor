@@ -53,7 +53,8 @@ import {
   MockModelDriftRepository,
   MockAdaptiveModelWeightRepository,
   MockEnsemblePredictionRepository,
-  MockDecisionPolicyRepository
+  MockDecisionPolicyRepository,
+  MockSurvivorDecisionRepository
 } from "./mockRepositories";
 
 import {
@@ -105,6 +106,7 @@ import { PostgresModelDriftRepository } from "./postgres/PostgresModelDriftRepos
 import { PostgresAdaptiveModelWeightRepository } from "./postgres/PostgresAdaptiveModelWeightRepository";
 import { PostgresEnsemblePredictionRepository } from "./postgres/PostgresEnsemblePredictionRepository";
 import { PostgresDecisionPolicyRepository } from "./postgres/PostgresDecisionPolicyRepository";
+import { PostgresSurvivorDecisionRepository } from "./postgres/PostgresSurvivorDecisionRepository";
 
 export let useMock = databaseConfig.useMock;
 
@@ -275,6 +277,9 @@ export class RepositoryFactory {
   }
   static getDecisionPolicyRepo() {
     return useMock ? new MockDecisionPolicyRepository() : new PostgresDecisionPolicyRepository();
+  }
+  static getSurvivorDecisionRepo() {
+    return useMock ? new MockSurvivorDecisionRepository() : new PostgresSurvivorDecisionRepository();
   }
 }
 

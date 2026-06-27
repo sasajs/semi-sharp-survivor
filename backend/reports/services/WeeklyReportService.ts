@@ -39,7 +39,8 @@ import { RollingValidationService } from "../../services/RollingValidationServic
 import { ModelDriftService } from "../../services/ModelDriftService";
 import { AdaptiveModelWeightService } from "../../services/AdaptiveModelWeightService";
 import { DecisionPolicyService } from "../../services/DecisionPolicyService";
-import { adaptiveModelWeightRepo, decisionPolicyRepo } from "../../repositories";
+import { SurvivorDecisionAgentService } from "../../services/SurvivorDecisionAgentService";
+import { adaptiveModelWeightRepo, decisionPolicyRepo, survivorDecisionRepo } from "../../repositories";
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
 
 // Persistent state storage for generated reports and report runs
@@ -446,6 +447,19 @@ export class WeeklyReportService {
       sections.push(policySection);
     } catch (policyErr: any) {
       console.warn("Could not append Decision Policy section to weekly report:", policyErr.message);
+    }
+
+    // Survivor Decision Summary (v0.49 Agent)
+    try {
+      let decisions = await survivorDecisionRepo.getDecisionsHistory();
+      decisions = decisions.filter(d => d.season === season.toString() && d.week === week);
+      if (decisions.length === 0) {
+        decisions = await SurvivorDecisionAgentService.calculate(season.toString(), week, "v0.49");
+      }
+      const decisionSection = ReportSectionBuilderService.buildSurvivorDecisionSection(decisions, season.toString(), week);
+      sections.push(decisionSection);
+    } catch (decisionErr: any) {
+      console.warn("Could not append Survivor Decision Agent section to weekly report:", decisionErr.message);
     }
 
     const reportHash = ReportAuditService.createReportHash(reportShell);

@@ -51,7 +51,8 @@ import {
   ModelDrift,
   AdaptiveModelWeight,
   EnsemblePrediction,
-  DecisionPolicy
+  DecisionPolicy,
+  SurvivorDecision
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -107,7 +108,8 @@ import {
   IModelDriftRepository,
   IAdaptiveModelWeightRepository,
   IEnsemblePredictionRepository,
-  IDecisionPolicyRepository
+  IDecisionPolicyRepository,
+  ISurvivorDecisionRepository
 } from "./interfaces";
 
 /**
@@ -233,6 +235,7 @@ export let mockModelDrifts: ModelDrift[] = [];
 export let mockAdaptiveModelWeights: AdaptiveModelWeight[] = [];
 export let mockEnsemblePredictions: EnsemblePrediction[] = [];
 export let mockDecisionPolicies: DecisionPolicy[] = [];
+export let mockSurvivorDecisions: SurvivorDecision[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -357,6 +360,7 @@ export function resetMockDatabase(
   mockAdaptiveModelWeights = [];
   mockEnsemblePredictions = [];
   mockDecisionPolicies = [];
+  mockSurvivorDecisions = [];
 }
 
 /**
@@ -2563,6 +2567,42 @@ export class MockDecisionPolicyRepository implements IDecisionPolicyRepository {
     const originalLen = mockDecisionPolicies.length;
     mockDecisionPolicies = mockDecisionPolicies.filter(s => !(s.season === season && s.week === week));
     return mockDecisionPolicies.length < originalLen;
+  }
+}
+
+export class MockSurvivorDecisionRepository implements ISurvivorDecisionRepository {
+  async saveDecisions(decisions: SurvivorDecision[]): Promise<SurvivorDecision[]> {
+    const results: SurvivorDecision[] = [];
+    for (const d of decisions) {
+      const item: SurvivorDecision = {
+        ...d,
+        id: d.id || Math.floor(Math.random() * 1000000) + 1,
+        created_at: d.created_at || new Date().toISOString()
+      };
+      mockSurvivorDecisions.push(item);
+      results.push(item);
+    }
+    return results;
+  }
+
+  async getLatestDecisions(): Promise<SurvivorDecision[]> {
+    if (mockSurvivorDecisions.length === 0) return [];
+    const latestVersion = mockSurvivorDecisions[mockSurvivorDecisions.length - 1].agent_version;
+    return mockSurvivorDecisions.filter(s => s.agent_version === latestVersion);
+  }
+
+  async getDecisionsByEntry(entryId: string): Promise<SurvivorDecision[]> {
+    return mockSurvivorDecisions.filter(s => s.entry_id.toLowerCase() === entryId.toLowerCase());
+  }
+
+  async getDecisionsHistory(): Promise<SurvivorDecision[]> {
+    return [...mockSurvivorDecisions];
+  }
+
+  async deleteDecisionsWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockSurvivorDecisions.length;
+    mockSurvivorDecisions = mockSurvivorDecisions.filter(s => !(s.season === season && s.week === week));
+    return mockSurvivorDecisions.length < originalLen;
   }
 }
 

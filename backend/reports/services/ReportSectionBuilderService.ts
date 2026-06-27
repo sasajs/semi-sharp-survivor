@@ -8,7 +8,7 @@ import {
   ChalkUpsetScenario,
   StrategyComparison
 } from "../models";
-import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV, MarketCalibration, ModelPerformance, RollingValidation, ModelDrift, AdaptiveModelWeight, DecisionPolicy } from "../../../src/types";
+import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV, MarketCalibration, ModelPerformance, RollingValidation, ModelDrift, AdaptiveModelWeight, DecisionPolicy, SurvivorDecision } from "../../../src/types";
 
 export class ReportSectionBuilderService {
   static buildExecutiveSummary(
@@ -733,6 +733,48 @@ Expected value adjustments dynamically react to Entry Strategy Profiles:
     return {
       id: "sec-decision-policies",
       title: "22. Decision Policy Engine Analytics",
+      type: "inventory_summary",
+      content_markdown: md
+    };
+  }
+
+  static buildSurvivorDecisionSection(decisions: SurvivorDecision[], season: string, week: number): WeeklyReportSection {
+    let md = `### 🤖 Survivor Decision Agent Summary (v0.49)\n`;
+    md += `This section displays the final, autonomous survivor decision selections for all configured contest entries and rulesets in season ${season}, Week ${week}. Combining multi-factor weighting metrics (Decision Policies 35%, Contest EV 20%, Future Value 20%, Survivor Equity 15%, Portfolio Fit 10%), the agent makes deterministic picks paired with deep semantic explanations.\n\n`;
+
+    md += `| Entry ID | Contest ID | Recommended Pick | Overall Decision Score | Confidence | Championship EV | Future Value | Risk Score | Portfolio Fit |\n`;
+    md += `|---|---|---|---|---|---|---|---|---|\n`;
+
+    const tableRows = decisions.map(d => {
+      let badge = "⚪ AVERAGE";
+      if (d.confidence === "Elite") badge = "🟢 **ELITE**";
+      else if (d.confidence === "Strong") badge = "🟢 **STRONG**";
+      else if (d.confidence === "Average") badge = "🔵 **AVERAGE**";
+      else if (d.confidence === "Weak") badge = "🟡 **WEAK**";
+      else if (d.confidence === "Avoid") badge = "🔴 **AVOID**";
+
+      return `| **${d.entry_id}** | ${d.contest_id} | **${d.recommended_team_id.toUpperCase()}** | **${d.decision_score.toFixed(1)}** | ${badge} | ${(d.championship_ev || 0).toFixed(4)}% | ${d.future_value_score.toFixed(1)} | ${d.risk_score.toFixed(1)}% | ${d.portfolio_score.toFixed(1)} |`;
+    }).join("\n");
+
+    md += tableRows + "\n\n";
+
+    md += `#### 💬 Decision Agent Explanations\n`;
+    for (const d of decisions) {
+      md += `- **Entry: ${d.entry_id} (Contest: ${d.contest_id})**: *"${d.decision_reason}"*\n`;
+      
+      try {
+        const json = JSON.parse(d.decision_json);
+        if (json.top_alternatives && json.top_alternatives.length > 0) {
+          md += `  - *Top Alternatives*: ${json.top_alternatives.map((a: any) => `**${a.team_id.toUpperCase()}** (Score: ${a.score.toFixed(1)})`).join(", ")}\n`;
+        }
+      } catch (e) {
+        // Safe fallback
+      }
+    }
+
+    return {
+      id: "sec-survivor-decisions",
+      title: "23. Survivor Decision Agent Analytics",
       type: "inventory_summary",
       content_markdown: md
     };

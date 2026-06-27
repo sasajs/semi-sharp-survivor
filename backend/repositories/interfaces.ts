@@ -50,7 +50,8 @@ import {
   ModelDrift,
   AdaptiveModelWeight,
   EnsemblePrediction,
-  DecisionPolicy
+  DecisionPolicy,
+  SurvivorDecision
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -474,6 +475,14 @@ export interface IDecisionPolicyRepository {
   getPoliciesByEntry(entryId: string): Promise<DecisionPolicy[]>;
   getPoliciesHistory(): Promise<DecisionPolicy[]>;
   deletePoliciesWeek(season: string, week: number): Promise<boolean>;
+}
+
+export interface ISurvivorDecisionRepository {
+  saveDecisions(decisions: SurvivorDecision[]): Promise<SurvivorDecision[]>;
+  getLatestDecisions(): Promise<SurvivorDecision[]>;
+  getDecisionsByEntry(entryId: string): Promise<SurvivorDecision[]>;
+  getDecisionsHistory(): Promise<SurvivorDecision[]>;
+  deleteDecisionsWeek(season: string, week: number): Promise<boolean>;
 }
 
 

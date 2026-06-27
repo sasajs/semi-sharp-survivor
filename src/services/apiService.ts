@@ -460,5 +460,27 @@ export const apiService = {
     });
     if (!res.ok) throw new Error("Failed to calculate decision policies");
     return res.json();
+  },
+
+  async fetchLatestSurvivorDecisions(): Promise<any[]> {
+    const res = await fetch("/api/survivor-decisions/latest");
+    if (!res.ok) throw new Error("Failed to fetch latest survivor decisions");
+    return res.json();
+  },
+
+  async fetchSurvivorDecisionsHistory(): Promise<any[]> {
+    const res = await fetch("/api/survivor-decisions/history");
+    if (!res.ok) throw new Error("Failed to fetch survivor decisions history");
+    return res.json();
+  },
+
+  async runSurvivorDecisionsCalculate(season: string, week: number, agentVersion: string): Promise<any> {
+    const res = await fetch("/api/survivor-decisions/calculate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week, agentVersion })
+    });
+    if (!res.ok) throw new Error("Failed to calculate survivor decisions");
+    return res.json();
   }
 };

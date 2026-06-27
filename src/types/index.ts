@@ -1368,6 +1368,26 @@ export interface DecisionPolicy {
   created_at?: string;
 }
 
+export interface SurvivorDecision {
+  id?: number | string;
+  season: string;
+  week: number;
+  entry_id: string;
+  contest_id: string;
+  decision_policy_id?: number | string | null;
+  recommended_team_id: string;
+  confidence: string; // Elite, Strong, Average, Weak, Avoid
+  championship_ev: number;
+  future_value_score: number;
+  risk_score: number;
+  portfolio_score: number;
+  decision_score: number;
+  agent_version: string;
+  decision_reason: string;
+  decision_json: string;
+  created_at?: string;
+}
+
 
 
 
