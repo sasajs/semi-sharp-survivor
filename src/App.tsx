@@ -22,7 +22,8 @@ import {
   Scale,
   Target,
   Shield,
-  Cpu
+  Cpu,
+  Compass
 } from "lucide-react";
 
 import { useAppData } from "./hooks/useAppData";
@@ -44,6 +45,8 @@ import { ModelDriftPanel } from "./components/ModelDriftPanel";
 import { AdaptiveModelWeightPanel } from "./components/AdaptiveModelWeightPanel";
 import { DecisionPolicyPanel } from "./components/DecisionPolicyPanel";
 import { SurvivorDecisionPanel } from "./components/SurvivorDecisionPanel";
+import { SurvivorPlanningPanel } from "./components/SurvivorPlanningPanel";
+import { ChampionshipPlanningPanel } from "./components/ChampionshipPlanningPanel";
 import { AdminDashboard } from "./pages/AdminDashboard";
 
 export default function App() {
@@ -178,6 +181,8 @@ export default function App() {
                 { id: "model-weights", label: "Adaptive Weights", icon: Scale, badge: "v0.46" },
                 { id: "decision-policies", label: "Decision Policies", icon: Shield, badge: "v0.48" },
                 { id: "survivor-decisions", label: "Survivor Decisions", icon: Cpu, badge: "v0.49" },
+                { id: "survivor-plans", label: "Survivor Plans", icon: Compass, badge: "v0.50" },
+                { id: "championship-plans", label: "Championship Plans", icon: Award, badge: "v0.51" },
                 { id: "admin", label: "Admin Dashboard", icon: ShieldAlert, badge: "Secure" },
               ].map(tab => {
                 const Icon = tab.icon;
@@ -958,6 +963,14 @@ export default function App() {
 
               {activeTab === "survivor-decisions" && (
                 <SurvivorDecisionPanel />
+              )}
+
+              {activeTab === "survivor-plans" && (
+                <SurvivorPlanningPanel />
+              )}
+
+              {activeTab === "championship-plans" && (
+                <ChampionshipPlanningPanel />
               )}
 
               {activeTab === "admin" && (

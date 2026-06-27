@@ -126,5 +126,15 @@ export const migrationRegistry: Migration[] = [
     version: "V049",
     description: "Survivor Decision Agent V1: survivor_decisions table.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "049_survivor_decisions.sql")
+  },
+  {
+    version: "V050",
+    description: "Survivor Planning Engine: survivor_plans table.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "050_survivor_plans.sql")
+  },
+  {
+    version: "V051",
+    description: "Championship Optimization Engine: championship_plans table.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "051_championship_plans.sql")
   }
 ];

@@ -1388,6 +1388,49 @@ export interface SurvivorDecision {
   created_at?: string;
 }
 
+export interface SurvivorPlan {
+  id?: number | string;
+  season: string;
+  week: number;
+  entry_id: string;
+  contest_id: string;
+  plan_name: string;
+  planned_picks: string;
+  projected_survival_probability: number;
+  future_value_remaining: number;
+  risk_index: number;
+  efficiency_score: number;
+  is_active: boolean;
+  agent_version: string;
+  plan_reasoning: string;
+  plan_json: string;
+  created_at?: string;
+}
+
+export interface ChampionshipPlan {
+  id?: number | string;
+  season: string;
+  entry_id: string;
+  contest_id: string;
+  planning_horizon: string;
+  weeks_remaining: number;
+  recommended_team_id: string;
+  projected_finish_probability: number;
+  projected_championship_probability: number;
+  future_value_score: number;
+  inventory_score: number;
+  risk_score: number;
+  optimization_score: number;
+  recommended_path: string;
+  alternative_paths: string;
+  planner_version: string;
+  optimization_reason: string;
+  optimization_json: string;
+  created_at?: string;
+}
+
+
+
 
 
 

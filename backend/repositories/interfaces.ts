@@ -51,7 +51,9 @@ import {
   AdaptiveModelWeight,
   EnsemblePrediction,
   DecisionPolicy,
-  SurvivorDecision
+  SurvivorDecision,
+  SurvivorPlan,
+  ChampionshipPlan
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -483,6 +485,22 @@ export interface ISurvivorDecisionRepository {
   getDecisionsByEntry(entryId: string): Promise<SurvivorDecision[]>;
   getDecisionsHistory(): Promise<SurvivorDecision[]>;
   deleteDecisionsWeek(season: string, week: number): Promise<boolean>;
+}
+
+export interface ISurvivorPlanningRepository {
+  savePlans(plans: SurvivorPlan[]): Promise<SurvivorPlan[]>;
+  getLatestPlans(): Promise<SurvivorPlan[]>;
+  getPlansByEntry(entryId: string): Promise<SurvivorPlan[]>;
+  getPlansHistory(): Promise<SurvivorPlan[]>;
+  deletePlansWeek(season: string, week: number): Promise<boolean>;
+}
+
+export interface IChampionshipPlanningRepository {
+  savePlans(plans: ChampionshipPlan[]): Promise<ChampionshipPlan[]>;
+  getLatestPlans(): Promise<ChampionshipPlan[]>;
+  getPlansByEntry(entryId: string): Promise<ChampionshipPlan[]>;
+  getPlansHistory(): Promise<ChampionshipPlan[]>;
+  deletePlansSeason(season: string): Promise<boolean>;
 }
 
 

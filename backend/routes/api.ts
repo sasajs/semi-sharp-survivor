@@ -84,7 +84,9 @@ import { AdaptiveModelWeightService } from "../services/AdaptiveModelWeightServi
 import { EnsemblePredictionService } from "../services/EnsemblePredictionService";
 import { DecisionPolicyService } from "../services/DecisionPolicyService";
 import { SurvivorDecisionAgentService } from "../services/SurvivorDecisionAgentService";
-import { adaptiveModelWeightRepo, ensemblePredictionRepo, decisionPolicyRepo, survivorDecisionRepo } from "../repositories/index";
+import { SurvivorPlanningService } from "../services/SurvivorPlanningService";
+import { ChampionshipPlanningService } from "../services/ChampionshipPlanningService";
+import { adaptiveModelWeightRepo, ensemblePredictionRepo, decisionPolicyRepo, survivorDecisionRepo, survivorPlanningRepo, championshipPlanningRepo } from "../repositories/index";
 
 const router = Router();
 
@@ -2855,6 +2857,86 @@ router.post("/survivor-decisions/calculate", async (req: Request, res: Response)
     const version = agentVersion || "v0.49";
 
     const list = await SurvivorDecisionAgentService.calculate(season, w, version);
+    res.json({ success: true, count: list.length, data: list });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/survivor-plans/latest
+router.get("/survivor-plans/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await survivorPlanningRepo.getLatestPlans();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/survivor-plans/history
+router.get("/survivor-plans/history", async (req: Request, res: Response) => {
+  try {
+    const list = await survivorPlanningRepo.getPlansHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/survivor-plans/calculate
+router.post("/survivor-plans/calculate", async (req: Request, res: Response) => {
+  try {
+    const { season, week, agentVersion } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const w = parseInt((week || "1").toString(), 10);
+    if (isNaN(w) || w < 1 || w > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+    const version = agentVersion || "v0.50";
+
+    const list = await SurvivorPlanningService.calculate(season, w, version);
+    res.json({ success: true, count: list.length, data: list });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/championship-plans/latest
+router.get("/championship-plans/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await championshipPlanningRepo.getLatestPlans();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/championship-plans/history
+router.get("/championship-plans/history", async (req: Request, res: Response) => {
+  try {
+    const list = await championshipPlanningRepo.getPlansHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/championship-plans/calculate
+router.post("/championship-plans/calculate", async (req: Request, res: Response) => {
+  try {
+    const { season, week, agentVersion } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const w = parseInt((week || "1").toString(), 10);
+    if (isNaN(w) || w < 1 || w > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+    const version = agentVersion || "v0.51";
+
+    const list = await ChampionshipPlanningService.calculate(season, w, version);
     res.json({ success: true, count: list.length, data: list });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

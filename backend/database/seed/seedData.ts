@@ -78,6 +78,8 @@ export async function seedDatabase() {
 
   try {
     // 1. Dependent Deletions to clear database for reseeding
+    await query("DELETE FROM championship_plans CASCADE");
+    await query("DELETE FROM survivor_plans CASCADE");
     await query("DELETE FROM survivor_history CASCADE");
     await query("DELETE FROM survivor_picks CASCADE");
     await query("DELETE FROM survivor_entries CASCADE");

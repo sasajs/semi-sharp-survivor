@@ -482,5 +482,49 @@ export const apiService = {
     });
     if (!res.ok) throw new Error("Failed to calculate survivor decisions");
     return res.json();
+  },
+
+  async fetchLatestSurvivorPlans(): Promise<any[]> {
+    const res = await fetch("/api/survivor-plans/latest");
+    if (!res.ok) throw new Error("Failed to fetch latest survivor plans");
+    return res.json();
+  },
+
+  async fetchSurvivorPlansHistory(): Promise<any[]> {
+    const res = await fetch("/api/survivor-plans/history");
+    if (!res.ok) throw new Error("Failed to fetch survivor plans history");
+    return res.json();
+  },
+
+  async runSurvivorPlansCalculate(season: string, week: number, agentVersion: string): Promise<any> {
+    const res = await fetch("/api/survivor-plans/calculate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week, agentVersion })
+    });
+    if (!res.ok) throw new Error("Failed to calculate survivor plans");
+    return res.json();
+  },
+
+  async fetchLatestChampionshipPlans(): Promise<any[]> {
+    const res = await fetch("/api/championship-plans/latest");
+    if (!res.ok) throw new Error("Failed to fetch latest championship plans");
+    return res.json();
+  },
+
+  async fetchChampionshipPlansHistory(): Promise<any[]> {
+    const res = await fetch("/api/championship-plans/history");
+    if (!res.ok) throw new Error("Failed to fetch championship plans history");
+    return res.json();
+  },
+
+  async runChampionshipPlansCalculate(season: string, week: number, agentVersion: string): Promise<any> {
+    const res = await fetch("/api/championship-plans/calculate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week, agentVersion })
+    });
+    if (!res.ok) throw new Error("Failed to calculate championship plans");
+    return res.json();
   }
 };

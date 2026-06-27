@@ -52,7 +52,9 @@ import {
   AdaptiveModelWeight,
   EnsemblePrediction,
   DecisionPolicy,
-  SurvivorDecision
+  SurvivorDecision,
+  SurvivorPlan,
+  ChampionshipPlan
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -109,7 +111,9 @@ import {
   IAdaptiveModelWeightRepository,
   IEnsemblePredictionRepository,
   IDecisionPolicyRepository,
-  ISurvivorDecisionRepository
+  ISurvivorDecisionRepository,
+  ISurvivorPlanningRepository,
+  IChampionshipPlanningRepository
 } from "./interfaces";
 
 /**
@@ -236,6 +240,8 @@ export let mockAdaptiveModelWeights: AdaptiveModelWeight[] = [];
 export let mockEnsemblePredictions: EnsemblePrediction[] = [];
 export let mockDecisionPolicies: DecisionPolicy[] = [];
 export let mockSurvivorDecisions: SurvivorDecision[] = [];
+export let mockSurvivorPlans: SurvivorPlan[] = [];
+export let mockChampionshipPlans: ChampionshipPlan[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -361,6 +367,8 @@ export function resetMockDatabase(
   mockEnsemblePredictions = [];
   mockDecisionPolicies = [];
   mockSurvivorDecisions = [];
+  mockSurvivorPlans = [];
+  mockChampionshipPlans = [];
 }
 
 /**
@@ -2603,6 +2611,78 @@ export class MockSurvivorDecisionRepository implements ISurvivorDecisionReposito
     const originalLen = mockSurvivorDecisions.length;
     mockSurvivorDecisions = mockSurvivorDecisions.filter(s => !(s.season === season && s.week === week));
     return mockSurvivorDecisions.length < originalLen;
+  }
+}
+
+export class MockSurvivorPlanningRepository implements ISurvivorPlanningRepository {
+  async savePlans(plans: SurvivorPlan[]): Promise<SurvivorPlan[]> {
+    const results: SurvivorPlan[] = [];
+    for (const p of plans) {
+      const item: SurvivorPlan = {
+        ...p,
+        id: p.id || Math.floor(Math.random() * 1000000) + 1,
+        created_at: p.created_at || new Date().toISOString()
+      };
+      mockSurvivorPlans.push(item);
+      results.push(item);
+    }
+    return results;
+  }
+
+  async getLatestPlans(): Promise<SurvivorPlan[]> {
+    if (mockSurvivorPlans.length === 0) return [];
+    const latestVersion = mockSurvivorPlans[mockSurvivorPlans.length - 1].agent_version;
+    return mockSurvivorPlans.filter(s => s.agent_version === latestVersion);
+  }
+
+  async getPlansByEntry(entryId: string): Promise<SurvivorPlan[]> {
+    return mockSurvivorPlans.filter(s => s.entry_id.toLowerCase() === entryId.toLowerCase());
+  }
+
+  async getPlansHistory(): Promise<SurvivorPlan[]> {
+    return [...mockSurvivorPlans];
+  }
+
+  async deletePlansWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockSurvivorPlans.length;
+    mockSurvivorPlans = mockSurvivorPlans.filter(s => !(s.season === season && s.week === week));
+    return mockSurvivorPlans.length < originalLen;
+  }
+}
+
+export class MockChampionshipPlanningRepository implements IChampionshipPlanningRepository {
+  async savePlans(plans: ChampionshipPlan[]): Promise<ChampionshipPlan[]> {
+    const results: ChampionshipPlan[] = [];
+    for (const p of plans) {
+      const item: ChampionshipPlan = {
+        ...p,
+        id: p.id || Math.floor(Math.random() * 1000000) + 1,
+        created_at: p.created_at || new Date().toISOString()
+      };
+      mockChampionshipPlans.push(item);
+      results.push(item);
+    }
+    return results;
+  }
+
+  async getLatestPlans(): Promise<ChampionshipPlan[]> {
+    if (mockChampionshipPlans.length === 0) return [];
+    const latestVersion = mockChampionshipPlans[mockChampionshipPlans.length - 1].planner_version;
+    return mockChampionshipPlans.filter(s => s.planner_version === latestVersion);
+  }
+
+  async getPlansByEntry(entryId: string): Promise<ChampionshipPlan[]> {
+    return mockChampionshipPlans.filter(s => s.entry_id.toLowerCase() === entryId.toLowerCase());
+  }
+
+  async getPlansHistory(): Promise<ChampionshipPlan[]> {
+    return [...mockChampionshipPlans];
+  }
+
+  async deletePlansSeason(season: string): Promise<boolean> {
+    const originalLen = mockChampionshipPlans.length;
+    mockChampionshipPlans = mockChampionshipPlans.filter(s => s.season !== season);
+    return mockChampionshipPlans.length < originalLen;
   }
 }
 
