@@ -438,5 +438,27 @@ export const apiService = {
     });
     if (!res.ok) throw new Error("Failed to run adaptive model weights recalculation");
     return res.json();
+  },
+
+  async fetchLatestDecisionPolicies(): Promise<any[]> {
+    const res = await fetch("/api/decision-policies/latest");
+    if (!res.ok) throw new Error("Failed to fetch latest decision policies");
+    return res.json();
+  },
+
+  async fetchDecisionPoliciesHistory(): Promise<any[]> {
+    const res = await fetch("/api/decision-policies/history");
+    if (!res.ok) throw new Error("Failed to fetch decision policies history");
+    return res.json();
+  },
+
+  async runDecisionPoliciesCalculate(season: string, week: number, calculationVersion: string): Promise<any> {
+    const res = await fetch("/api/decision-policies/calculate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week, calculationVersion })
+    });
+    if (!res.ok) throw new Error("Failed to calculate decision policies");
+    return res.json();
   }
 };

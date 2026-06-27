@@ -28,6 +28,8 @@ import { ModelPerformanceService } from "./ModelPerformanceService";
 import { RollingValidationService } from "./RollingValidationService";
 import { ModelDriftService } from "./ModelDriftService";
 import { AdaptiveModelWeightService } from "./AdaptiveModelWeightService";
+import { EnsemblePredictionService } from "./EnsemblePredictionService";
+import { DecisionPolicyService } from "./DecisionPolicyService";
 
 export const STRATEGY_RECOMMENDATION_WEIGHTS: Record<StrategyType, {
   candidateWeight: number;      // baseline 40%
@@ -301,6 +303,20 @@ export class SurvivorRecommendationService {
       await AdaptiveModelWeightService.calculateWeights(season, week, calculationVersion);
     } catch (weightErr: any) {
       console.error("[Survivor Recommendation Service] Failed to calculate adaptive model weights:", weightErr.message);
+    }
+
+    // 19. Generate Ensemble Predictions (V0.47)
+    try {
+      await EnsemblePredictionService.calculate(season, week, calculationVersion);
+    } catch (ensErr: any) {
+      console.error("[Survivor Recommendation Service] Failed to calculate ensemble predictions:", ensErr.message);
+    }
+
+    // 20. Generate Decision Policies (V0.48)
+    try {
+      await DecisionPolicyService.calculate(season, week, calculationVersion);
+    } catch (policyErr: any) {
+      console.error("[Survivor Recommendation Service] Failed to calculate decision policies:", policyErr.message);
     }
 
     return saved;

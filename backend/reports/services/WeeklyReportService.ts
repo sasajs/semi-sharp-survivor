@@ -38,7 +38,8 @@ import { ModelPerformanceService } from "../../services/ModelPerformanceService"
 import { RollingValidationService } from "../../services/RollingValidationService";
 import { ModelDriftService } from "../../services/ModelDriftService";
 import { AdaptiveModelWeightService } from "../../services/AdaptiveModelWeightService";
-import { adaptiveModelWeightRepo } from "../../repositories";
+import { DecisionPolicyService } from "../../services/DecisionPolicyService";
+import { adaptiveModelWeightRepo, decisionPolicyRepo } from "../../repositories";
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
 
 // Persistent state storage for generated reports and report runs
@@ -432,6 +433,19 @@ export class WeeklyReportService {
       sections.push(weightSection);
     } catch (weightErr: any) {
       console.warn("Could not append Adaptive Model Weighting section to weekly report:", weightErr.message);
+    }
+
+    // Decision Policy Summary (v0.48 Engine)
+    try {
+      let policies = await decisionPolicyRepo.getPoliciesHistory();
+      policies = policies.filter(p => p.season === season.toString() && p.week === week);
+      if (policies.length === 0) {
+        policies = await DecisionPolicyService.calculate(season.toString(), week, "1.0.0");
+      }
+      const policySection = ReportSectionBuilderService.buildDecisionPolicySection(policies, season.toString(), week);
+      sections.push(policySection);
+    } catch (policyErr: any) {
+      console.warn("Could not append Decision Policy section to weekly report:", policyErr.message);
     }
 
     const reportHash = ReportAuditService.createReportHash(reportShell);

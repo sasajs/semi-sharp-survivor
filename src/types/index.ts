@@ -1344,6 +1344,30 @@ export interface EnsemblePrediction {
   created_at?: string;
 }
 
+export interface DecisionPolicy {
+  id?: number | string;
+  season: string;
+  week: number;
+  entry_id: string;
+  contest_id: string;
+  game_id: string;
+  team_id: string;
+  policy_type: string;
+  ensemble_prediction: number;
+  ensemble_confidence: number;
+  contest_ev: number;
+  portfolio_score: number;
+  risk_score: number;
+  leverage_score: number;
+  decision_score: number;
+  recommended_action: string; // LOCK, STRONG PLAY, PLAY, PASS, AVOID
+  recommended_pick: string;
+  confidence_tier: string;
+  policy_reason: string;
+  calculation_version: string;
+  created_at?: string;
+}
+
 
 
 

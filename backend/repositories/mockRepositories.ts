@@ -50,7 +50,8 @@ import {
   RollingValidation,
   ModelDrift,
   AdaptiveModelWeight,
-  EnsemblePrediction
+  EnsemblePrediction,
+  DecisionPolicy
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -105,7 +106,8 @@ import {
   IRollingValidationRepository,
   IModelDriftRepository,
   IAdaptiveModelWeightRepository,
-  IEnsemblePredictionRepository
+  IEnsemblePredictionRepository,
+  IDecisionPolicyRepository
 } from "./interfaces";
 
 /**
@@ -230,6 +232,7 @@ export let mockRollingValidations: RollingValidation[] = [];
 export let mockModelDrifts: ModelDrift[] = [];
 export let mockAdaptiveModelWeights: AdaptiveModelWeight[] = [];
 export let mockEnsemblePredictions: EnsemblePrediction[] = [];
+export let mockDecisionPolicies: DecisionPolicy[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -353,6 +356,7 @@ export function resetMockDatabase(
   mockModelDrifts = [];
   mockAdaptiveModelWeights = [];
   mockEnsemblePredictions = [];
+  mockDecisionPolicies = [];
 }
 
 /**
@@ -2523,6 +2527,42 @@ export class MockEnsemblePredictionRepository implements IEnsemblePredictionRepo
     const originalLen = mockEnsemblePredictions.length;
     mockEnsemblePredictions = mockEnsemblePredictions.filter(s => !(s.season === season && s.week === week));
     return mockEnsemblePredictions.length < originalLen;
+  }
+}
+
+export class MockDecisionPolicyRepository implements IDecisionPolicyRepository {
+  async savePolicies(policies: DecisionPolicy[]): Promise<DecisionPolicy[]> {
+    const results: DecisionPolicy[] = [];
+    for (const p of policies) {
+      const item: DecisionPolicy = {
+        ...p,
+        id: p.id || Math.floor(Math.random() * 1000000) + 1,
+        created_at: p.created_at || new Date().toISOString()
+      };
+      mockDecisionPolicies.push(item);
+      results.push(item);
+    }
+    return results;
+  }
+
+  async getLatestPolicies(): Promise<DecisionPolicy[]> {
+    if (mockDecisionPolicies.length === 0) return [];
+    const latestVersion = mockDecisionPolicies[mockDecisionPolicies.length - 1].calculation_version;
+    return mockDecisionPolicies.filter(s => s.calculation_version === latestVersion);
+  }
+
+  async getPoliciesByEntry(entryId: string): Promise<DecisionPolicy[]> {
+    return mockDecisionPolicies.filter(s => s.entry_id.toLowerCase() === entryId.toLowerCase());
+  }
+
+  async getPoliciesHistory(): Promise<DecisionPolicy[]> {
+    return [...mockDecisionPolicies];
+  }
+
+  async deletePoliciesWeek(season: string, week: number): Promise<boolean> {
+    const originalLen = mockDecisionPolicies.length;
+    mockDecisionPolicies = mockDecisionPolicies.filter(s => !(s.season === season && s.week === week));
+    return mockDecisionPolicies.length < originalLen;
   }
 }
 

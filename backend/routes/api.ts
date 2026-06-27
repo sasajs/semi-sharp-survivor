@@ -81,7 +81,9 @@ import { ModelPerformanceService } from "../services/ModelPerformanceService";
 import { RollingValidationService } from "../services/RollingValidationService";
 import { ModelDriftService } from "../services/ModelDriftService";
 import { AdaptiveModelWeightService } from "../services/AdaptiveModelWeightService";
-import { adaptiveModelWeightRepo } from "../repositories/index";
+import { EnsemblePredictionService } from "../services/EnsemblePredictionService";
+import { DecisionPolicyService } from "../services/DecisionPolicyService";
+import { adaptiveModelWeightRepo, ensemblePredictionRepo, decisionPolicyRepo } from "../repositories/index";
 
 const router = Router();
 
@@ -2772,6 +2774,46 @@ router.post("/model-weights/recalculate", async (req: Request, res: Response) =>
     const version = calculationVersion || "v1.0.0";
 
     const list = await AdaptiveModelWeightService.calculateWeights(season, w, version);
+    res.json({ success: true, count: list.length, data: list });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/decision-policies/latest
+router.get("/decision-policies/latest", async (req: Request, res: Response) => {
+  try {
+    const list = await decisionPolicyRepo.getLatestPolicies();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/decision-policies/history
+router.get("/decision-policies/history", async (req: Request, res: Response) => {
+  try {
+    const list = await decisionPolicyRepo.getPoliciesHistory();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/decision-policies/calculate
+router.post("/decision-policies/calculate", async (req: Request, res: Response) => {
+  try {
+    const { season, week, calculationVersion } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const w = parseInt((week || "1").toString(), 10);
+    if (isNaN(w) || w < 1 || w > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+    const version = calculationVersion || "v1.0.0";
+
+    const list = await DecisionPolicyService.calculate(season, w, version);
     res.json({ success: true, count: list.length, data: list });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

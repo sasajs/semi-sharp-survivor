@@ -116,5 +116,10 @@ export const migrationRegistry: Migration[] = [
     version: "V047",
     description: "Adaptive Ensemble Prediction Engine: ensemble_predictions table.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "047_ensemble_predictions.sql")
+  },
+  {
+    version: "V048",
+    description: "Decision Policy Engine: decision_policies table.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "048_decision_policies.sql")
   }
 ];

@@ -41,6 +41,7 @@ import { ModelPerformancePanel } from "./components/ModelPerformancePanel";
 import { RollingValidationPanel } from "./components/RollingValidationPanel";
 import { ModelDriftPanel } from "./components/ModelDriftPanel";
 import { AdaptiveModelWeightPanel } from "./components/AdaptiveModelWeightPanel";
+import { DecisionPolicyPanel } from "./components/DecisionPolicyPanel";
 import { AdminDashboard } from "./pages/AdminDashboard";
 
 export default function App() {
@@ -173,6 +174,7 @@ export default function App() {
                 { id: "rolling-validation", label: "Rolling Validation", icon: History, badge: "v0.44" },
                 { id: "model-drift", label: "Model Drift Analysis", icon: Shield, badge: "v0.45" },
                 { id: "model-weights", label: "Adaptive Weights", icon: Scale, badge: "v0.46" },
+                { id: "decision-policies", label: "Decision Policies", icon: Shield, badge: "v0.48" },
                 { id: "admin", label: "Admin Dashboard", icon: ShieldAlert, badge: "Secure" },
               ].map(tab => {
                 const Icon = tab.icon;
@@ -945,6 +947,10 @@ export default function App() {
 
               {activeTab === "model-weights" && (
                 <AdaptiveModelWeightPanel />
+              )}
+
+              {activeTab === "decision-policies" && (
+                <DecisionPolicyPanel />
               )}
 
               {activeTab === "admin" && (

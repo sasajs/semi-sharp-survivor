@@ -8,7 +8,7 @@ import {
   ChalkUpsetScenario,
   StrategyComparison
 } from "../models";
-import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV, MarketCalibration, ModelPerformance, RollingValidation, ModelDrift, AdaptiveModelWeight } from "../../../src/types";
+import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV, MarketCalibration, ModelPerformance, RollingValidation, ModelDrift, AdaptiveModelWeight, DecisionPolicy } from "../../../src/types";
 
 export class ReportSectionBuilderService {
   static buildExecutiveSummary(
@@ -662,6 +662,77 @@ Expected value adjustments dynamically react to Entry Strategy Profiles:
     return {
       id: "sec-adaptive-model-weights",
       title: "21. Adaptive Ensemble Weighting Analysis",
+      type: "inventory_summary",
+      content_markdown: md
+    };
+  }
+
+  static buildDecisionPolicySection(policies: DecisionPolicy[], season: string, week: number): WeeklyReportSection {
+    let md = `### 🎯 Decision Policy Engine Summary (v0.48)\n`;
+    md += `This section transforms the calibrated ensemble predictions into actionable, deterministic Survivor decision policies for season ${season}, Week ${week}. Rather than simply ranking selections, the engine evaluates expected utility, risk levels, portfolio alignment, and leverage to issue explainable policy recommendations.\n\n`;
+
+    md += `| Team Selection | Decision Score | Win Prob (Ens) | Risk Score | Leverage Score | Portfolio Fit | Action Recommendation | Confidence Tier |\n`;
+    md += `|---|---|---|---|---|---|---|---|\n`;
+
+    // Sort by decision score descending to highlight top choices
+    const sortedPolicies = [...policies].sort((a, b) => b.decision_score - a.decision_score);
+    const visiblePolicies = sortedPolicies.slice(0, 10); // Display top 10
+
+    const tableRows = visiblePolicies.map(p => {
+      let badge = "⚪ PASS";
+      if (p.recommended_action === "LOCK") badge = "🟢 **LOCK**";
+      else if (p.recommended_action === "STRONG PLAY") badge = "🟢 **STRONG PLAY**";
+      else if (p.recommended_action === "PLAY") badge = "🔵 **PLAY**";
+      else if (p.recommended_action === "PASS") badge = "🟡 **PASS**";
+      else if (p.recommended_action === "AVOID") badge = "🔴 **AVOID**";
+
+      return `| **${p.recommended_pick.toUpperCase()}** | **${p.decision_score.toFixed(1)}** | ${p.ensemble_prediction.toFixed(1)}% | ${p.risk_score.toFixed(1)}% | ${p.leverage_score.toFixed(1)} | ${p.portfolio_score.toFixed(1)} | ${badge} | \`${p.confidence_tier}\` |`;
+    }).join("\n");
+
+    md += tableRows + "\n\n";
+
+    // Recommended Picks, Top Alternatives, Risk Summary, Explanations
+    const locks = sortedPolicies.filter(p => p.recommended_action === "LOCK");
+    const strongPlays = sortedPolicies.filter(p => p.recommended_action === "STRONG PLAY");
+    const plays = sortedPolicies.filter(p => p.recommended_action === "PLAY");
+    const avoids = sortedPolicies.filter(p => p.recommended_action === "AVOID");
+
+    md += `#### 📋 Policy Strategic Breakdown\n`;
+    
+    // Top Picks
+    if (locks.length > 0) {
+      md += `- **🏆 Primary Recommended Picks (LOCKS)**: ${locks.map(l => `**${l.recommended_pick.toUpperCase()}** (Score: ${l.decision_score.toFixed(1)})`).join(", ")}\n`;
+    } else if (strongPlays.length > 0) {
+      md += `- **🏆 Primary Recommended Picks (STRONG PLAYS)**: ${strongPlays.slice(0, 2).map(l => `**${l.recommended_pick.toUpperCase()}** (Score: ${l.decision_score.toFixed(1)})`).join(", ")}\n`;
+    } else {
+      md += `- **🏆 Primary Recommended Picks**: None meet premium selection criteria this week.\n`;
+    }
+
+    // Top Alternatives
+    const alternatives = [...strongPlays, ...plays].filter(p => !locks.some(l => l.recommended_pick === p.recommended_pick));
+    if (alternatives.length > 0) {
+      md += `- **🔄 Top Alternative Selections**: ${alternatives.slice(0, 3).map(a => `**${a.recommended_pick.toUpperCase()}** (Score: ${a.decision_score.toFixed(1)})`).join(", ")}\n`;
+    }
+
+    // Risk & Avoids
+    md += `- **⚠️ Risk & Avoidance Directives**: **${avoids.length}** teams have been designated with an **AVOID** status. `;
+    if (avoids.length > 0) {
+      md += `Steer completely clear of ${avoids.slice(0, 4).map(av => `**${av.recommended_pick.toUpperCase()}**`).join(", ")} due to high model variance, low expected utility, or system drift penalties.`;
+    } else {
+      md += `No extreme risks or drift penalties have triggered AVOID thresholds for the current slate.`;
+    }
+    md += `\n\n`;
+
+    // Highlight top reasons
+    md += `#### 💬 Key Decision Policy Explanations\n`;
+    const featuredPolicies = sortedPolicies.filter(p => p.recommended_action === "LOCK" || p.recommended_action === "STRONG PLAY" || p.recommended_action === "AVOID").slice(0, 4);
+    for (const fp of featuredPolicies) {
+      md += `- **${fp.recommended_pick.toUpperCase()}** (${fp.recommended_action}): *"${fp.policy_reason}"*\n`;
+    }
+
+    return {
+      id: "sec-decision-policies",
+      title: "22. Decision Policy Engine Analytics",
       type: "inventory_summary",
       content_markdown: md
     };

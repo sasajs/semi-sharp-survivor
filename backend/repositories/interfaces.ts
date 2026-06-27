@@ -49,7 +49,8 @@ import {
   RollingValidation,
   ModelDrift,
   AdaptiveModelWeight,
-  EnsemblePrediction
+  EnsemblePrediction,
+  DecisionPolicy
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -465,6 +466,14 @@ export interface IEnsemblePredictionRepository {
   getPredictionsByGame(gameId: string): Promise<EnsemblePrediction[]>;
   getPredictionsHistory(): Promise<EnsemblePrediction[]>;
   deletePredictionsWeek(season: string, week: number): Promise<boolean>;
+}
+
+export interface IDecisionPolicyRepository {
+  savePolicies(policies: DecisionPolicy[]): Promise<DecisionPolicy[]>;
+  getLatestPolicies(): Promise<DecisionPolicy[]>;
+  getPoliciesByEntry(entryId: string): Promise<DecisionPolicy[]>;
+  getPoliciesHistory(): Promise<DecisionPolicy[]>;
+  deletePoliciesWeek(season: string, week: number): Promise<boolean>;
 }
 
 
