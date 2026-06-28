@@ -23,7 +23,8 @@ import {
   Target,
   Shield,
   Cpu,
-  Compass
+  Compass,
+  BrainCircuit
 } from "lucide-react";
 
 import { useAppData } from "./hooks/useAppData";
@@ -48,6 +49,7 @@ import { SurvivorDecisionPanel } from "./components/SurvivorDecisionPanel";
 import { SurvivorPlanningPanel } from "./components/SurvivorPlanningPanel";
 import { ChampionshipPlanningPanel } from "./components/ChampionshipPlanningPanel";
 import { DecisionAnalyticsPanel } from "./components/DecisionAnalyticsPanel";
+import { WeeklyLearningLoopPanel } from "./components/WeeklyLearningLoopPanel";
 import { AdminDashboard } from "./pages/AdminDashboard";
 
 export default function App() {
@@ -185,6 +187,7 @@ export default function App() {
                 { id: "survivor-plans", label: "Survivor Plans", icon: Compass, badge: "v0.50" },
                 { id: "championship-plans", label: "Championship Plans", icon: Award, badge: "v0.51" },
                 { id: "decision-analytics", label: "Decision Analytics", icon: Activity, badge: "v0.52" },
+                { id: "weekly-learning", label: "Weekly Learning Loop", icon: BrainCircuit, badge: "v0.54" },
                 { id: "admin", label: "Admin Dashboard", icon: ShieldAlert, badge: "Secure" },
               ].map(tab => {
                 const Icon = tab.icon;
@@ -977,6 +980,10 @@ export default function App() {
 
               {activeTab === "decision-analytics" && (
                 <DecisionAnalyticsPanel />
+              )}
+
+              {activeTab === "weekly-learning" && (
+                <WeeklyLearningLoopPanel />
               )}
 
               {activeTab === "admin" && (

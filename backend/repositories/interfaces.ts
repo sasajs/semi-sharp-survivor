@@ -58,7 +58,9 @@ import {
   DecisionOutcomeRecord,
   WeeklyDecisionSummary,
   ModelPerformanceHistoryRecord,
-  ModelPerformanceSummaryRecord
+  ModelPerformanceSummaryRecord,
+  WeeklyLearningHistoryRecord,
+  LearningTrendRecord
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -531,6 +533,18 @@ export interface IDecisionAnalyticsRepository {
   getLatestWeeklySummaries(): Promise<WeeklyDecisionSummary[]>;
   getWeeklySummary(season: string, week: number): Promise<WeeklyDecisionSummary | null>;
 }
+
+export interface ILearningRepository {
+  saveLearningHistory(record: WeeklyLearningHistoryRecord): Promise<WeeklyLearningHistoryRecord>;
+  getLearningHistory(): Promise<WeeklyLearningHistoryRecord[]>;
+  getLearningHistoryBySeasonAndWeek(season: string, week: number): Promise<WeeklyLearningHistoryRecord | null>;
+  deleteLearningHistory(season: string, week: number): Promise<boolean>;
+
+  saveLearningTrend(record: LearningTrendRecord): Promise<LearningTrendRecord>;
+  getLearningTrends(): Promise<LearningTrendRecord[]>;
+  getLearningTrendByName(metricName: string): Promise<LearningTrendRecord | null>;
+}
+
 
 
 

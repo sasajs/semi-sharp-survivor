@@ -8,7 +8,7 @@ import {
   ChalkUpsetScenario,
   StrategyComparison
 } from "../models";
-import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV, MarketCalibration, ModelPerformance, RollingValidation, ModelDrift, AdaptiveModelWeight, DecisionPolicy, SurvivorDecision, ModelPerformanceHistoryRecord, ModelPerformanceSummaryRecord } from "../../../src/types";
+import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV, MarketCalibration, ModelPerformance, RollingValidation, ModelDrift, AdaptiveModelWeight, DecisionPolicy, SurvivorDecision, ModelPerformanceHistoryRecord, ModelPerformanceSummaryRecord, WeeklyLearningHistoryRecord } from "../../../src/types";
 
 export class ReportSectionBuilderService {
   static buildExecutiveSummary(
@@ -613,6 +613,41 @@ Expected value adjustments dynamically react to Entry Strategy Profiles:
     return {
       id: "sec-model-performance-analytics-v53",
       title: "18b. Advanced Statistical Model Performance Analytics",
+      type: "inventory_summary",
+      content_markdown: md
+    };
+  }
+
+  static buildWeeklyLearningLoopSection(
+    record: WeeklyLearningHistoryRecord | null,
+    season: string,
+    week: number
+  ): WeeklyReportSection {
+    let md = `### 🧠 Weekly Learning Loop & Feedback Subsystem (v0.54)\n`;
+    md += `This subsystem closes the analytical cycle by automatically evaluating the completed week's predictive decisions, generating actionable lessons learned, tracking feedback loops, and identifying model strengths and weaknesses.\n\n`;
+
+    if (record) {
+      md += `#### 🗓️ Weekly Learning Performance Metrics\n`;
+      md += `| Season/Week | Recommendations | Correct | Incorrect | Accuracy | Average Confidence | Avg Expected Value | Avg CLV Beat |\n`;
+      md += `|---|---|---|---|---|---|---|---|\n`;
+      md += `| **${record.season} W${record.week}** | ${record.recommendations} | ${record.correct_predictions} | ${record.incorrect_predictions} | **${record.accuracy.toFixed(1)}%** | **${record.average_confidence.toFixed(1)}%** | \`${record.average_expected_value.toFixed(4)}\` | **+${record.average_closing_line_value.toFixed(3)}** |\n\n`;
+
+      md += `#### 📖 Lessons Learned\n`;
+      md += `> ${record.lessons_learned}\n\n`;
+
+      md += `#### 🎯 Strengths & Opportunities Identified\n`;
+      md += `- **Strengths**: ${record.strengths}\n`;
+      md += `- **Weaknesses / Blindspots**: ${record.weaknesses}\n\n`;
+
+      md += `#### 🛠️ Actionable Recommendations for Improvement\n`;
+      md += `> ${record.recommendations_for_improvement}\n\n`;
+    } else {
+      md += `*No learning records found for ${season} Week ${week} to compile a feedback loop analysis.* \n\n`;
+    }
+
+    return {
+      id: "sec-weekly-learning-loop-v54",
+      title: "18c. Weekly Learning Loop & Continuous Feedback Subsystem",
       type: "inventory_summary",
       content_markdown: md
     };

@@ -540,5 +540,29 @@ export const apiService = {
     });
     if (!res.ok) throw new Error("Failed to recalculate model performance analytics");
     return res.json();
+  },
+
+  async fetchLearningAnalytics(): Promise<any> {
+    const res = await fetch("/api/learning");
+    if (!res.ok) throw new Error("Failed to fetch weekly learning analytics");
+    return res.json();
+  },
+
+  async runWeeklyLearningAnalysis(season: string, week: number): Promise<any> {
+    const res = await fetch("/api/learning/analyze-week", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week })
+    });
+    if (!res.ok) throw new Error("Failed to run weekly learning analysis");
+    return res.json();
+  },
+
+  async rebuildLearningHistory(): Promise<any> {
+    const res = await fetch("/api/learning/rebuild-history", {
+      method: "POST"
+    });
+    if (!res.ok) throw new Error("Failed to rebuild learning loop history");
+    return res.json();
   }
 };

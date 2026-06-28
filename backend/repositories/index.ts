@@ -141,6 +141,7 @@ export const survivorDecisionRepo = createRepositoryProxy(() => RepositoryFactor
 export const survivorPlanningRepo = createRepositoryProxy(() => RepositoryFactory.getSurvivorPlanningRepo());
 export const championshipPlanningRepo = createRepositoryProxy(() => RepositoryFactory.getChampionshipPlanningRepo());
 export const decisionAnalyticsRepo = createRepositoryProxy(() => RepositoryFactory.getDecisionAnalyticsRepo());
+export const learningRepo = createRepositoryProxy(() => RepositoryFactory.getLearningRepo());
 
 
 

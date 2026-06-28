@@ -35,6 +35,7 @@ import { SurvivorRecommendationService } from "../../services/SurvivorRecommenda
 import { ContestEVService } from "../../services/ContestEVService";
 import { MarketCalibrationService } from "../../services/MarketCalibrationService";
 import { ModelPerformanceService } from "../../services/ModelPerformanceService";
+import { LearningService } from "../../services/LearningService";
 import { RollingValidationService } from "../../services/RollingValidationService";
 import { ModelDriftService } from "../../services/ModelDriftService";
 import { AdaptiveModelWeightService } from "../../services/AdaptiveModelWeightService";
@@ -409,6 +410,20 @@ export class WeeklyReportService {
       sections.push(perfAnalyticsSection);
     } catch (perfAnalyticErr: any) {
       console.warn("Could not append Model Performance Analytics section to weekly report:", perfAnalyticErr.message);
+    }
+
+    // Weekly Learning Loop & Feedback Subsystem (v0.54 Subsystem)
+    try {
+      const history = await LearningService.getLearningHistory();
+      const thisWeekRecord = history.find(h => h.season === season.toString() && h.week === week) || null;
+      const learningSection = ReportSectionBuilderService.buildWeeklyLearningLoopSection(
+        thisWeekRecord,
+        season.toString(),
+        week
+      );
+      sections.push(learningSection);
+    } catch (learningErr: any) {
+      console.warn("Could not append Weekly Learning Loop section to weekly report:", learningErr.message);
     }
 
     // Rolling Validation & Backtesting Engine (v0.44 Engine)

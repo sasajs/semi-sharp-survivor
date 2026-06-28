@@ -59,7 +59,9 @@ import {
   DecisionOutcomeRecord,
   WeeklyDecisionSummary,
   ModelPerformanceHistoryRecord,
-  ModelPerformanceSummaryRecord
+  ModelPerformanceSummaryRecord,
+  WeeklyLearningHistoryRecord,
+  LearningTrendRecord
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -119,7 +121,8 @@ import {
   ISurvivorDecisionRepository,
   ISurvivorPlanningRepository,
   IChampionshipPlanningRepository,
-  IDecisionAnalyticsRepository
+  IDecisionAnalyticsRepository,
+  ILearningRepository
 } from "./interfaces";
 
 /**
@@ -251,6 +254,92 @@ export let mockChampionshipPlans: ChampionshipPlan[] = [];
 export let mockDecisionAnalytics: DecisionAnalyticsRecord[] = [];
 export let mockDecisionOutcomes: DecisionOutcomeRecord[] = [];
 export let mockWeeklyDecisionSummaries: WeeklyDecisionSummary[] = [];
+export let mockWeeklyLearningHistories: WeeklyLearningHistoryRecord[] = [
+  {
+    season: "2026",
+    week: 4,
+    engine_version: "V054",
+    model_hash: "m_hash_v054",
+    policy_version: "p_version_v2",
+    data_version: "d_version_v2",
+    recommendations: 10,
+    correct_predictions: 9,
+    incorrect_predictions: 1,
+    accuracy: 90.0,
+    average_confidence: 88.5,
+    average_expected_value: 1.22,
+    average_future_value: 0.15,
+    average_championship_probability: 0.13,
+    average_closing_line_value: 0.52,
+    lessons_learned: "Model confidence in divisional matchups was highly calibrated. Avoided overconfident chalk in high-wind games.",
+    strengths: "Divisional Underdogs, Wind-adjusted totals",
+    weaknesses: "Injured Quarterback backfills",
+    recommendations_for_improvement: "Integrate backfill QB snap shares and wind velocity multipliers earlier."
+  },
+  {
+    season: "2026",
+    week: 3,
+    engine_version: "V054",
+    model_hash: "m_hash_v054",
+    policy_version: "p_version_v2",
+    data_version: "d_version_v2",
+    recommendations: 12,
+    correct_predictions: 10,
+    incorrect_predictions: 2,
+    accuracy: 83.3,
+    average_confidence: 85.0,
+    average_expected_value: 1.18,
+    average_future_value: 0.18,
+    average_championship_probability: 0.12,
+    average_closing_line_value: 0.41,
+    lessons_learned: "Rest-disadvantaged road favorites continue to underperform expected win rates. Equity retention was prioritized.",
+    strengths: "Home Favorites, Divisional Matchups",
+    weaknesses: "Rest-disadvantaged road favorites",
+    recommendations_for_improvement: "Apply Rest-Disadvantage penalty factor (v1.2) to future recommendation candidates."
+  }
+];
+export let mockLearningTrends: LearningTrendRecord[] = [
+  {
+    metric_name: "Weekly Learning Score",
+    current_value: 86.7,
+    previous_value: 81.2,
+    percent_change: 6.77,
+    trend_direction: "UP",
+    observation_count: 4
+  },
+  {
+    metric_name: "Prediction Accuracy",
+    current_value: 86.7,
+    previous_value: 83.3,
+    percent_change: 4.08,
+    trend_direction: "UP",
+    observation_count: 4
+  },
+  {
+    metric_name: "Confidence Calibration",
+    current_value: 88.5,
+    previous_value: 85.0,
+    percent_change: 4.12,
+    trend_direction: "UP",
+    observation_count: 4
+  },
+  {
+    metric_name: "Average Expected Value",
+    current_value: 1.22,
+    previous_value: 1.18,
+    percent_change: 3.39,
+    trend_direction: "UP",
+    observation_count: 4
+  },
+  {
+    metric_name: "Closing Line Value Beat",
+    current_value: 0.52,
+    previous_value: 0.41,
+    percent_change: 26.83,
+    trend_direction: "UP",
+    observation_count: 4
+  }
+];
 export let mockModelPerformanceHistories: ModelPerformanceHistoryRecord[] = [
   {
     season: "2026",
@@ -2544,6 +2633,63 @@ export class MockModelPerformanceRepository implements IModelPerformanceReposito
 
   async getSummaries(): Promise<ModelPerformanceSummaryRecord[]> {
     return [...mockModelPerformanceSummaries];
+  }
+}
+
+export class MockLearningRepository implements ILearningRepository {
+  async saveLearningHistory(record: WeeklyLearningHistoryRecord): Promise<WeeklyLearningHistoryRecord> {
+    const item = {
+      ...record,
+      id: record.id || mockWeeklyLearningHistories.length + 1,
+      created_at: record.created_at || new Date().toISOString()
+    };
+    const idx = mockWeeklyLearningHistories.findIndex(h => h.season === record.season && h.week === record.week);
+    if (idx !== -1) {
+      mockWeeklyLearningHistories[idx] = item;
+    } else {
+      mockWeeklyLearningHistories.push(item);
+    }
+    return item;
+  }
+
+  async getLearningHistory(): Promise<WeeklyLearningHistoryRecord[]> {
+    return [...mockWeeklyLearningHistories].sort((a, b) => {
+      if (a.season !== b.season) return b.season.localeCompare(a.season);
+      return b.week - a.week;
+    });
+  }
+
+  async getLearningHistoryBySeasonAndWeek(season: string, week: number): Promise<WeeklyLearningHistoryRecord | null> {
+    return mockWeeklyLearningHistories.find(h => h.season === season && h.week === week) || null;
+  }
+
+  async deleteLearningHistory(season: string, week: number): Promise<boolean> {
+    const originalLen = mockWeeklyLearningHistories.length;
+    mockWeeklyLearningHistories = mockWeeklyLearningHistories.filter(h => !(h.season === season && h.week === week));
+    return mockWeeklyLearningHistories.length < originalLen;
+  }
+
+  async saveLearningTrend(record: LearningTrendRecord): Promise<LearningTrendRecord> {
+    const item = {
+      ...record,
+      id: record.id || mockLearningTrends.length + 1,
+      updated_at: record.updated_at || new Date().toISOString()
+    };
+    const idx = mockLearningTrends.findIndex(t => t.metric_name === record.metric_name);
+    if (idx !== -1) {
+      mockLearningTrends[idx] = item;
+    } else {
+      mockLearningTrends.push(item);
+    }
+    return item;
+  }
+
+  async getLearningTrends(): Promise<LearningTrendRecord[]> {
+    return [...mockLearningTrends].sort((a, b) => a.metric_name.localeCompare(b.metric_name));
+  }
+
+  async getLearningTrendByName(metricName: string): Promise<LearningTrendRecord | null> {
+    return mockLearningTrends.find(t => t.metric_name === metricName) || null;
   }
 }
 

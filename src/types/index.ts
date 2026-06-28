@@ -846,6 +846,8 @@ export interface HealthStatus {
     decisionAnalytics?: { status: HealthState; message: string | null };
     modelPerformanceRepository?: { status: HealthState; message: string | null };
     modelPerformanceService?: { status: HealthState; message: string | null };
+    learningRepository?: { status: HealthState; message: string | null };
+    learningService?: { status: HealthState; message: string | null };
   };
   timestamp: string;
 }
@@ -1517,6 +1519,42 @@ export interface ModelPerformanceSummaryRecord {
   rolling_closing_line_value: number;
   last_updated?: string;
 }
+
+export interface WeeklyLearningHistoryRecord {
+  id?: number;
+  season: string;
+  week: number;
+  engine_version: string;
+  model_hash: string;
+  policy_version: string;
+  data_version: string;
+  recommendations: number;
+  correct_predictions: number;
+  incorrect_predictions: number;
+  accuracy: number;
+  average_confidence: number;
+  average_expected_value: number;
+  average_future_value: number;
+  average_championship_probability: number;
+  average_closing_line_value: number;
+  lessons_learned: string;
+  strengths: string;
+  weaknesses: string;
+  recommendations_for_improvement: string;
+  created_at?: string;
+}
+
+export interface LearningTrendRecord {
+  id?: number;
+  metric_name: string;
+  current_value: number;
+  previous_value: number;
+  percent_change: number;
+  trend_direction: string;
+  observation_count: number;
+  updated_at?: string;
+}
+
 
 
 

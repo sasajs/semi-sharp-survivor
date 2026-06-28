@@ -1,5 +1,5 @@
 import { HealthStatus, HealthState } from "../models";
-import { contestRepo, modelPerformanceRepo } from "../../repositories";
+import { contestRepo, modelPerformanceRepo, learningRepo } from "../../repositories";
 import { WorkflowStatusService } from "../../orchestration/services/WorkflowStatusService";
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
 import { WeeklyReportService } from "../../reports/services/WeeklyReportService";
@@ -16,6 +16,7 @@ import { AuthService } from "../../auth/services/AuthService";
 import { RemoteAccessStatusService } from "./RemoteAccessStatusService";
 import { DecisionAnalyticsService } from "../../services/DecisionAnalyticsService";
 import { ModelPerformanceService } from "../../services/ModelPerformanceService";
+import { LearningService } from "../../services/LearningService";
 
 export class HealthCheckService {
   /**
@@ -53,6 +54,12 @@ export class HealthCheckService {
 
     let modelPerformanceServiceState = HealthState.HEALTHY;
     let modelPerformanceServiceMessage: string | null = null;
+
+    let learningRepositoryState = HealthState.HEALTHY;
+    let learningRepositoryMessage: string | null = null;
+
+    let learningServiceState = HealthState.HEALTHY;
+    let learningServiceMessage: string | null = null;
 
     // 1. Repository check
     try {
@@ -182,6 +189,28 @@ export class HealthCheckService {
       modelPerformanceServiceMessage = `Model Performance Service error: ${err.message}`;
     }
 
+    // 7e. Learning Repository check
+    try {
+      const trends = await learningRepo.getLearningTrends();
+      if (!Array.isArray(trends)) {
+        throw new Error("Repository returned non-array dataset.");
+      }
+    } catch (err: any) {
+      learningRepositoryState = HealthState.DEGRADED;
+      learningRepositoryMessage = `Learning Repository failure: ${err.message}`;
+    }
+
+    // 7f. Learning Service check
+    try {
+      if (typeof LearningService.getAnalytics !== "function") {
+        throw new Error("LearningService is not loaded properly.");
+      }
+      await LearningService.getAnalytics();
+    } catch (err: any) {
+      learningServiceState = HealthState.UNHEALTHY;
+      learningServiceMessage = `Learning Service error: ${err.message}`;
+    }
+
     // 8. Postgres Readiness Layer check
     let postgresReadinessState: "HEALTHY" | "WARNING" | "FAILED" = "HEALTHY";
     let postgresReadinessMessage: string | null = null;
@@ -305,7 +334,8 @@ export class HealthCheckService {
       schedulerState,
       ingestionState,
       decisionAnalyticsState,
-      modelPerformanceServiceState
+      modelPerformanceServiceState,
+      learningServiceState
     ].some(state => state === HealthState.UNHEALTHY);
 
     if (
@@ -320,6 +350,7 @@ export class HealthCheckService {
     } else if (
       repositoryState === HealthState.DEGRADED ||
       modelPerformanceRepositoryState === HealthState.DEGRADED ||
+      learningRepositoryState === HealthState.DEGRADED ||
       dbHealth.status === "degraded" ||
       preseasonStatus === "WARNING" ||
       historicalReplayState === "WARNING" ||
@@ -348,7 +379,9 @@ export class HealthCheckService {
         remoteAccessLayer: { status: remoteAccessState, message: remoteAccessMessage },
         decisionAnalytics: { status: decisionAnalyticsState, message: decisionAnalyticsMessage },
         modelPerformanceRepository: { status: modelPerformanceRepositoryState, message: modelPerformanceRepositoryMessage },
-        modelPerformanceService: { status: modelPerformanceServiceState, message: modelPerformanceServiceMessage }
+        modelPerformanceService: { status: modelPerformanceServiceState, message: modelPerformanceServiceMessage },
+        learningRepository: { status: learningRepositoryState, message: learningRepositoryMessage },
+        learningService: { status: learningServiceState, message: learningServiceMessage }
       },
       timestamp
     };

@@ -16,6 +16,7 @@ import {
   GameFeature
 } from "../../src/types";
 import { ModelPerformanceService } from "./ModelPerformanceService";
+import { LearningService } from "./LearningService";
 
 export class DecisionAnalyticsService {
   static async getHistory(): Promise<DecisionAnalyticsRecord[]> {
@@ -234,6 +235,13 @@ export class DecisionAnalyticsService {
       await ModelPerformanceService.calculateWeeklyModelPerformance(season, week);
     } catch (err) {
       console.error(`[Decision Analytics] Failed to calculate model performance analytics for ${season} Week ${week}:`, err);
+    }
+
+    // V054: Close the learning loop by automatically generating summaries, strengths, and actionable lessons learned
+    try {
+      await LearningService.analyzeCompletedWeek(season, week);
+    } catch (err) {
+      console.error(`[Decision Analytics] Failed to analyze completed week learning loop for ${season} Week ${week}:`, err);
     }
 
     console.log(`[Decision Analytics] Completed Week ${week} evaluation. Survival Rate: ${weeklySummary.survival_rate}%`);

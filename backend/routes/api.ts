@@ -87,6 +87,7 @@ import { SurvivorDecisionAgentService } from "../services/SurvivorDecisionAgentS
 import { SurvivorPlanningService } from "../services/SurvivorPlanningService";
 import { ChampionshipPlanningService } from "../services/ChampionshipPlanningService";
 import { DecisionAnalyticsService } from "../services/DecisionAnalyticsService";
+import { LearningService } from "../services/LearningService";
 import { adaptiveModelWeightRepo, ensemblePredictionRepo, decisionPolicyRepo, survivorDecisionRepo, survivorPlanningRepo, championshipPlanningRepo, decisionAnalyticsRepo } from "../repositories/index";
 
 const router = Router();
@@ -2989,6 +2990,41 @@ router.post("/model-performance/recalculate", async (req: Request, res: Response
   try {
     const success = await ModelPerformanceService.recalculateHistory();
     res.json({ success });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/learning
+router.get("/learning", async (req: Request, res: Response) => {
+  try {
+    const analytics = await LearningService.getAnalytics();
+    res.json(analytics);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/learning/analyze-week
+router.post("/learning/analyze-week", async (req: Request, res: Response) => {
+  try {
+    const { season, week } = req.body;
+    if (!season || week === undefined) {
+      res.status(400).json({ error: "Missing season or week parameter" });
+      return;
+    }
+    const record = await LearningService.analyzeCompletedWeek(season, Number(week));
+    res.json({ success: true, data: record });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/learning/rebuild-history
+router.post("/learning/rebuild-history", async (req: Request, res: Response) => {
+  try {
+    const rebuildCount = await LearningService.rebuildHistory();
+    res.json({ success: true, count: rebuildCount });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

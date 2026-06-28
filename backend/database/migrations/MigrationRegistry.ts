@@ -146,5 +146,10 @@ export const migrationRegistry: Migration[] = [
     version: "V053",
     description: "Model Performance Analytics Engine.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "053_model_performance_analytics.sql")
+  },
+  {
+    version: "V054",
+    description: "Weekly Learning Loop and Feedback Subsystem.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "054_weekly_learning_loop.sql")
   }
 ];

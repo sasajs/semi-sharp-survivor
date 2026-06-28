@@ -57,7 +57,8 @@ import {
   MockSurvivorDecisionRepository,
   MockSurvivorPlanningRepository,
   MockChampionshipPlanningRepository,
-  MockDecisionAnalyticsRepository
+  MockDecisionAnalyticsRepository,
+  MockLearningRepository
 } from "./mockRepositories";
 
 import {
@@ -113,6 +114,7 @@ import { PostgresSurvivorDecisionRepository } from "./postgres/PostgresSurvivorD
 import { PostgresSurvivorPlanningRepository } from "./postgres/PostgresSurvivorPlanningRepository";
 import { PostgresChampionshipPlanningRepository } from "./postgres/PostgresChampionshipPlanningRepository";
 import { PostgresDecisionAnalyticsRepository } from "./postgres/PostgresDecisionAnalyticsRepository";
+import { PostgresLearningRepository } from "./postgres/PostgresLearningRepository";
 
 export let useMock = databaseConfig.useMock;
 
@@ -295,6 +297,9 @@ export class RepositoryFactory {
   }
   static getDecisionAnalyticsRepo() {
     return useMock ? new MockDecisionAnalyticsRepository() : new PostgresDecisionAnalyticsRepository();
+  }
+  static getLearningRepo() {
+    return useMock ? new MockLearningRepository() : new PostgresLearningRepository();
   }
 }
 
