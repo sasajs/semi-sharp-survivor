@@ -14,6 +14,7 @@ import { HistoricalReplayService } from "../../replay/services/HistoricalReplayS
 import { WeeklyPipelineService } from "../../pipeline/services/WeeklyPipelineService";
 import { AuthService } from "../../auth/services/AuthService";
 import { RemoteAccessStatusService } from "./RemoteAccessStatusService";
+import { DecisionAnalyticsService } from "../../services/DecisionAnalyticsService";
 
 export class HealthCheckService {
   /**
@@ -42,6 +43,9 @@ export class HealthCheckService {
 
     let ingestionState = HealthState.HEALTHY;
     let ingestionMessage: string | null = null;
+
+    let decisionAnalyticsState = HealthState.HEALTHY;
+    let decisionAnalyticsMessage: string | null = null;
 
     // 1. Repository check
     try {
@@ -136,6 +140,17 @@ export class HealthCheckService {
     } catch (err: any) {
       ingestionState = HealthState.UNHEALTHY;
       ingestionMessage = `Data Ingestion Engine failure: ${err.message}`;
+    }
+
+    // 7b. Decision Analytics & Continuous Learning check
+    try {
+      if (typeof DecisionAnalyticsService.getLatestSummaries !== "function") {
+        throw new Error("DecisionAnalyticsService is not loaded properly.");
+      }
+      await DecisionAnalyticsService.getLatestSummaries();
+    } catch (err: any) {
+      decisionAnalyticsState = HealthState.UNHEALTHY;
+      decisionAnalyticsMessage = `Decision Analytics Service error: ${err.message}`;
     }
 
     // 8. Postgres Readiness Layer check
@@ -259,7 +274,8 @@ export class HealthCheckService {
       weeklyReportState,
       researchExportState,
       schedulerState,
-      ingestionState
+      ingestionState,
+      decisionAnalyticsState
     ].some(state => state === HealthState.UNHEALTHY);
 
     if (
@@ -298,7 +314,8 @@ export class HealthCheckService {
         historicalReplayLayer: { status: historicalReplayState, message: historicalReplayMessage },
         weeklyPipelineLayer: { status: weeklyPipelineState, message: weeklyPipelineMessage },
         authLayer: { status: authState, message: authMessage },
-        remoteAccessLayer: { status: remoteAccessState, message: remoteAccessMessage }
+        remoteAccessLayer: { status: remoteAccessState, message: remoteAccessMessage },
+        decisionAnalytics: { status: decisionAnalyticsState, message: decisionAnalyticsMessage }
       },
       timestamp
     };

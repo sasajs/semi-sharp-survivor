@@ -47,6 +47,7 @@ import { DecisionPolicyPanel } from "./components/DecisionPolicyPanel";
 import { SurvivorDecisionPanel } from "./components/SurvivorDecisionPanel";
 import { SurvivorPlanningPanel } from "./components/SurvivorPlanningPanel";
 import { ChampionshipPlanningPanel } from "./components/ChampionshipPlanningPanel";
+import { DecisionAnalyticsPanel } from "./components/DecisionAnalyticsPanel";
 import { AdminDashboard } from "./pages/AdminDashboard";
 
 export default function App() {
@@ -183,6 +184,7 @@ export default function App() {
                 { id: "survivor-decisions", label: "Survivor Decisions", icon: Cpu, badge: "v0.49" },
                 { id: "survivor-plans", label: "Survivor Plans", icon: Compass, badge: "v0.50" },
                 { id: "championship-plans", label: "Championship Plans", icon: Award, badge: "v0.51" },
+                { id: "decision-analytics", label: "Decision Analytics", icon: Activity, badge: "v0.52" },
                 { id: "admin", label: "Admin Dashboard", icon: ShieldAlert, badge: "Secure" },
               ].map(tab => {
                 const Icon = tab.icon;
@@ -971,6 +973,10 @@ export default function App() {
 
               {activeTab === "championship-plans" && (
                 <ChampionshipPlanningPanel />
+              )}
+
+              {activeTab === "decision-analytics" && (
+                <DecisionAnalyticsPanel />
               )}
 
               {activeTab === "admin" && (

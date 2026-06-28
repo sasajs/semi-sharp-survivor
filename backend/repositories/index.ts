@@ -140,6 +140,7 @@ export const decisionPolicyRepo = createRepositoryProxy(() => RepositoryFactory.
 export const survivorDecisionRepo = createRepositoryProxy(() => RepositoryFactory.getSurvivorDecisionRepo());
 export const survivorPlanningRepo = createRepositoryProxy(() => RepositoryFactory.getSurvivorPlanningRepo());
 export const championshipPlanningRepo = createRepositoryProxy(() => RepositoryFactory.getChampionshipPlanningRepo());
+export const decisionAnalyticsRepo = createRepositoryProxy(() => RepositoryFactory.getDecisionAnalyticsRepo());
 
 
 

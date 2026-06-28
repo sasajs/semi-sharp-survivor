@@ -206,7 +206,49 @@ export function buildAndSeedMockState() {
       // Pre-calculate championship plans (v0.51)
       await ChampionshipPlanningService.calculate("2026", 1, "v0.51");
 
-      console.log("[Mock Seeder] Pre-calculated Future Team Value, Survivor Equity, Recommendation Candidates, comparative Recommendation Audits, Recommendation Confidence, Model Drift, Adaptive Model Weights, Ensemble Predictions, Decision Policies, Survivor Decisions, and Championship Plans snapshotted states successfully.");
+      // Pre-calculate decision analytics (v0.52)
+      const { DecisionAnalyticsService } = await import("./DecisionAnalyticsService");
+      await DecisionAnalyticsService.recordDecision({
+        season: "2026",
+        week: 1,
+        contest_id: "circa-2026",
+        recommendation_id: "rec-leg-1-UWOSH-1",
+        engine_version: "v0.52",
+        model_hash: "sha256-dec-analytics-v052",
+        policy_version: "v0.48",
+        data_version: "v0.47",
+        workflow_version: "v1.0.0",
+        recommendation_type: "survivor_primary",
+        selected_team: "kc",
+        projected_survival_probability: 0.88,
+        projected_championship_probability: 0.1245,
+        projected_expected_value: 1.35,
+        projected_future_value: 85,
+        recommendation_rank: 1,
+        confidence_score: 95
+      });
+      await DecisionAnalyticsService.recordDecision({
+        season: "2026",
+        week: 1,
+        contest_id: "circa-2026",
+        recommendation_id: "rec-leg-1-UWOSH-2",
+        engine_version: "v0.52",
+        model_hash: "sha256-dec-analytics-v052",
+        policy_version: "v0.48",
+        data_version: "v0.47",
+        workflow_version: "v1.0.0",
+        recommendation_type: "survivor_primary",
+        selected_team: "sf",
+        projected_survival_probability: 0.82,
+        projected_championship_probability: 0.1015,
+        projected_expected_value: 1.25,
+        projected_future_value: 75,
+        recommendation_rank: 1,
+        confidence_score: 85
+      });
+      await DecisionAnalyticsService.evaluateWeek("2026", 1);
+
+      console.log("[Mock Seeder] Pre-calculated Future Team Value, Survivor Equity, Recommendation Candidates, comparative Recommendation Audits, Recommendation Confidence, Model Drift, Adaptive Model Weights, Ensemble Predictions, Decision Policies, Survivor Decisions, Championship Plans, and Decision Analytics snapshot states successfully.");
     } catch (err) {
       console.warn("Failed to pre-calculate mock dashboard metrics:", err);
     }

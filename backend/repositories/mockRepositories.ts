@@ -54,7 +54,10 @@ import {
   DecisionPolicy,
   SurvivorDecision,
   SurvivorPlan,
-  ChampionshipPlan
+  ChampionshipPlan,
+  DecisionAnalyticsRecord,
+  DecisionOutcomeRecord,
+  WeeklyDecisionSummary
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -113,7 +116,8 @@ import {
   IDecisionPolicyRepository,
   ISurvivorDecisionRepository,
   ISurvivorPlanningRepository,
-  IChampionshipPlanningRepository
+  IChampionshipPlanningRepository,
+  IDecisionAnalyticsRepository
 } from "./interfaces";
 
 /**
@@ -242,6 +246,9 @@ export let mockDecisionPolicies: DecisionPolicy[] = [];
 export let mockSurvivorDecisions: SurvivorDecision[] = [];
 export let mockSurvivorPlans: SurvivorPlan[] = [];
 export let mockChampionshipPlans: ChampionshipPlan[] = [];
+export let mockDecisionAnalytics: DecisionAnalyticsRecord[] = [];
+export let mockDecisionOutcomes: DecisionOutcomeRecord[] = [];
+export let mockWeeklyDecisionSummaries: WeeklyDecisionSummary[] = [];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -369,6 +376,9 @@ export function resetMockDatabase(
   mockSurvivorDecisions = [];
   mockSurvivorPlans = [];
   mockChampionshipPlans = [];
+  mockDecisionAnalytics = [];
+  mockDecisionOutcomes = [];
+  mockWeeklyDecisionSummaries = [];
 }
 
 /**
@@ -2685,6 +2695,88 @@ export class MockChampionshipPlanningRepository implements IChampionshipPlanning
     return mockChampionshipPlans.length < originalLen;
   }
 }
+
+export class MockDecisionAnalyticsRepository implements IDecisionAnalyticsRepository {
+  async saveDecision(record: DecisionAnalyticsRecord): Promise<DecisionAnalyticsRecord> {
+    const item = { ...record };
+    if (!item.id) {
+      item.id = mockDecisionAnalytics.length + 1;
+    }
+    const idx = mockDecisionAnalytics.findIndex(d => d.id === item.id);
+    if (idx !== -1) {
+      mockDecisionAnalytics[idx] = item;
+    } else {
+      mockDecisionAnalytics.push(item);
+    }
+    return item;
+  }
+
+  async saveDecisionMany(records: DecisionAnalyticsRecord[]): Promise<DecisionAnalyticsRecord[]> {
+    const saved: DecisionAnalyticsRecord[] = [];
+    for (const r of records) {
+      const s = await this.saveDecision(r);
+      saved.push(s);
+    }
+    return saved;
+  }
+
+  async getDecisionHistory(): Promise<DecisionAnalyticsRecord[]> {
+    return [...mockDecisionAnalytics].sort((a, b) => {
+      if (a.season !== b.season) return b.season.localeCompare(a.season);
+      if (a.week !== b.week) return b.week - a.week;
+      return (b.id || 0) - (a.id || 0);
+    });
+  }
+
+  async getDecisionsBySeasonAndWeek(season: string, week: number): Promise<DecisionAnalyticsRecord[]> {
+    return mockDecisionAnalytics.filter(d => d.season === season && d.week === week);
+  }
+
+  async saveOutcome(outcome: DecisionOutcomeRecord): Promise<DecisionOutcomeRecord> {
+    const item = { ...outcome };
+    if (!item.id) {
+      item.id = mockDecisionOutcomes.length + 1;
+    }
+    const idx = mockDecisionOutcomes.findIndex(o => o.decision_id === item.decision_id);
+    if (idx !== -1) {
+      mockDecisionOutcomes[idx] = item;
+    } else {
+      mockDecisionOutcomes.push(item);
+    }
+    return item;
+  }
+
+  async getOutcomeByDecisionId(decisionId: number): Promise<DecisionOutcomeRecord | null> {
+    return mockDecisionOutcomes.find(o => o.decision_id === decisionId) || null;
+  }
+
+  async getOutcomes(): Promise<DecisionOutcomeRecord[]> {
+    return [...mockDecisionOutcomes];
+  }
+
+  async saveWeeklySummary(summary: WeeklyDecisionSummary): Promise<WeeklyDecisionSummary> {
+    const item = { ...summary };
+    const idx = mockWeeklyDecisionSummaries.findIndex(s => s.season === item.season && s.week === item.week);
+    if (idx !== -1) {
+      mockWeeklyDecisionSummaries[idx] = item;
+    } else {
+      mockWeeklyDecisionSummaries.push(item);
+    }
+    return item;
+  }
+
+  async getLatestWeeklySummaries(): Promise<WeeklyDecisionSummary[]> {
+    return [...mockWeeklyDecisionSummaries].sort((a, b) => {
+      if (a.season !== b.season) return b.season.localeCompare(a.season);
+      return b.week - a.week;
+    });
+  }
+
+  async getWeeklySummary(season: string, week: number): Promise<WeeklyDecisionSummary | null> {
+    return mockWeeklyDecisionSummaries.find(s => s.season === season && s.week === week) || null;
+  }
+}
+
 
 
 

@@ -53,7 +53,10 @@ import {
   DecisionPolicy,
   SurvivorDecision,
   SurvivorPlan,
-  ChampionshipPlan
+  ChampionshipPlan,
+  DecisionAnalyticsRecord,
+  DecisionOutcomeRecord,
+  WeeklyDecisionSummary
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -502,6 +505,22 @@ export interface IChampionshipPlanningRepository {
   getPlansHistory(): Promise<ChampionshipPlan[]>;
   deletePlansSeason(season: string): Promise<boolean>;
 }
+
+export interface IDecisionAnalyticsRepository {
+  saveDecision(record: DecisionAnalyticsRecord): Promise<DecisionAnalyticsRecord>;
+  saveDecisionMany(records: DecisionAnalyticsRecord[]): Promise<DecisionAnalyticsRecord[]>;
+  getDecisionHistory(): Promise<DecisionAnalyticsRecord[]>;
+  getDecisionsBySeasonAndWeek(season: string, week: number): Promise<DecisionAnalyticsRecord[]>;
+  
+  saveOutcome(outcome: DecisionOutcomeRecord): Promise<DecisionOutcomeRecord>;
+  getOutcomeByDecisionId(decisionId: number): Promise<DecisionOutcomeRecord | null>;
+  getOutcomes(): Promise<DecisionOutcomeRecord[]>;
+  
+  saveWeeklySummary(summary: WeeklyDecisionSummary): Promise<WeeklyDecisionSummary>;
+  getLatestWeeklySummaries(): Promise<WeeklyDecisionSummary[]>;
+  getWeeklySummary(season: string, week: number): Promise<WeeklyDecisionSummary | null>;
+}
+
 
 
 

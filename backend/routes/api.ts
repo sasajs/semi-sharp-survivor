@@ -86,7 +86,8 @@ import { DecisionPolicyService } from "../services/DecisionPolicyService";
 import { SurvivorDecisionAgentService } from "../services/SurvivorDecisionAgentService";
 import { SurvivorPlanningService } from "../services/SurvivorPlanningService";
 import { ChampionshipPlanningService } from "../services/ChampionshipPlanningService";
-import { adaptiveModelWeightRepo, ensemblePredictionRepo, decisionPolicyRepo, survivorDecisionRepo, survivorPlanningRepo, championshipPlanningRepo } from "../repositories/index";
+import { DecisionAnalyticsService } from "../services/DecisionAnalyticsService";
+import { adaptiveModelWeightRepo, ensemblePredictionRepo, decisionPolicyRepo, survivorDecisionRepo, survivorPlanningRepo, championshipPlanningRepo, decisionAnalyticsRepo } from "../repositories/index";
 
 const router = Router();
 
@@ -2938,6 +2939,36 @@ router.post("/championship-plans/calculate", async (req: Request, res: Response)
 
     const list = await ChampionshipPlanningService.calculate(season, w, version);
     res.json({ success: true, count: list.length, data: list });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/decision-analytics
+router.get("/decision-analytics", async (req: Request, res: Response) => {
+  try {
+    const summaries = await DecisionAnalyticsService.getLatestSummaries();
+    const history = await DecisionAnalyticsService.getHistory();
+    res.json({ summaries, history });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/decision-analytics/evaluate-week
+router.post("/decision-analytics/evaluate-week", async (req: Request, res: Response) => {
+  try {
+    const { season, week } = req.body || {};
+    if (!season) {
+      return res.status(400).json({ error: "Season is required" });
+    }
+    const w = parseInt((week || "1").toString(), 10);
+    if (isNaN(w) || w < 1 || w > 18) {
+      return res.status(400).json({ error: "Week must be between 1 and 18" });
+    }
+
+    const summary = await DecisionAnalyticsService.evaluateWeek(season, w);
+    res.json({ success: true, data: summary });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

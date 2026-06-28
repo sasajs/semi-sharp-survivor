@@ -210,6 +210,46 @@ export class WorkflowRunnerService {
 
       case "RECOMMENDATION_GENERATION":
         const recommendations = await RecommendationEngineService.getPortfolioRecommendations(context.legId);
+        try {
+          const entriesList = await entryRepo.getAll();
+          const recRecords: any[] = [];
+          for (const ent of entriesList) {
+            const recReport = await RecommendationEngineService.getEntryRecommendations(ent.id, context.legId);
+            if (recReport && recReport.candidates) {
+              const topCand = recReport.candidates
+                .filter(c => c.is_available)
+                .sort((a, b) => b.contest_equity_score.final_score - a.contest_equity_score.final_score)[0];
+              if (topCand) {
+                recRecords.push({
+                  season: context.season.toString(),
+                  week: context.weekNumber,
+                  contest_id: context.contestId,
+                  recommendation_id: `rec-${context.legId}-${ent.id}`,
+                  engine_version: "v0.52",
+                  model_hash: "sha256-dec-analytics-v052",
+                  policy_version: "v0.48",
+                  data_version: "v0.47",
+                  workflow_version: "v1.0.0",
+                  recommendation_type: "survivor_primary",
+                  selected_team: topCand.team_id,
+                  projected_survival_probability: topCand.win_probability,
+                  projected_championship_probability: topCand.contest_equity_score.final_score / 100.0,
+                  projected_expected_value: topCand.win_probability * 1.5,
+                  projected_future_value: topCand.future_value_score,
+                  recommendation_rank: 1,
+                  confidence_score: (topCand.confidence_tier as any) === "Very High" ? 95 : ((topCand.confidence_tier as any) === "High" ? 85 : 70)
+                });
+              }
+            }
+          }
+          if (recRecords.length > 0) {
+            const { DecisionAnalyticsService } = await import("../../services/DecisionAnalyticsService");
+            await DecisionAnalyticsService.recordDecisionMany(recRecords);
+            console.log(`[Workflow Integration] Automatically logged ${recRecords.length} decision recommendations for continuous performance tracking.`);
+          }
+        } catch (eError) {
+          console.error("[Workflow Integration] Non-blocking failure logging decisions during recommendation generation:", eError);
+        }
         return { recommendations_generated: recommendations.id };
 
       case "MONTE_CARLO_SIMULATION":
@@ -218,6 +258,13 @@ export class WorkflowRunnerService {
 
       case "WEEKLY_REPORT_GENERATION":
         const report = await WeeklyReportService.generateWeeklyReport(context.contestId, context.legId);
+        try {
+          const { DecisionAnalyticsService } = await import("../../services/DecisionAnalyticsService");
+          await DecisionAnalyticsService.evaluateWeek(context.season.toString(), context.weekNumber);
+          console.log(`[Workflow Integration] Automatically evaluated decision outcomes and performance metrics for Week ${context.weekNumber}.`);
+        } catch (evalError) {
+          console.error("[Workflow Integration] Non-blocking failure performing decision evaluation during weekly report generation:", evalError);
+        }
         return { report_id: report.id };
 
       case "RESEARCH_EXPORT_GENERATION":

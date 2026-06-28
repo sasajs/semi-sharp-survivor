@@ -843,6 +843,7 @@ export interface HealthStatus {
     weeklyPipelineLayer?: { status: "HEALTHY" | "WARNING" | "FAILED"; message: string | null };
     authLayer?: { status: "HEALTHY" | "DISABLED" | "WARNING" | "FAILED"; message: string | null };
     remoteAccessLayer?: { status: "DISABLED" | "READY" | "WARNING" | "FAILED"; message: string | null };
+    decisionAnalytics?: { status: HealthState; message: string | null };
   };
   timestamp: string;
 }
@@ -1428,6 +1429,58 @@ export interface ChampionshipPlan {
   optimization_json: string;
   created_at?: string;
 }
+
+export interface DecisionAnalyticsRecord {
+  id?: number;
+  season: string;
+  week: number;
+  contest_id: string;
+  recommendation_id: string;
+  engine_version: string;
+  model_hash: string;
+  policy_version: string;
+  data_version: string;
+  workflow_version: string;
+  recommendation_type: string;
+  selected_team: string;
+  projected_survival_probability: number;
+  projected_championship_probability: number;
+  projected_expected_value: number;
+  projected_future_value: number;
+  recommendation_rank: number;
+  confidence_score: number;
+  created_at?: string;
+}
+
+export interface DecisionOutcomeRecord {
+  id?: number;
+  decision_id: number;
+  game_result: string;
+  survived: boolean;
+  eliminated: boolean;
+  actual_win_probability: number;
+  market_open_line: number;
+  closing_line: number;
+  closing_line_value: number;
+  evaluation_notes: string;
+  evaluated_at?: string;
+}
+
+export interface WeeklyDecisionSummary {
+  season: string;
+  week: number;
+  recommendations: number;
+  wins: number;
+  losses: number;
+  survival_rate: number;
+  average_confidence: number;
+  average_expected_value: number;
+  average_future_value: number;
+  average_championship_probability: number;
+  average_closing_line_value: number;
+  created_at?: string;
+}
+
 
 
 
