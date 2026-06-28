@@ -56,7 +56,9 @@ import {
   ChampionshipPlan,
   DecisionAnalyticsRecord,
   DecisionOutcomeRecord,
-  WeeklyDecisionSummary
+  WeeklyDecisionSummary,
+  ModelPerformanceHistoryRecord,
+  ModelPerformanceSummaryRecord
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -440,6 +442,15 @@ export interface IModelPerformanceRepository {
   getPerformanceByName(modelName: string): Promise<ModelPerformance[]>;
   getPerformanceHistory(): Promise<ModelPerformance[]>;
   deleteWeek(season: string, week: number): Promise<boolean>;
+
+  saveHistory(record: ModelPerformanceHistoryRecord): Promise<ModelPerformanceHistoryRecord>;
+  getHistory(): Promise<ModelPerformanceHistoryRecord[]>;
+  getHistoryBySeasonAndWeek(season: string, week: number): Promise<ModelPerformanceHistoryRecord[]>;
+  getHistoryByModelHash(modelHash: string): Promise<ModelPerformanceHistoryRecord[]>;
+
+  saveSummary(record: ModelPerformanceSummaryRecord): Promise<ModelPerformanceSummaryRecord>;
+  getSummaryByModelHash(modelHash: string): Promise<ModelPerformanceSummaryRecord | null>;
+  getSummaries(): Promise<ModelPerformanceSummaryRecord[]>;
 }
 
 export interface IRollingValidationRepository {
@@ -520,6 +531,7 @@ export interface IDecisionAnalyticsRepository {
   getLatestWeeklySummaries(): Promise<WeeklyDecisionSummary[]>;
   getWeeklySummary(season: string, week: number): Promise<WeeklyDecisionSummary | null>;
 }
+
 
 
 

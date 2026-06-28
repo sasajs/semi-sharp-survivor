@@ -8,7 +8,7 @@ import {
   ChalkUpsetScenario,
   StrategyComparison
 } from "../models";
-import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV, MarketCalibration, ModelPerformance, RollingValidation, ModelDrift, AdaptiveModelWeight, DecisionPolicy, SurvivorDecision } from "../../../src/types";
+import { OwnershipProjection, ContestDynamicsSnapshot, SurvivorRecommendation, ContestEV, MarketCalibration, ModelPerformance, RollingValidation, ModelDrift, AdaptiveModelWeight, DecisionPolicy, SurvivorDecision, ModelPerformanceHistoryRecord, ModelPerformanceSummaryRecord } from "../../../src/types";
 
 export class ReportSectionBuilderService {
   static buildExecutiveSummary(
@@ -564,6 +564,55 @@ Expected value adjustments dynamically react to Entry Strategy Profiles:
     return {
       id: "sec-model-performance-analysis",
       title: "18. Model Performance & Dynamic Weighting Analysis",
+      type: "inventory_summary",
+      content_markdown: md
+    };
+  }
+
+  static buildModelPerformanceAnalyticsSection(
+    history: ModelPerformanceHistoryRecord[],
+    summary: ModelPerformanceSummaryRecord | null,
+    season: string,
+    week: number
+  ): WeeklyReportSection {
+    let md = `### 📊 Statistical Model Performance Analytics (v0.53)\n`;
+    md += `This section monitors prediction accuracy, calibration curves, and forecasting errors over a rolling timeline to mathematically quantify model quality.\n\n`;
+
+    if (summary) {
+      md += `#### 🏷️ Active Production Model Configuration\n`;
+      md += `- **Engine Version**: \`${summary.engine_version}\`\n`;
+      md += `- **Model Hash Identifier**: \`${summary.model_hash}\`\n`;
+      md += `- **Predictions Evaluated**: **${summary.games_evaluated}** games\n\n`;
+
+      md += `#### 📈 Rolling Statistical Metrics\n`;
+      md += `| Rolling Accuracy | Rolling Log Loss | Rolling Brier Score | Rolling Calibration Error | Rolling Expected Value | Avg CLV Beat |\n`;
+      md += `|---|---|---|---|---|---|\n`;
+      md += `| **${summary.rolling_accuracy.toFixed(1)}%** | \`${summary.rolling_log_loss.toFixed(4)}\` | \`${summary.rolling_brier_score.toFixed(4)}\` | \`${summary.rolling_calibration_error.toFixed(4)}\` | **${summary.rolling_expected_value.toFixed(2)}x** | **+${summary.rolling_closing_line_value.toFixed(3)}** |\n\n`;
+    } else {
+      md += `*No active production model summary records exist in the database.* \n\n`;
+    }
+
+    md += `#### 🗓️ Weekly Analytics History\n`;
+    md += `| Week | Predictions | Accuracy | Log Loss | Brier Score | Calibration Error | Avg Conf | Avg Projected EV | Avg CLV Beat |\n`;
+    md += `|---|---|---|---|---|---|---|---|---|\n`;
+
+    if (history && history.length > 0) {
+      const rows = history.map(h => {
+        return `| **${h.season} W${h.week}** | ${h.prediction_count} | **${h.accuracy.toFixed(1)}%** | ${h.log_loss.toFixed(4)} | ${h.brier_score.toFixed(4)} | ${h.calibration_error.toFixed(4)} | ${h.average_confidence} | ${h.average_expected_value.toFixed(4)}x | **+${h.average_closing_line_value.toFixed(3)}** |`;
+      }).join("\n");
+      md += rows + "\n\n";
+    } else {
+      md += `| -- | -- | -- | -- | -- | -- | -- | -- | -- |\n\n`;
+    }
+
+    md += `#### 🔍 Advanced Performance Methodology\n`;
+    md += `- **Expected Calibration Error (ECE)**: measures the mismatch between a model's self-reported confidence/probabilities and actual outcome success rates.\n`;
+    md += `- **Log Loss Penalty**: penalizes high-confidence incorrect picks heavily, forcing honest, calibrated probability estimates.\n`;
+    md += `- **Brier Score Metric**: represents the overall mean-squared-error of predictions (optimal score is 0.00).\n`;
+
+    return {
+      id: "sec-model-performance-analytics-v53",
+      title: "18b. Advanced Statistical Model Performance Analytics",
       type: "inventory_summary",
       content_markdown: md
     };

@@ -2974,6 +2974,26 @@ router.post("/decision-analytics/evaluate-week", async (req: Request, res: Respo
   }
 });
 
+// GET /api/model-performance
+router.get("/model-performance", async (req: Request, res: Response) => {
+  try {
+    const analytics = await ModelPerformanceService.getAnalytics();
+    res.json(analytics);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/model-performance/recalculate
+router.post("/model-performance/recalculate", async (req: Request, res: Response) => {
+  try {
+    const success = await ModelPerformanceService.recalculateHistory();
+    res.json({ success });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;
 
 

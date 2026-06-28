@@ -2,11 +2,14 @@ import {
   modelPerformanceRepo,
   futureTeamValueRepo,
   marketCalibrationRepo,
-  ownershipCalibrationRepo
+  ownershipCalibrationRepo,
+  decisionAnalyticsRepo
 } from "../repositories/index";
 import { 
   ModelPerformance,
-  MarketCalibration
+  MarketCalibration,
+  ModelPerformanceHistoryRecord,
+  ModelPerformanceSummaryRecord
 } from "../../src/types";
 
 export class ModelPerformanceService {
@@ -192,5 +195,194 @@ export class ModelPerformanceService {
 
     // Save and return
     return modelPerformanceRepo.savePerformance(performances);
+  }
+
+  // --- V053 Model Performance Analytics Service Methods ---
+
+  static async getAnalytics() {
+    const histories = await modelPerformanceRepo.getHistory();
+    const summaries = await modelPerformanceRepo.getSummaries();
+    
+    const currentSummary = summaries[0] || null;
+    const chronologicalTrend = [...histories].reverse();
+
+    return {
+      currentModel: currentSummary ? {
+        model_hash: currentSummary.model_hash,
+        engine_version: currentSummary.engine_version,
+        games_evaluated: currentSummary.games_evaluated,
+        rolling_accuracy: currentSummary.rolling_accuracy,
+        rolling_log_loss: currentSummary.rolling_log_loss,
+        rolling_brier_score: currentSummary.rolling_brier_score,
+        rolling_calibration_error: currentSummary.rolling_calibration_error,
+        rolling_expected_value: currentSummary.rolling_expected_value,
+        rolling_closing_line_value: currentSummary.rolling_closing_line_value,
+        last_updated: currentSummary.last_updated
+      } : null,
+      rollingAccuracy: currentSummary ? currentSummary.rolling_accuracy : 0,
+      rollingLogLoss: currentSummary ? currentSummary.rolling_log_loss : 0,
+      rollingBrierScore: currentSummary ? currentSummary.rolling_brier_score : 0,
+      rollingCalibrationError: currentSummary ? currentSummary.rolling_calibration_error : 0,
+      rollingExpectedValue: currentSummary ? currentSummary.rolling_expected_value : 0,
+      rollingClosingLineValue: currentSummary ? currentSummary.rolling_closing_line_value : 0,
+      
+      weeklyHistory: histories,
+      historicalTrend: chronologicalTrend.map(h => ({
+        season: h.season,
+        week: h.week,
+        label: `${h.season} W${h.week}`,
+        accuracy: h.accuracy,
+        logLoss: h.log_loss,
+        brierScore: h.brier_score,
+        calibrationError: h.calibration_error,
+        averageConfidence: h.average_confidence,
+        expectedValue: h.average_expected_value,
+        closingLineValue: h.average_closing_line_value,
+        predictionCount: h.prediction_count
+      }))
+    };
+  }
+
+  static async calculateWeeklyModelPerformance(season: string, week: number): Promise<ModelPerformanceHistoryRecord | null> {
+    console.log(`[Model Performance Service] Calculating model performance for ${season} Week ${week}`);
+    
+    const decisions = await decisionAnalyticsRepo.getDecisionsBySeasonAndWeek(season, week);
+    if (decisions.length === 0) {
+      console.warn(`[Model Performance Service] No decisions to analyze for model performance in ${season} Week ${week}`);
+      return null;
+    }
+
+    let predictionCount = 0;
+    let correctCount = 0;
+    let sumLogLoss = 0;
+    let sumBrierScore = 0;
+    let sumConfidence = 0;
+    let sumExpectedValue = 0;
+    let sumClosingLineValue = 0;
+    let sumSurvivalProb = 0;
+    let sumChampionshipProb = 0;
+
+    const engine_version = decisions[0].engine_version || "V053";
+    const model_hash = decisions[0].model_hash || "m_hash_default";
+    const data_version = decisions[0].data_version || "d_version_default";
+    const policy_version = decisions[0].policy_version || "p_version_default";
+
+    for (const d of decisions) {
+      const outcome = await decisionAnalyticsRepo.getOutcomeByDecisionId(d.id!);
+      if (!outcome) continue;
+
+      predictionCount++;
+      const y = outcome.survived ? 1 : 0;
+      if (outcome.survived) correctCount++;
+
+      const p = Math.max(0.0001, Math.min(0.9999, d.projected_survival_probability));
+      const logLoss = -(y * Math.log(p) + (1 - y) * Math.log(1 - p));
+      const brierScore = Math.pow(p - y, 2);
+
+      sumLogLoss += logLoss;
+      sumBrierScore += brierScore;
+      sumConfidence += d.confidence_score;
+      sumExpectedValue += d.projected_expected_value;
+      sumClosingLineValue += outcome.closing_line_value;
+      sumSurvivalProb += d.projected_survival_probability;
+      sumChampionshipProb += d.projected_championship_probability;
+    }
+
+    if (predictionCount === 0) return null;
+
+    const accuracy = parseFloat(((correctCount / predictionCount) * 100).toFixed(2));
+    const averageLogLoss = parseFloat((sumLogLoss / predictionCount).toFixed(4));
+    const averageBrierScore = parseFloat((sumBrierScore / predictionCount).toFixed(4));
+    const averageSurvivalProb = parseFloat((sumSurvivalProb / predictionCount).toFixed(4));
+    const calibrationError = parseFloat(Math.abs(averageSurvivalProb - (correctCount / predictionCount)).toFixed(4));
+
+    const historyRecord: ModelPerformanceHistoryRecord = {
+      season,
+      week,
+      engine_version,
+      model_hash,
+      data_version,
+      policy_version,
+      prediction_count: predictionCount,
+      accuracy,
+      log_loss: averageLogLoss,
+      brier_score: averageBrierScore,
+      calibration_error: calibrationError,
+      average_confidence: parseFloat((sumConfidence / predictionCount).toFixed(2)),
+      average_expected_value: parseFloat((sumExpectedValue / predictionCount).toFixed(4)),
+      average_closing_line_value: parseFloat((sumClosingLineValue / predictionCount).toFixed(3)),
+      average_survival_probability: averageSurvivalProb,
+      average_championship_probability: parseFloat((sumChampionshipProb / predictionCount).toFixed(4))
+    };
+
+    const savedHistory = await modelPerformanceRepo.saveHistory(historyRecord);
+
+    await this.updateRollingStatistics(model_hash);
+
+    return savedHistory;
+  }
+
+  static async updateRollingStatistics(modelHash: string): Promise<ModelPerformanceSummaryRecord | null> {
+    const historyForModel = await modelPerformanceRepo.getHistoryByModelHash(modelHash);
+    if (historyForModel.length === 0) return null;
+
+    let totalGames = 0;
+    let weightedAccuracySum = 0;
+    let weightedLogLossSum = 0;
+    let weightedBrierScoreSum = 0;
+    let weightedCalibrationSum = 0;
+    let weightedExpectedValueSum = 0;
+    let weightedClosingLineValueSum = 0;
+
+    const engine_version = historyForModel[0].engine_version;
+
+    for (const h of historyForModel) {
+      const weight = h.prediction_count;
+      totalGames += weight;
+      weightedAccuracySum += h.accuracy * weight;
+      weightedLogLossSum += h.log_loss * weight;
+      weightedBrierScoreSum += h.brier_score * weight;
+      weightedCalibrationSum += h.calibration_error * weight;
+      weightedExpectedValueSum += h.average_expected_value * weight;
+      weightedClosingLineValueSum += h.average_closing_line_value * weight;
+    }
+
+    if (totalGames === 0) return null;
+
+    const summaryRecord: ModelPerformanceSummaryRecord = {
+      model_hash: modelHash,
+      engine_version,
+      games_evaluated: totalGames,
+      rolling_accuracy: parseFloat((weightedAccuracySum / totalGames).toFixed(2)),
+      rolling_log_loss: parseFloat((weightedLogLossSum / totalGames).toFixed(4)),
+      rolling_brier_score: parseFloat((weightedBrierScoreSum / totalGames).toFixed(4)),
+      rolling_calibration_error: parseFloat((weightedCalibrationSum / totalGames).toFixed(4)),
+      rolling_expected_value: parseFloat((weightedExpectedValueSum / totalGames).toFixed(4)),
+      rolling_closing_line_value: parseFloat((weightedClosingLineValueSum / totalGames).toFixed(3))
+    };
+
+    return modelPerformanceRepo.saveSummary(summaryRecord);
+  }
+
+  static async recalculateHistory(): Promise<boolean> {
+    console.log(`[Model Performance Service] Rebuilding historical performance metrics from existing decisions`);
+    
+    const allDecisions = await decisionAnalyticsRepo.getDecisionHistory();
+    if (allDecisions.length === 0) {
+      console.warn("[Model Performance Service] No decisions found in history to rebuild metrics");
+      return false;
+    }
+
+    const groups = new Map<string, { season: string; week: number }>();
+    for (const d of allDecisions) {
+      const key = `${d.season}_${d.week}`;
+      groups.set(key, { season: d.season, week: d.week });
+    }
+
+    for (const group of groups.values()) {
+      await this.calculateWeeklyModelPerformance(group.season, group.week);
+    }
+
+    return true;
   }
 }

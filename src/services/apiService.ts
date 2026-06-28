@@ -526,5 +526,19 @@ export const apiService = {
     });
     if (!res.ok) throw new Error("Failed to calculate championship plans");
     return res.json();
+  },
+
+  async fetchModelPerformanceAnalytics(): Promise<any> {
+    const res = await fetch("/api/model-performance");
+    if (!res.ok) throw new Error("Failed to fetch model performance analytics");
+    return res.json();
+  },
+
+  async recalculateModelPerformanceAnalytics(): Promise<any> {
+    const res = await fetch("/api/model-performance/recalculate", {
+      method: "POST"
+    });
+    if (!res.ok) throw new Error("Failed to recalculate model performance analytics");
+    return res.json();
   }
 };

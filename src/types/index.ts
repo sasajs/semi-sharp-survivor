@@ -844,6 +844,8 @@ export interface HealthStatus {
     authLayer?: { status: "HEALTHY" | "DISABLED" | "WARNING" | "FAILED"; message: string | null };
     remoteAccessLayer?: { status: "DISABLED" | "READY" | "WARNING" | "FAILED"; message: string | null };
     decisionAnalytics?: { status: HealthState; message: string | null };
+    modelPerformanceRepository?: { status: HealthState; message: string | null };
+    modelPerformanceService?: { status: HealthState; message: string | null };
   };
   timestamp: string;
 }
@@ -1480,6 +1482,42 @@ export interface WeeklyDecisionSummary {
   average_closing_line_value: number;
   created_at?: string;
 }
+
+export interface ModelPerformanceHistoryRecord {
+  id?: number;
+  season: string;
+  week: number;
+  engine_version: string;
+  model_hash: string;
+  data_version: string;
+  policy_version: string;
+  prediction_count: number;
+  accuracy: number;
+  log_loss: number;
+  brier_score: number;
+  calibration_error: number;
+  average_confidence: number;
+  average_expected_value: number;
+  average_closing_line_value: number;
+  average_survival_probability: number;
+  average_championship_probability: number;
+  created_at?: string;
+}
+
+export interface ModelPerformanceSummaryRecord {
+  id?: number;
+  model_hash: string;
+  engine_version: string;
+  games_evaluated: number;
+  rolling_accuracy: number;
+  rolling_log_loss: number;
+  rolling_brier_score: number;
+  rolling_calibration_error: number;
+  rolling_expected_value: number;
+  rolling_closing_line_value: number;
+  last_updated?: string;
+}
+
 
 
 

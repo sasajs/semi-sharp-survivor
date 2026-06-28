@@ -57,7 +57,9 @@ import {
   ChampionshipPlan,
   DecisionAnalyticsRecord,
   DecisionOutcomeRecord,
-  WeeklyDecisionSummary
+  WeeklyDecisionSummary,
+  ModelPerformanceHistoryRecord,
+  ModelPerformanceSummaryRecord
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -249,6 +251,94 @@ export let mockChampionshipPlans: ChampionshipPlan[] = [];
 export let mockDecisionAnalytics: DecisionAnalyticsRecord[] = [];
 export let mockDecisionOutcomes: DecisionOutcomeRecord[] = [];
 export let mockWeeklyDecisionSummaries: WeeklyDecisionSummary[] = [];
+export let mockModelPerformanceHistories: ModelPerformanceHistoryRecord[] = [
+  {
+    season: "2026",
+    week: 4,
+    engine_version: "V053",
+    model_hash: "m_hash_v053",
+    data_version: "d_version_v1",
+    policy_version: "p_version_v1",
+    prediction_count: 10,
+    accuracy: 90.0,
+    log_loss: 0.3921,
+    brier_score: 0.1102,
+    calibration_error: 0.0215,
+    average_confidence: 88.5,
+    average_expected_value: 1.2240,
+    average_closing_line_value: 0.520,
+    average_survival_probability: 0.8524,
+    average_championship_probability: 0.1315
+  },
+  {
+    season: "2026",
+    week: 3,
+    engine_version: "V053",
+    model_hash: "m_hash_v053",
+    data_version: "d_version_v1",
+    policy_version: "p_version_v1",
+    prediction_count: 10,
+    accuracy: 80.0,
+    log_loss: 0.4850,
+    brier_score: 0.1410,
+    calibration_error: 0.0350,
+    average_confidence: 84.0,
+    average_expected_value: 1.2510,
+    average_closing_line_value: 0.450,
+    average_survival_probability: 0.8214,
+    average_championship_probability: 0.1215
+  },
+  {
+    season: "2026",
+    week: 2,
+    engine_version: "V053",
+    model_hash: "m_hash_v053",
+    data_version: "d_version_v1",
+    policy_version: "p_version_v1",
+    prediction_count: 15,
+    accuracy: 66.7,
+    log_loss: 0.5891,
+    brier_score: 0.1982,
+    calibration_error: 0.0821,
+    average_confidence: 76.5,
+    average_expected_value: 1.1820,
+    average_closing_line_value: 0.220,
+    average_survival_probability: 0.7410,
+    average_championship_probability: 0.1105
+  },
+  {
+    season: "2026",
+    week: 1,
+    engine_version: "V053",
+    model_hash: "m_hash_v053",
+    data_version: "d_version_v1",
+    policy_version: "p_version_v1",
+    prediction_count: 12,
+    accuracy: 75.0,
+    log_loss: 0.5213,
+    brier_score: 0.1654,
+    calibration_error: 0.0412,
+    average_confidence: 80.0,
+    average_expected_value: 1.1230,
+    average_closing_line_value: 0.350,
+    average_survival_probability: 0.7912,
+    average_championship_probability: 0.1015
+  }
+];
+export let mockModelPerformanceSummaries: ModelPerformanceSummaryRecord[] = [
+  {
+    model_hash: "m_hash_v053",
+    engine_version: "V053",
+    games_evaluated: 47,
+    rolling_accuracy: 76.6,
+    rolling_log_loss: 0.5015,
+    rolling_brier_score: 0.1554,
+    rolling_calibration_error: 0.0465,
+    rolling_expected_value: 1.1920,
+    rolling_closing_line_value: 0.371,
+    last_updated: new Date().toISOString()
+  }
+];
 
 const defaultMetadata: EntryMetadata[] = [
   {
@@ -2405,6 +2495,55 @@ export class MockModelPerformanceRepository implements IModelPerformanceReposito
     const originalLen = mockModelPerformances.length;
     mockModelPerformances = mockModelPerformances.filter(s => !(s.season === season && s.week === week));
     return mockModelPerformances.length < originalLen;
+  }
+
+  // --- V053 Methods ---
+  async saveHistory(record: ModelPerformanceHistoryRecord): Promise<ModelPerformanceHistoryRecord> {
+    const item = {
+      ...record,
+      id: record.id || mockModelPerformanceHistories.length + 1,
+      created_at: record.created_at || new Date().toISOString()
+    };
+    mockModelPerformanceHistories.push(item);
+    return item;
+  }
+
+  async getHistory(): Promise<ModelPerformanceHistoryRecord[]> {
+    return [...mockModelPerformanceHistories].sort((a, b) => {
+      if (a.season !== b.season) return b.season.localeCompare(a.season);
+      return b.week - a.week;
+    });
+  }
+
+  async getHistoryBySeasonAndWeek(season: string, week: number): Promise<ModelPerformanceHistoryRecord[]> {
+    return mockModelPerformanceHistories.filter(h => h.season === season && h.week === week);
+  }
+
+  async getHistoryByModelHash(modelHash: string): Promise<ModelPerformanceHistoryRecord[]> {
+    return mockModelPerformanceHistories.filter(h => h.model_hash === modelHash);
+  }
+
+  async saveSummary(record: ModelPerformanceSummaryRecord): Promise<ModelPerformanceSummaryRecord> {
+    const item = {
+      ...record,
+      id: record.id || mockModelPerformanceSummaries.length + 1,
+      last_updated: record.last_updated || new Date().toISOString()
+    };
+    const idx = mockModelPerformanceSummaries.findIndex(s => s.model_hash === item.model_hash);
+    if (idx !== -1) {
+      mockModelPerformanceSummaries[idx] = item;
+    } else {
+      mockModelPerformanceSummaries.push(item);
+    }
+    return item;
+  }
+
+  async getSummaryByModelHash(modelHash: string): Promise<ModelPerformanceSummaryRecord | null> {
+    return mockModelPerformanceSummaries.find(s => s.model_hash === modelHash) || null;
+  }
+
+  async getSummaries(): Promise<ModelPerformanceSummaryRecord[]> {
+    return [...mockModelPerformanceSummaries];
   }
 }
 

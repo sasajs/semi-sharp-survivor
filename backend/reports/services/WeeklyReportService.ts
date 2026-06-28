@@ -397,6 +397,20 @@ export class WeeklyReportService {
       console.warn("Could not append Model Performance section to weekly report:", perfErr.message);
     }
 
+    // Model Performance Analytics (v0.53 Engine Subsystem)
+    try {
+      const analytics = await ModelPerformanceService.getAnalytics();
+      const perfAnalyticsSection = ReportSectionBuilderService.buildModelPerformanceAnalyticsSection(
+        analytics.weeklyHistory,
+        analytics.currentModel,
+        season.toString(),
+        week
+      );
+      sections.push(perfAnalyticsSection);
+    } catch (perfAnalyticErr: any) {
+      console.warn("Could not append Model Performance Analytics section to weekly report:", perfAnalyticErr.message);
+    }
+
     // Rolling Validation & Backtesting Engine (v0.44 Engine)
     try {
       let validations = await RollingValidationService.getHistory();

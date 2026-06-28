@@ -15,6 +15,7 @@ import {
   TeamWeekLine,
   GameFeature
 } from "../../src/types";
+import { ModelPerformanceService } from "./ModelPerformanceService";
 
 export class DecisionAnalyticsService {
   static async getHistory(): Promise<DecisionAnalyticsRecord[]> {
@@ -227,6 +228,14 @@ export class DecisionAnalyticsService {
     };
 
     const savedSummary = await decisionAnalyticsRepo.saveWeeklySummary(weeklySummary);
+
+    // V053: Calculate model performance metrics and update rolling statistics
+    try {
+      await ModelPerformanceService.calculateWeeklyModelPerformance(season, week);
+    } catch (err) {
+      console.error(`[Decision Analytics] Failed to calculate model performance analytics for ${season} Week ${week}:`, err);
+    }
+
     console.log(`[Decision Analytics] Completed Week ${week} evaluation. Survival Rate: ${weeklySummary.survival_rate}%`);
     return savedSummary;
   }

@@ -1,5 +1,5 @@
 import { HealthStatus, HealthState } from "../models";
-import { contestRepo } from "../../repositories";
+import { contestRepo, modelPerformanceRepo } from "../../repositories";
 import { WorkflowStatusService } from "../../orchestration/services/WorkflowStatusService";
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
 import { WeeklyReportService } from "../../reports/services/WeeklyReportService";
@@ -15,6 +15,7 @@ import { WeeklyPipelineService } from "../../pipeline/services/WeeklyPipelineSer
 import { AuthService } from "../../auth/services/AuthService";
 import { RemoteAccessStatusService } from "./RemoteAccessStatusService";
 import { DecisionAnalyticsService } from "../../services/DecisionAnalyticsService";
+import { ModelPerformanceService } from "../../services/ModelPerformanceService";
 
 export class HealthCheckService {
   /**
@@ -46,6 +47,12 @@ export class HealthCheckService {
 
     let decisionAnalyticsState = HealthState.HEALTHY;
     let decisionAnalyticsMessage: string | null = null;
+
+    let modelPerformanceRepositoryState = HealthState.HEALTHY;
+    let modelPerformanceRepositoryMessage: string | null = null;
+
+    let modelPerformanceServiceState = HealthState.HEALTHY;
+    let modelPerformanceServiceMessage: string | null = null;
 
     // 1. Repository check
     try {
@@ -151,6 +158,28 @@ export class HealthCheckService {
     } catch (err: any) {
       decisionAnalyticsState = HealthState.UNHEALTHY;
       decisionAnalyticsMessage = `Decision Analytics Service error: ${err.message}`;
+    }
+
+    // 7c. Model Performance Repository check
+    try {
+      const summaries = await modelPerformanceRepo.getSummaries();
+      if (!Array.isArray(summaries)) {
+        throw new Error("Repository returned non-array dataset.");
+      }
+    } catch (err: any) {
+      modelPerformanceRepositoryState = HealthState.DEGRADED;
+      modelPerformanceRepositoryMessage = `Model Performance Repository failure: ${err.message}`;
+    }
+
+    // 7d. Model Performance Service check
+    try {
+      if (typeof ModelPerformanceService.getAnalytics !== "function") {
+        throw new Error("ModelPerformanceService is not loaded properly.");
+      }
+      await ModelPerformanceService.getAnalytics();
+    } catch (err: any) {
+      modelPerformanceServiceState = HealthState.UNHEALTHY;
+      modelPerformanceServiceMessage = `Model Performance Service error: ${err.message}`;
     }
 
     // 8. Postgres Readiness Layer check
@@ -275,7 +304,8 @@ export class HealthCheckService {
       researchExportState,
       schedulerState,
       ingestionState,
-      decisionAnalyticsState
+      decisionAnalyticsState,
+      modelPerformanceServiceState
     ].some(state => state === HealthState.UNHEALTHY);
 
     if (
@@ -289,6 +319,7 @@ export class HealthCheckService {
       overallHealth = HealthState.UNHEALTHY;
     } else if (
       repositoryState === HealthState.DEGRADED ||
+      modelPerformanceRepositoryState === HealthState.DEGRADED ||
       dbHealth.status === "degraded" ||
       preseasonStatus === "WARNING" ||
       historicalReplayState === "WARNING" ||
@@ -315,7 +346,9 @@ export class HealthCheckService {
         weeklyPipelineLayer: { status: weeklyPipelineState, message: weeklyPipelineMessage },
         authLayer: { status: authState, message: authMessage },
         remoteAccessLayer: { status: remoteAccessState, message: remoteAccessMessage },
-        decisionAnalytics: { status: decisionAnalyticsState, message: decisionAnalyticsMessage }
+        decisionAnalytics: { status: decisionAnalyticsState, message: decisionAnalyticsMessage },
+        modelPerformanceRepository: { status: modelPerformanceRepositoryState, message: modelPerformanceRepositoryMessage },
+        modelPerformanceService: { status: modelPerformanceServiceState, message: modelPerformanceServiceMessage }
       },
       timestamp
     };
