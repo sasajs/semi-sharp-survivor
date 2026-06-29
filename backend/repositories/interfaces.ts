@@ -6,6 +6,7 @@ import {
   TeamWeekLine, 
   Owner,
   SurvivorEntry, 
+  ContestTypeRecord,
   SurvivorPick, 
   SurvivorHistory,
   WeeklyInput,
@@ -121,7 +122,7 @@ export interface ISurvivorEntryRepository {
   getAll(): Promise<SurvivorEntry[]>;
   getById(id: string): Promise<SurvivorEntry | null>;
   getByOwnerId(ownerId: string): Promise<SurvivorEntry[]>;
-  create(entry: { contest_id?: string; name: string; notes?: string; owner_id?: string }): Promise<SurvivorEntry>;
+  create(entry: { contest_id?: string; name: string; notes?: string; owner_id?: string; contest_type_id?: string }): Promise<SurvivorEntry>;
   update(id: string, updates: Partial<SurvivorEntry>): Promise<SurvivorEntry | null>;
   delete(id: string): Promise<boolean>;
 }
@@ -621,6 +622,12 @@ export interface IUserAccessRepository {
   getByUsername(username: string): Promise<AppUser | null>;
   save(user: AppUser): Promise<AppUser>;
   delete(id: string): Promise<boolean>;
+}
+
+export interface IContestTypeRepository {
+  getAllActive(): Promise<ContestTypeRecord[]>;
+  getById(id: string): Promise<ContestTypeRecord | null>;
+  getByCode(code: string): Promise<ContestTypeRecord | null>;
 }
 
 

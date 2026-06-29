@@ -6,7 +6,8 @@ import {
   Game, 
   TeamWeekLine, 
   SurvivorEntry, 
-  SurvivorPick 
+  SurvivorPick,
+  ContestType 
 } from "../types";
 import { apiService } from "../services/apiService";
 
@@ -34,6 +35,8 @@ export function useAppData() {
   // New forms UI state
   const [newEntryName, setNewEntryName] = useState<string>("");
   const [newEntryNotes, setNewEntryNotes] = useState<string>("");
+  const [newEntryContestTypeId, setNewEntryContestTypeId] = useState<string>("circa");
+  const [contestTypes, setContestTypes] = useState<ContestType[]>([]);
   
   // Feedback banners
   const [successMsg, setSuccessMsg] = useState<string>("");
@@ -46,12 +49,13 @@ export function useAppData() {
   const loadAllData = async (shouldAutoSelect: boolean = true) => {
     try {
       setLoading(true);
-      const [resC, resL, resT, resE, resP] = await Promise.all([
+      const [resC, resL, resT, resE, resP, resCT] = await Promise.all([
         apiService.fetchContests(),
         apiService.fetchLegs(),
         apiService.fetchTeams(),
         apiService.fetchEntries(),
-        apiService.fetchPicks()
+        apiService.fetchPicks(),
+        apiService.fetchContestTypes()
       ]);
 
       setContests(resC);
@@ -59,6 +63,7 @@ export function useAppData() {
       setTeams(resT);
       setEntries(resE);
       setPicks(resP);
+      setContestTypes(resCT);
 
       // Auto-select first entry if exists and nothing is selected
       if (resE.length > 0 && (shouldAutoSelect || !selectedEntryId)) {
@@ -144,10 +149,11 @@ export function useAppData() {
     if (!newEntryName.trim()) return;
 
     try {
-      const added = await apiService.createEntry(newEntryName, newEntryNotes);
+      const added = await apiService.createEntry(newEntryName, newEntryNotes, newEntryContestTypeId);
       setSuccessMsg(`Entry '${added.name}' created successfully.`);
       setNewEntryName("");
       setNewEntryNotes("");
+      setNewEntryContestTypeId("circa");
       await loadAllData(false);
       setSelectedEntryId(added.id);
     } catch (err: any) {
@@ -219,6 +225,9 @@ export function useAppData() {
     setNewEntryName,
     newEntryNotes,
     setNewEntryNotes,
+    newEntryContestTypeId,
+    setNewEntryContestTypeId,
+    contestTypes,
     successMsg,
     setSuccessMsg,
     errorMsg,

@@ -56,6 +56,20 @@ export interface Owner {
   updated_at?: string;
 }
 
+export interface ContestTypeRecord {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  total_legs: number;
+  uses_thanksgiving_leg: boolean;
+  uses_christmas_leg: boolean;
+  uses_holiday_reservations: boolean;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface SurvivorEntry {
   id: string;
   name: string;
@@ -63,6 +77,7 @@ export interface SurvivorEntry {
   notes?: string;
   created_at: string;
   owner_id?: string;
+  contest_type_id: string;
 }
 
 export interface SurvivorPick {

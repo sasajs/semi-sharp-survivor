@@ -149,6 +149,7 @@ export const modelWeightRepo = createRepositoryProxy(() => RepositoryFactory.get
 export const recommendationEvolutionRepo = createRepositoryProxy(() => RepositoryFactory.getRecommendationEvolutionRepo());
 export const survivorStrategyRoadmapRepo = createRepositoryProxy(() => RepositoryFactory.getSurvivorStrategyRoadmapRepo());
 export const userAccessRepo = createRepositoryProxy(() => RepositoryFactory.getUserAccessRepo());
+export const contestTypeRepo = createRepositoryProxy(() => RepositoryFactory.getContestTypeRepo());
 
 
 

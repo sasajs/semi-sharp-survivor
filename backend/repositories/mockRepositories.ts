@@ -6,6 +6,7 @@ import {
   TeamWeekLine, 
   Owner,
   SurvivorEntry, 
+  ContestTypeRecord,
   SurvivorPick, 
   SurvivorHistory,
   WeeklyInput,
@@ -140,7 +141,8 @@ import {
   IRecommendationEvolutionRepository,
   ISurvivorStrategyRoadmapRepository,
   IOwnerRepository,
-  IUserAccessRepository
+  IUserAccessRepository,
+  IContestTypeRepository
 } from "./interfaces";
 
 /**
@@ -150,6 +152,7 @@ import {
  */
 export let mockTeams: Team[] = [];
 export let mockAppUsers: AppUser[] = [];
+export let mockContestTypes: ContestTypeRecord[] = [];
 export let mockSurvivorEntryStrategies: SurvivorEntryStrategy[] = [];
 export let mockSurvivorHolidayReservations: SurvivorHolidayReservation[] = [];
 export let mockSurvivorEntryRoadmaps: SurvivorEntryRoadmap[] = [];
@@ -645,6 +648,37 @@ export function resetMockDatabase(
     { id: "user-group", username: "group", password_hash: "a0bc9568ec3b7b6863118a1bf18dbfb37e2962451557999738ef9ca8c903a4cf", display_name: "UW Oshkosh Group", role: "group_representative", owner_id: "owner-uw-oshkosh", active: true }
   ];
   mockEntries = [...entries];
+  // Seed mock contest types if they are empty
+  mockContestTypes = [
+    {
+      id: 'circa',
+      code: 'CIRCA',
+      name: 'Circa Survivor',
+      description: '20-leg Survivor contest including Thanksgiving and Christmas holiday legs.',
+      total_legs: 20,
+      uses_thanksgiving_leg: true,
+      uses_christmas_leg: true,
+      uses_holiday_reservations: true,
+      is_active: true
+    },
+    {
+      id: 'standard',
+      code: 'STANDARD',
+      name: 'Standard Survivor',
+      description: 'Traditional 18-week Survivor contest with no separate Thanksgiving or Christmas legs.',
+      total_legs: 18,
+      uses_thanksgiving_leg: false,
+      uses_christmas_leg: false,
+      uses_holiday_reservations: false,
+      is_active: true
+    }
+  ];
+  // Ensure every entry has a contest_type_id
+  mockEntries.forEach(e => {
+    if (!e.contest_type_id) {
+      e.contest_type_id = 'circa';
+    }
+  });
   mockPicks = [...picks];
   mockGames = [...games];
   mockLines = [...lines];
@@ -942,7 +976,7 @@ export class MockSurvivorEntryRepository implements ISurvivorEntryRepository {
     return mockEntries.filter(e => e.owner_id === ownerId);
   }
 
-  async create(entry: { contest_id?: string; name: string; notes?: string; owner_id?: string }): Promise<SurvivorEntry> {
+  async create(entry: { contest_id?: string; name: string; notes?: string; owner_id?: string; contest_type_id?: string }): Promise<SurvivorEntry> {
     /* 
       PostgreSQL Reference:
       INSERT INTO survivor_entries (id, contest_id, name, status, notes, owner_id)
@@ -955,7 +989,8 @@ export class MockSurvivorEntryRepository implements ISurvivorEntryRepository {
       status: "alive",
       notes: entry.notes || "",
       created_at: new Date().toISOString(),
-      owner_id: entry.owner_id
+      owner_id: entry.owner_id,
+      contest_type_id: entry.contest_type_id || 'circa'
     };
     mockEntries.push(newEntry);
     return newEntry;
@@ -3560,6 +3595,20 @@ export class MockUserAccessRepository implements IUserAccessRepository {
     if (idx === -1) return false;
     mockAppUsers.splice(idx, 1);
     return true;
+  }
+}
+
+export class MockContestTypeRepository implements IContestTypeRepository {
+  async getAllActive(): Promise<ContestTypeRecord[]> {
+    return mockContestTypes.filter(ct => ct.is_active);
+  }
+
+  async getById(id: string): Promise<ContestTypeRecord | null> {
+    return mockContestTypes.find(ct => ct.id === id) || null;
+  }
+
+  async getByCode(code: string): Promise<ContestTypeRecord | null> {
+    return mockContestTypes.find(ct => ct.code.toLowerCase() === code.toLowerCase()) || null;
   }
 }
 

@@ -383,6 +383,7 @@ export interface SurvivorEntryDTO {
   notes?: string;
   created_at: string;
   updated_at?: string;
+  contest_type_id?: string;
 }
 
 export interface SurvivorPickDTO {

@@ -130,7 +130,8 @@ function mapSurvivorEntry(row: any): SurvivorEntry {
     status: row.status as "alive" | "eliminated",
     notes: row.notes || undefined,
     created_at: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
-    owner_id: ownerId
+    owner_id: ownerId,
+    contest_type_id: row.contest_type_id || "circa"
   };
 }
 

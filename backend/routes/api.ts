@@ -12,6 +12,7 @@ import {
   applicationVersionsRepo,
   projectDecisionsRepo,
   operationsEventsRepo,
+  contestTypeRepo,
   useMock
 } from "../repositories/index";
 import { buildAndSeedMockState } from "../services/mockSeeder";
@@ -210,14 +211,14 @@ router.get("/entries", async (req: Request, res: Response) => {
 
 // Create Survivor Entry
 router.post("/entries", async (req: Request, res: Response) => {
-  const { name, notes } = req.body;
+  const { name, notes, contest_type_id } = req.body;
   if (!name) {
     return res.status(400).json({ error: "Name is required" });
   }
   try {
     const currentUser = await getCurrentUserFromReq(req);
     const ownerId = (currentUser && currentUser.role !== "admin") ? currentUser.owner_id : null;
-    const newEntry = await entryRepo.create({ name, notes, owner_id: ownerId });
+    const newEntry = await entryRepo.create({ name, notes, owner_id: ownerId, contest_type_id: contest_type_id || "circa" });
     res.json(newEntry);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -251,7 +252,7 @@ router.delete("/entries/:id", async (req: Request, res: Response) => {
 // Patch / Update Survivor Entry
 router.patch("/entries/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { name, notes, status } = req.body;
+  const { name, notes, status, contest_type_id } = req.body;
   try {
     const currentUser = await getCurrentUserFromReq(req);
     if (currentUser && currentUser.role !== "admin") {
@@ -261,11 +262,35 @@ router.patch("/entries/:id", async (req: Request, res: Response) => {
       }
     }
 
-    const updated = await entryRepo.update(id, { name, notes, status });
+    const updated = await entryRepo.update(id, { name, notes, status, contest_type_id });
     if (!updated) {
       return res.status(404).json({ error: "Entry not found" });
     }
     res.json(updated);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get Active Contest Types
+router.get("/contest-types", async (req: Request, res: Response) => {
+  try {
+    const contestTypes = await contestTypeRepo.getAllActive();
+    res.json(contestTypes);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get Contest Type by ID
+router.get("/contest-types/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const contestType = await contestTypeRepo.getById(id);
+    if (!contestType) {
+      return res.status(404).json({ error: "Contest type not found" });
+    }
+    res.json(contestType);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

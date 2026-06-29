@@ -50,6 +50,19 @@ export const EntryTable: React.FC<EntryTableProps> = ({
                   <span>{ent.name}</span>
                   <span className="text-xs text-slate-400 font-normal">ID: {ent.id}</span>
                 </h4>
+
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                    ent.contest_type_id === "standard" 
+                      ? "bg-amber-50 text-amber-700 border-amber-200" 
+                      : "bg-indigo-50 text-indigo-700 border-indigo-200"
+                  }`}>
+                    {ent.contest_type_id === "standard" ? "Standard Survivor" : "Circa Survivor"}
+                  </span>
+                  <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                    {ent.contest_type_id === "standard" ? "18 legs, Standard" : "20 legs, Thanksgiving/Christmas"}
+                  </span>
+                </div>
               </div>
 
               <div className="flex items-center gap-2">
@@ -78,7 +91,7 @@ export const EntryTable: React.FC<EntryTableProps> = ({
 
             <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap justify-between items-center">
               <span className="text-xs text-slate-500 font-medium">
-                Locked Selections: <strong className="text-indigo-600 font-bold">{countPicks} / 20 legs</strong>
+                Locked Selections: <strong className="text-indigo-600 font-bold">{countPicks} / {ent.contest_type_id === "standard" ? 18 : 20} legs</strong>
               </span>
 
               <div className="flex items-center gap-2">

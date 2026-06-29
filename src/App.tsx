@@ -79,6 +79,9 @@ export default function App() {
     setNewEntryName,
     newEntryNotes,
     setNewEntryNotes,
+    newEntryContestTypeId,
+    setNewEntryContestTypeId,
+    contestTypes,
     successMsg,
     setSuccessMsg,
     errorMsg,
@@ -778,6 +781,71 @@ export default function App() {
                       </div>
 
                       <div>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                          Contest Type
+                        </label>
+                        <div className="space-y-2">
+                          <label className={`block border p-3 rounded-lg cursor-pointer transition-all ${
+                            newEntryContestTypeId === 'circa' 
+                              ? 'border-indigo-500 bg-indigo-50/20 ring-1 ring-indigo-500' 
+                              : 'border-slate-200 hover:border-slate-300'
+                          }`} id="contest-type-circa-card">
+                            <input 
+                              type="radio" 
+                              name="contest_type_id" 
+                              value="circa" 
+                              checked={newEntryContestTypeId === 'circa'} 
+                              onChange={() => setNewEntryContestTypeId('circa')} 
+                              className="sr-only"
+                              id="contest-type-circa-input"
+                            />
+                            <div className="flex items-start">
+                              <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center mt-0.5 mr-2 ${
+                                newEntryContestTypeId === 'circa' ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300'
+                              }`}>
+                                {newEntryContestTypeId === 'circa' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                              </div>
+                              <div>
+                                <span className="block text-xs font-bold text-slate-900">Circa Survivor</span>
+                                <span className="block text-[10px] text-slate-500 mt-0.5 leading-relaxed">
+                                  20 contest legs including Thanksgiving and Christmas. Holiday preservation strategy required.
+                                </span>
+                              </div>
+                            </div>
+                          </label>
+
+                          <label className={`block border p-3 rounded-lg cursor-pointer transition-all ${
+                            newEntryContestTypeId === 'standard' 
+                              ? 'border-indigo-500 bg-indigo-50/20 ring-1 ring-indigo-500' 
+                              : 'border-slate-200 hover:border-slate-300'
+                          }`} id="contest-type-standard-card">
+                            <input 
+                              type="radio" 
+                              name="contest_type_id" 
+                              value="standard" 
+                              checked={newEntryContestTypeId === 'standard'} 
+                              onChange={() => setNewEntryContestTypeId('standard')} 
+                              className="sr-only"
+                              id="contest-type-standard-input"
+                            />
+                            <div className="flex items-start">
+                              <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center mt-0.5 mr-2 ${
+                                newEntryContestTypeId === 'standard' ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300'
+                              }`}>
+                                {newEntryContestTypeId === 'standard' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                              </div>
+                              <div>
+                                <span className="block text-xs font-bold text-slate-900">Standard Survivor</span>
+                                <span className="block text-[10px] text-slate-500 mt-0.5 leading-relaxed">
+                                  Traditional 18-week Survivor contest with no separate holiday legs.
+                                </span>
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div>
                         <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
                           Custom Strategy Log / Notes
                         </label>
@@ -1051,9 +1119,18 @@ export default function App() {
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-4">
                     <div>
                       <h2 className="text-xl font-extrabold text-slate-950">Contest Team Inventory Status Grid</h2>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Tracking which of the 32 NFL teams have been utilized. Filtered specifically for: {" "}
+                      <p className="text-xs text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+                        <span>Tracking which of the 32 NFL teams have been utilized. Filtered specifically for: </span>
                         <strong>{activeEntryObj?.name || "Choose selection entry"}</strong>
+                        {activeEntryObj && (
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+                            activeEntryObj.contest_type_id === "standard" 
+                              ? "bg-amber-50 text-amber-700 border-amber-200" 
+                              : "bg-indigo-50 text-indigo-700 border-indigo-200"
+                          }`}>
+                            {activeEntryObj.contest_type_id === "standard" ? "Standard" : "Circa"}
+                          </span>
+                        )}
                       </p>
                     </div>
                     {activeEntryObj && (

@@ -5,7 +5,8 @@ import {
   Game, 
   TeamWeekLine, 
   SurvivorEntry, 
-  SurvivorPick 
+  SurvivorPick,
+  ContestType 
 } from "../types";
 
 const fetchWithAuth = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
@@ -49,6 +50,12 @@ export const apiService = {
     return res.json();
   },
 
+  async fetchContestTypes(): Promise<ContestType[]> {
+    const res = await fetch("/api/contest-types");
+    if (!res.ok) throw new Error("Failed to fetch contest types");
+    return res.json();
+  },
+
   async fetchPicks(entryId?: string): Promise<SurvivorPick[]> {
     const path = entryId ? `/api/picks?entry_id=${entryId}` : "/api/picks";
     const res = await fetch(path);
@@ -74,11 +81,11 @@ export const apiService = {
     return res.json();
   },
 
-  async createEntry(name: string, notes?: string): Promise<SurvivorEntry> {
+  async createEntry(name: string, notes?: string, contest_type_id?: string): Promise<SurvivorEntry> {
     const res = await fetch("/api/entries", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, notes })
+      body: JSON.stringify({ name, notes, contest_type_id })
     });
     if (!res.ok) {
       const err = await res.json();
