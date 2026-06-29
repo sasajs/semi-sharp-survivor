@@ -864,6 +864,10 @@ export interface HealthStatus {
     survivorStrategyService?: { status: HealthState; message: string | null };
     survivorRoadmapService?: { status: HealthState; message: string | null };
     holidayReservationService?: { status: HealthState; message: string | null };
+    ownerService?: { status: HealthState; message: string | null };
+    userAccessRepository?: { status: HealthState; message: string | null };
+    userAccessService?: { status: HealthState; message: string | null };
+    ownerAccessService?: { status: HealthState; message: string | null };
   };
   timestamp: string;
 }
@@ -1727,6 +1731,18 @@ export interface SurvivorEntryRoadmapWeek {
   is_current_week?: boolean;
   is_holiday_week?: boolean;
   created_at?: string;
+}
+
+export interface AppUser {
+  id: string;
+  username: string;
+  password_hash: string;
+  display_name: string;
+  role: "admin" | "user" | "group_representative";
+  owner_id?: string;
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 

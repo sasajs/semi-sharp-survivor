@@ -107,7 +107,7 @@ export class PostgresConnectionManager {
   /**
    * Primary query execution helper support with automatic retry loops.
    */
-  public async query<T = any>(queryText: string, params?: any[], retryCount = 1): Promise<T[]> {
+  public async query<T = any>(queryText: string, params?: any[], retryCount = 1, silent = false): Promise<T[]> {
     if (databaseConfig.useMock) {
       throw new Error("[Database Error] Relational query execution attempted while the application is in Mock Mode.");
     }
@@ -127,7 +127,9 @@ export class PostgresConnectionManager {
         return res.rows;
       } catch (err: any) {
         lastError = err;
-        console.warn(`[Database Retry] Query execution attempt ${attempt} failed: ${err.message}`);
+        if (!silent) {
+          console.warn(`[Database Retry] Query execution attempt ${attempt} failed: ${err.message}`);
+        }
         
         const isConnectionError = 
           err.message?.includes("ECONNREFUSED") || 
@@ -158,10 +160,10 @@ export class PostgresConnectionManager {
       return false;
     }
     try {
-      const res = await this.query("SELECT 1 AS ok");
+      const res = await this.query("SELECT 1 AS ok", undefined, 0, true);
       return res && res.length > 0 && res[0].ok === 1;
     } catch (err: any) {
-      console.error("[PostgresConnectionManager] Connectivity verification failed:", err);
+      console.warn("[PostgresConnectionManager] Relational database is currently unreachable. Fallback mode activated.");
       this.fallbackMode = true;
       return false;
     }

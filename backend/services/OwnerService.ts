@@ -1,5 +1,5 @@
 import { ownerRepo, entryRepo } from "../repositories/index";
-import { Owner, SurvivorEntry, SurvivorStrategyType, SurvivorEntryRoadmapWeek } from "../../src/types";
+import { Owner, SurvivorEntry, SurvivorStrategyType, SurvivorEntryRoadmapWeek, HolidayType } from "../../src/types";
 import { survivorStrategyService } from "./SurvivorStrategyService";
 import { survivorRoadmapService } from "./SurvivorRoadmapService";
 import { holidayReservationService } from "./HolidayReservationService";
@@ -102,8 +102,8 @@ export class OwnerService {
           reservations = await holidayReservationService.generateReservations(entry.id, season, strategy.strategy_type);
         }
 
-        const tg = reservations.find(r => r.holiday_type === "thanksgiving");
-        const xmas = reservations.find(r => r.holiday_type === "christmas");
+        const tg = reservations.find(r => r.holiday_type === HolidayType.THANKSGIVING);
+        const xmas = reservations.find(r => r.holiday_type === HolidayType.CHRISTMAS);
 
         // 3. Retrieve or generate the optimized season roadmap
         let roadmapData = await survivorRoadmapService.getLatestRoadmap(entry.id, season);

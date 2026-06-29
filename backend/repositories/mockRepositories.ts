@@ -73,7 +73,8 @@ import {
   SurvivorEntryStrategy,
   SurvivorHolidayReservation,
   SurvivorEntryRoadmap,
-  SurvivorEntryRoadmapWeek
+  SurvivorEntryRoadmapWeek,
+  AppUser
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -138,7 +139,8 @@ import {
   IModelWeightRepository,
   IRecommendationEvolutionRepository,
   ISurvivorStrategyRoadmapRepository,
-  IOwnerRepository
+  IOwnerRepository,
+  IUserAccessRepository
 } from "./interfaces";
 
 /**
@@ -147,6 +149,7 @@ import {
  * ====================================================================
  */
 export let mockTeams: Team[] = [];
+export let mockAppUsers: AppUser[] = [];
 export let mockSurvivorEntryStrategies: SurvivorEntryStrategy[] = [];
 export let mockSurvivorHolidayReservations: SurvivorHolidayReservation[] = [];
 export let mockSurvivorEntryRoadmaps: SurvivorEntryRoadmap[] = [];
@@ -634,6 +637,12 @@ export function resetMockDatabase(
     { id: "owner-steve", display_name: "Steve", email: "Steve.Schilhabel@gmail.com", owner_type: "individual", active: true },
     { id: "owner-cameron", display_name: "Cameron", email: "cameron@example.com", owner_type: "individual", active: true },
     { id: "owner-uw-oshkosh", display_name: "UW Oshkosh Group", email: "uwosh@example.com", owner_type: "group", active: true }
+  ];
+  mockAppUsers = [
+    { id: "user-admin", username: "admin", password_hash: "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918", display_name: "Admin User", role: "admin", owner_id: undefined, active: true },
+    { id: "user-steve", username: "steve", password_hash: "a09033324f9f69424c8322e70e9a037803d3bc93c04c554a9d949ecf14652c70", display_name: "Steve Schilhabel", role: "user", owner_id: "owner-steve", active: true },
+    { id: "user-cameron", username: "cameron", password_hash: "199990b797968561ec9c7929497e201200257e852445b9db054e8be48e9d6d7e", display_name: "Cameron", role: "user", owner_id: "owner-cameron", active: true },
+    { id: "user-group", username: "group", password_hash: "a0bc9568ec3b7b6863118a1bf18dbfb37e2962451557999738ef9ca8c903a4cf", display_name: "UW Oshkosh Group", role: "group_representative", owner_id: "owner-uw-oshkosh", active: true }
   ];
   mockEntries = [...entries];
   mockPicks = [...picks];
@@ -3502,6 +3511,47 @@ export class MockOwnerRepository implements IOwnerRepository {
     const idx = mockOwners.findIndex(o => o.id === id);
     if (idx === -1) return false;
     mockOwners.splice(idx, 1);
+    return true;
+  }
+}
+
+export class MockUserAccessRepository implements IUserAccessRepository {
+  async getAll(): Promise<AppUser[]> {
+    return [...mockAppUsers];
+  }
+
+  async getById(id: string): Promise<AppUser | null> {
+    return mockAppUsers.find(u => u.id === id) || null;
+  }
+
+  async getByUsername(username: string): Promise<AppUser | null> {
+    return mockAppUsers.find(u => u.username.toLowerCase() === username.toLowerCase()) || null;
+  }
+
+  async save(user: AppUser): Promise<AppUser> {
+    const idx = mockAppUsers.findIndex(u => u.id === user.id);
+    if (idx !== -1) {
+      mockAppUsers[idx] = {
+        ...mockAppUsers[idx],
+        ...user,
+        updated_at: new Date().toISOString()
+      };
+      return mockAppUsers[idx];
+    } else {
+      const newUser = {
+        ...user,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      mockAppUsers.push(newUser);
+      return newUser;
+    }
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const idx = mockAppUsers.findIndex(u => u.id === id);
+    if (idx === -1) return false;
+    mockAppUsers.splice(idx, 1);
     return true;
   }
 }

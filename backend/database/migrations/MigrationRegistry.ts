@@ -171,5 +171,10 @@ export const migrationRegistry: Migration[] = [
     version: "V058",
     description: "Owner Entry Workspace.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "V058__OwnerEntryWorkspace.sql")
+  },
+  {
+    version: "V059",
+    description: "Role-Based Owner Access.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "V059__RoleBasedOwnerAccess.sql")
   }
 ];

@@ -51,6 +51,7 @@ import { ReplayReportService } from "../replay/services/ReplayReportService";
 import { WeeklyPipelineService } from "../pipeline/services/WeeklyPipelineService";
 import { PipelineExecutionService } from "../pipeline/services/PipelineExecutionService";
 import { AuthService } from "../auth/services/AuthService";
+import { SessionService } from "../auth/services/SessionService";
 import { AuthenticationMiddleware, RoleMiddleware } from "../auth/middleware/AuthMiddleware";
 import { SecurityStatusService } from "../auth/services/SecurityStatusService";
 import { EntryStrategyService } from "../services/EntryStrategyService";
@@ -97,6 +98,8 @@ import { ModelWeightingService } from "../services/ModelWeightingService";
 import { RecommendationEvolutionService } from "../services/RecommendationEvolutionService";
 import { RecommendationEvolutionTestingService } from "../testing/services/RecommendationEvolutionTestingService";
 import { SurvivorStrategyTestingService } from "../testing/services/SurvivorStrategyTestingService";
+import { UserAccessService } from "../services/UserAccessService";
+import { ownerAccessService } from "../services/OwnerAccessService";
 import { adaptiveModelWeightRepo, ensemblePredictionRepo, decisionPolicyRepo, survivorDecisionRepo, survivorPlanningRepo, championshipPlanningRepo, decisionAnalyticsRepo, recommendationEvolutionRepo } from "../repositories/index";
 
 const router = Router();
@@ -1906,22 +1909,46 @@ router.post("/survivor-equity/calculate", async (req: Request, res: Response) =>
 });
 
 
+// GET /auth/users
+router.get("/auth/users", async (req: Request, res: Response) => {
+  try {
+    const users = await UserAccessService.getAllUsers();
+    res.json({ success: true, users });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /auth/login
 router.post("/auth/login", async (req: Request, res: Response) => {
   try {
-    const { password, role } = req.body || {};
+    const { username, password, role } = req.body || {};
     const ipAddress = (req.ip || req.socket.remoteAddress || "unknown").toString();
     const userAgent = req.headers["user-agent"] || "unknown";
-    const result = AuthService.createSession({
-      password,
-      role,
-      ipAddress,
-      userAgent
-    });
-    if (result.success) {
-      res.json(result);
+
+    if (username) {
+      // High-fidelity role-based login
+      const user = await UserAccessService.authenticate(username, password);
+      if (user) {
+        const session = SessionService.createSession(user.role === "admin" ? "ADMIN" : "USER");
+        UserAccessService.setSessionUser(session.token, user.id);
+        res.json({ success: true, session, user });
+      } else {
+        res.status(401).json({ success: false, error: "Invalid credentials." });
+      }
     } else {
-      res.status(401).json(result);
+      // Legacy env-based admin login fallback
+      const result = AuthService.createSession({
+        password,
+        role,
+        ipAddress,
+        userAgent
+      });
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(401).json(result);
+      }
     }
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -1936,8 +1963,98 @@ router.post("/auth/logout", async (req: Request, res: Response) => {
     const userAgent = req.headers["user-agent"] || "unknown";
     if (token) {
       AuthService.destroySession(token, ipAddress, userAgent);
+      UserAccessService.clearSession(token);
     }
     res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /auth/session
+router.get("/auth/session", async (req: Request, res: Response) => {
+  try {
+    const token = getAdminToken(req);
+    const status = AuthService.getAuthStatus(token);
+    
+    let currentUser = null;
+    if (token && status.authenticated) {
+      const userId = UserAccessService.getSessionUserId(token);
+      if (userId) {
+        currentUser = await UserAccessService.getUserById(userId);
+      } else if (status.session?.role === "ADMIN") {
+        currentUser = await UserAccessService.getUserById("user-admin");
+      }
+    }
+
+    res.json({
+      enabled: status.enabled,
+      authenticated: status.authenticated,
+      session: status.session,
+      user: currentUser
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /users/current
+router.get("/users/current", async (req: Request, res: Response) => {
+  try {
+    const token = getAdminToken(req);
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized. No token provided." });
+    }
+    const status = AuthService.getAuthStatus(token);
+    if (!status.authenticated) {
+      return res.status(401).json({ error: "Unauthorized. Session expired." });
+    }
+
+    const userId = UserAccessService.getSessionUserId(token);
+    let currentUser = null;
+    if (userId) {
+      currentUser = await UserAccessService.getUserById(userId);
+    } else if (status.session?.role === "ADMIN") {
+      currentUser = await UserAccessService.getUserById("user-admin");
+    }
+
+    if (!currentUser) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    res.json({ success: true, user: currentUser });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /owners/current-workspace
+router.get("/owners/current-workspace", async (req: Request, res: Response) => {
+  try {
+    const token = getAdminToken(req);
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized. No token provided." });
+    }
+    const status = AuthService.getAuthStatus(token);
+    if (!status.authenticated) {
+      return res.status(401).json({ error: "Unauthorized. Session expired." });
+    }
+
+    const userId = UserAccessService.getSessionUserId(token);
+    let currentUser = null;
+    if (userId) {
+      currentUser = await UserAccessService.getUserById(userId);
+    } else if (status.session?.role === "ADMIN") {
+      currentUser = await UserAccessService.getUserById("user-admin");
+    }
+
+    if (!currentUser) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    const season = (req.query.season as string) || "2026";
+    const workspace = await ownerAccessService.getWorkspaceForUser(currentUser, season);
+    res.json({ success: true, workspace });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

@@ -1,5 +1,7 @@
 import { HealthStatus, HealthState } from "../models";
-import { contestRepo, modelPerformanceRepo, learningRepo, recommendationEvolutionRepo, survivorStrategyRoadmapRepo } from "../../repositories";
+import { contestRepo, modelPerformanceRepo, learningRepo, recommendationEvolutionRepo, survivorStrategyRoadmapRepo, userAccessRepo } from "../../repositories";
+import { UserAccessService } from "../../services/UserAccessService";
+import { ownerAccessService } from "../../services/OwnerAccessService";
 import { WorkflowStatusService } from "../../orchestration/services/WorkflowStatusService";
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
 import { WeeklyReportService } from "../../reports/services/WeeklyReportService";
@@ -82,6 +84,15 @@ export class HealthCheckService {
 
     let ownerServiceState = HealthState.HEALTHY;
     let ownerServiceMessage: string | null = null;
+
+    let userAccessRepositoryState = HealthState.HEALTHY;
+    let userAccessRepositoryMessage: string | null = null;
+
+    let userAccessServiceState = HealthState.HEALTHY;
+    let userAccessServiceMessage: string | null = null;
+
+    let ownerAccessServiceState = HealthState.HEALTHY;
+    let ownerAccessServiceMessage: string | null = null;
 
     // 1. Repository check
     try {
@@ -295,6 +306,37 @@ export class HealthCheckService {
       ownerServiceMessage = `Owner Service error: ${err.message}`;
     }
 
+    // User Access Repository check
+    try {
+      const allUsers = await userAccessRepo.getAll();
+      if (!allUsers || !Array.isArray(allUsers)) {
+        throw new Error("Repository returned non-array dataset.");
+      }
+    } catch (err: any) {
+      userAccessRepositoryState = HealthState.DEGRADED;
+      userAccessRepositoryMessage = `User Access Repository failure: ${err.message}`;
+    }
+
+    // User Access Service check
+    try {
+      if (typeof UserAccessService.getAllUsers !== "function") {
+        throw new Error("getAllUsers method is uninitialized in runtime.");
+      }
+    } catch (err: any) {
+      userAccessServiceState = HealthState.UNHEALTHY;
+      userAccessServiceMessage = `User Access Service error: ${err.message}`;
+    }
+
+    // Owner Access Service check
+    try {
+      if (typeof ownerAccessService.getWorkspaceForUser !== "function") {
+        throw new Error("getWorkspaceForUser method is uninitialized in runtime.");
+      }
+    } catch (err: any) {
+      ownerAccessServiceState = HealthState.UNHEALTHY;
+      ownerAccessServiceMessage = `Owner Access Service error: ${err.message}`;
+    }
+
     // 8. Postgres Readiness Layer check
     let postgresReadinessState: "HEALTHY" | "WARNING" | "FAILED" = "HEALTHY";
     let postgresReadinessMessage: string | null = null;
@@ -423,7 +465,9 @@ export class HealthCheckService {
       survivorStrategyServiceState,
       survivorRoadmapServiceState,
       holidayReservationServiceState,
-      ownerServiceState
+      ownerServiceState,
+      userAccessServiceState,
+      ownerAccessServiceState
     ].some(state => state === HealthState.UNHEALTHY);
 
     if (
@@ -441,6 +485,7 @@ export class HealthCheckService {
       learningRepositoryState === HealthState.DEGRADED ||
       recommendationEvolutionState === HealthState.DEGRADED ||
       survivorStrategyRoadmapRepositoryState === HealthState.DEGRADED ||
+      userAccessRepositoryState === HealthState.DEGRADED ||
       dbHealth.status === "degraded" ||
       preseasonStatus === "WARNING" ||
       historicalReplayState === "WARNING" ||
@@ -477,7 +522,10 @@ export class HealthCheckService {
         survivorStrategyService: { status: survivorStrategyServiceState, message: survivorStrategyServiceMessage },
         survivorRoadmapService: { status: survivorRoadmapServiceState, message: survivorRoadmapServiceMessage },
         holidayReservationService: { status: holidayReservationServiceState, message: holidayReservationServiceMessage },
-        ownerService: { status: ownerServiceState, message: ownerServiceMessage }
+        ownerService: { status: ownerServiceState, message: ownerServiceMessage },
+        userAccessRepository: { status: userAccessRepositoryState, message: userAccessRepositoryMessage },
+        userAccessService: { status: userAccessServiceState, message: userAccessServiceMessage },
+        ownerAccessService: { status: ownerAccessServiceState, message: ownerAccessServiceMessage }
       },
       timestamp
     };

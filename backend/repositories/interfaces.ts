@@ -72,7 +72,8 @@ import {
   SurvivorEntryStrategy,
   SurvivorHolidayReservation,
   SurvivorEntryRoadmap,
-  SurvivorEntryRoadmapWeek
+  SurvivorEntryRoadmapWeek,
+  AppUser
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -612,6 +613,14 @@ export interface ISurvivorStrategyRoadmapRepository {
   // Roadmap Weeks
   saveRoadmapWeeks(weeks: SurvivorEntryRoadmapWeek[]): Promise<SurvivorEntryRoadmapWeek[]>;
   getRoadmapWeeks(roadmapId: number): Promise<SurvivorEntryRoadmapWeek[]>;
+}
+
+export interface IUserAccessRepository {
+  getAll(): Promise<AppUser[]>;
+  getById(id: string): Promise<AppUser | null>;
+  getByUsername(username: string): Promise<AppUser | null>;
+  save(user: AppUser): Promise<AppUser>;
+  delete(id: string): Promise<boolean>;
 }
 
 
