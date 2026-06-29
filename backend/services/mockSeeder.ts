@@ -78,10 +78,10 @@ export const initialLegs: ContestLeg[] = [
 ];
 
 export const initialEntries: SurvivorEntry[] = [
-  { id: "UWOSH-1", name: "UWOSH-1", status: "alive", notes: "Steve's Entry 1 (Championship EV maximized)", created_at: new Date().toISOString() },
-  { id: "UWOSH-2", name: "UWOSH-2", status: "alive", notes: "Steve's Entry 2 (Joint portfolio optimization)", created_at: new Date().toISOString() },
-  { id: "UWOSH-3", name: "UWOSH-3", status: "alive", notes: "Cameron's Entry (Marketplace survival to mid-season)", created_at: new Date().toISOString() },
-  { id: "UWOSH-4", name: "UWOSH-4", status: "alive", notes: "UW Oshkosh Group Entry (Group consensus survival model)", created_at: new Date().toISOString() },
+  { id: "UWOSH-1", name: "UWOSH-1", status: "alive", notes: "Steve's Entry 1 (Championship EV maximized)", created_at: new Date().toISOString(), owner_id: "owner-steve" },
+  { id: "UWOSH-2", name: "UWOSH-2", status: "alive", notes: "Steve's Entry 2 (Joint portfolio optimization)", created_at: new Date().toISOString(), owner_id: "owner-steve" },
+  { id: "UWOSH-3", name: "UWOSH-3", status: "alive", notes: "Cameron's Entry (Marketplace survival to mid-season)", created_at: new Date().toISOString(), owner_id: "owner-cameron" },
+  { id: "UWOSH-4", name: "UWOSH-4", status: "alive", notes: "UW Oshkosh Group Entry (Group consensus survival model)", created_at: new Date().toISOString(), owner_id: "owner-uw-oshkosh" },
 ];
 
 export const initialPicks: SurvivorPick[] = [];

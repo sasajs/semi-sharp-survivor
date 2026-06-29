@@ -166,5 +166,10 @@ export const migrationRegistry: Migration[] = [
     version: "V057",
     description: "Survivor Strategy & Roadmap Framework.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "V057__SurvivorStrategyRoadmapFramework.sql")
+  },
+  {
+    version: "V058",
+    description: "Owner Entry Workspace.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "V058__OwnerEntryWorkspace.sql")
   }
 ];

@@ -10,7 +10,8 @@ function mapSurvivorEntry(row: any): SurvivorEntry {
     name: row.name,
     status: row.status as "alive" | "eliminated",
     notes: row.notes || undefined,
-    created_at: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString()
+    created_at: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
+    owner_id: row.owner_id || undefined
   };
 }
 
@@ -26,16 +27,21 @@ export class PostgresEntryRepository implements ISurvivorEntryRepository {
     return rows.length ? mapSurvivorEntry(rows[0]) : null;
   }
 
-  async create(entry: { contest_id?: string; name: string; notes?: string }): Promise<SurvivorEntry> {
+  async getByOwnerId(ownerId: string): Promise<SurvivorEntry[]> {
+    const rows = await query("SELECT * FROM survivor_entries WHERE owner_id = $1 ORDER BY created_at ASC", [ownerId]);
+    return rows.map(mapSurvivorEntry);
+  }
+
+  async create(entry: { contest_id?: string; name: string; notes?: string; owner_id?: string }): Promise<SurvivorEntry> {
     const randomHex = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
     const newId = `22222222-${randomHex()}-${randomHex()}-${randomHex()}-${randomHex()}${randomHex()}${randomHex()}`;
     const dbId = toUuid(newId, "entry");
     const contestId = toUuid(entry.contest_id || "circa-2026", "contest");
     const rows = await query(
-      `INSERT INTO survivor_entries (id, contest_id, name, status, notes)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO survivor_entries (id, contest_id, name, status, notes, owner_id)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [dbId, contestId, entry.name, "alive", entry.notes || ""]
+      [dbId, contestId, entry.name, "alive", entry.notes || "", entry.owner_id || null]
     );
     return mapSurvivorEntry(rows[0]);
   }
@@ -48,13 +54,14 @@ export class PostgresEntryRepository implements ISurvivorEntryRepository {
     const name = updates.name !== undefined ? updates.name : current.name;
     const notes = updates.notes !== undefined ? updates.notes : (current.notes || "");
     const status = updates.status !== undefined ? updates.status : current.status;
+    const ownerId = updates.owner_id !== undefined ? updates.owner_id : current.owner_id;
 
     const rows = await query(
       `UPDATE survivor_entries
-       SET name = $1, notes = $2, status = $3, updated_at = NOW()
-       WHERE id = $4
+       SET name = $1, notes = $2, status = $3, owner_id = $4, updated_at = NOW()
+       WHERE id = $5
        RETURNING *`,
-      [name, notes, status, dbId]
+      [name, notes, status, ownerId || null, dbId]
     );
     return rows.length ? mapSurvivorEntry(rows[0]) : null;
   }

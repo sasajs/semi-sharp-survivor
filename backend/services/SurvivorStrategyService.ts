@@ -127,7 +127,7 @@ export class SurvivorStrategyService {
     } else if (entryId.includes("UWOSH-3") || entryId.includes("103")) {
       defaultType = SurvivorStrategyType.MARKETPLACE;
     } else if (entryId.includes("UWOSH-4") || entryId.includes("104")) {
-      defaultType = SurvivorStrategyType.CONSERVATIVE;
+      defaultType = SurvivorStrategyType.GROUP_CONSENSUS;
     }
     
     return await this.assignStrategy(entryId, defaultType);

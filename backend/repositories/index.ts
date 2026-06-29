@@ -88,6 +88,7 @@ export const contestRepo = createRepositoryProxy(() => RepositoryFactory.getCont
 export const legRepo = createRepositoryProxy(() => RepositoryFactory.getLegRepo());
 export const gameRepo = createRepositoryProxy(() => RepositoryFactory.getGameRepo());
 export const lineRepo = createRepositoryProxy(() => RepositoryFactory.getLineRepo());
+export const ownerRepo = createRepositoryProxy(() => RepositoryFactory.getOwnerRepo());
 export const entryRepo = createRepositoryProxy(() => RepositoryFactory.getEntryRepo());
 export const pickRepo = createRepositoryProxy(() => RepositoryFactory.getPickRepo());
 export const historyRepo = createRepositoryProxy(() => RepositoryFactory.getHistoryRepo());

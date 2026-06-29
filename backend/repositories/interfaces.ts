@@ -4,6 +4,7 @@ import {
   ContestLeg, 
   Game, 
   TeamWeekLine, 
+  Owner,
   SurvivorEntry, 
   SurvivorPick, 
   SurvivorHistory,
@@ -108,10 +109,18 @@ export interface ITeamWeekLineRepository {
   save(line: TeamWeekLine): Promise<TeamWeekLine>;
 }
 
+export interface IOwnerRepository {
+  getAll(): Promise<Owner[]>;
+  getById(id: string): Promise<Owner | null>;
+  save(owner: Owner): Promise<Owner>;
+  delete(id: string): Promise<boolean>;
+}
+
 export interface ISurvivorEntryRepository {
   getAll(): Promise<SurvivorEntry[]>;
   getById(id: string): Promise<SurvivorEntry | null>;
-  create(entry: { contest_id?: string; name: string; notes?: string }): Promise<SurvivorEntry>;
+  getByOwnerId(ownerId: string): Promise<SurvivorEntry[]>;
+  create(entry: { contest_id?: string; name: string; notes?: string; owner_id?: string }): Promise<SurvivorEntry>;
   update(id: string, updates: Partial<SurvivorEntry>): Promise<SurvivorEntry | null>;
   delete(id: string): Promise<boolean>;
 }

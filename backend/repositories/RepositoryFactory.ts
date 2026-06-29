@@ -61,7 +61,8 @@ import {
   MockLearningRepository,
   MockModelWeightRepository,
   MockRecommendationEvolutionRepository,
-  MockSurvivorStrategyRoadmapRepository
+  MockSurvivorStrategyRoadmapRepository,
+  MockOwnerRepository
 } from "./mockRepositories";
 
 import {
@@ -118,6 +119,7 @@ import { PostgresSurvivorPlanningRepository } from "./postgres/PostgresSurvivorP
 import { PostgresChampionshipPlanningRepository } from "./postgres/PostgresChampionshipPlanningRepository";
 import { PostgresDecisionAnalyticsRepository } from "./postgres/PostgresDecisionAnalyticsRepository";
 import { PostgresLearningRepository } from "./postgres/PostgresLearningRepository";
+import { PostgresOwnerRepository } from "./postgres/PostgresOwnerRepository";
 import { PostgresModelWeightRepository } from "./postgres/PostgresModelWeightRepository";
 import { PostgresRecommendationEvolutionRepository } from "./postgres/PostgresRecommendationEvolutionRepository";
 import { PostgresSurvivorStrategyRoadmapRepository } from "./postgres/PostgresSurvivorStrategyRoadmapRepository";
@@ -144,6 +146,9 @@ export class RepositoryFactory {
   }
   static getLineRepo() {
     return useMock ? new MockTeamWeekLineRepository() : new PostgresTeamWeekLineRepository();
+  }
+  static getOwnerRepo() {
+    return useMock ? new MockOwnerRepository() : new PostgresOwnerRepository();
   }
   static getEntryRepo() {
     return useMock ? new MockSurvivorEntryRepository() : new PostgresEntryRepository();

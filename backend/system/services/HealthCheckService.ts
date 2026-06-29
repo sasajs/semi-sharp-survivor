@@ -20,6 +20,7 @@ import { LearningService } from "../../services/LearningService";
 import { survivorStrategyService } from "../../services/SurvivorStrategyService";
 import { survivorRoadmapService } from "../../services/SurvivorRoadmapService";
 import { holidayReservationService } from "../../services/HolidayReservationService";
+import { ownerService } from "../../services/OwnerService";
 
 export class HealthCheckService {
   /**
@@ -78,6 +79,9 @@ export class HealthCheckService {
 
     let holidayReservationServiceState = HealthState.HEALTHY;
     let holidayReservationServiceMessage: string | null = null;
+
+    let ownerServiceState = HealthState.HEALTHY;
+    let ownerServiceMessage: string | null = null;
 
     // 1. Repository check
     try {
@@ -281,6 +285,16 @@ export class HealthCheckService {
       holidayReservationServiceMessage = `Holiday Reservation Service error: ${err.message}`;
     }
 
+    // Owner Service check
+    try {
+      if (typeof ownerService.getOwnerDashboard !== "function") {
+        throw new Error("getOwnerDashboard method is uninitialized in runtime.");
+      }
+    } catch (err: any) {
+      ownerServiceState = HealthState.UNHEALTHY;
+      ownerServiceMessage = `Owner Service error: ${err.message}`;
+    }
+
     // 8. Postgres Readiness Layer check
     let postgresReadinessState: "HEALTHY" | "WARNING" | "FAILED" = "HEALTHY";
     let postgresReadinessMessage: string | null = null;
@@ -408,7 +422,8 @@ export class HealthCheckService {
       learningServiceState,
       survivorStrategyServiceState,
       survivorRoadmapServiceState,
-      holidayReservationServiceState
+      holidayReservationServiceState,
+      ownerServiceState
     ].some(state => state === HealthState.UNHEALTHY);
 
     if (
@@ -461,7 +476,8 @@ export class HealthCheckService {
         survivorStrategyRoadmapRepository: { status: survivorStrategyRoadmapRepositoryState, message: survivorStrategyRoadmapRepositoryMessage },
         survivorStrategyService: { status: survivorStrategyServiceState, message: survivorStrategyServiceMessage },
         survivorRoadmapService: { status: survivorRoadmapServiceState, message: survivorRoadmapServiceMessage },
-        holidayReservationService: { status: holidayReservationServiceState, message: holidayReservationServiceMessage }
+        holidayReservationService: { status: holidayReservationServiceState, message: holidayReservationServiceMessage },
+        ownerService: { status: ownerServiceState, message: ownerServiceMessage }
       },
       timestamp
     };

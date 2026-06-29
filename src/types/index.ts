@@ -46,12 +46,23 @@ export interface TeamWeekLine {
   contest_equity_score: number;
 }
 
+export interface Owner {
+  id: string;
+  display_name: string;
+  email?: string | null;
+  owner_type: string; // 'individual' or 'group'
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface SurvivorEntry {
   id: string;
   name: string;
   status: 'alive' | 'eliminated';
   notes?: string;
   created_at: string;
+  owner_id?: string;
 }
 
 export interface SurvivorPick {

@@ -4,6 +4,7 @@ import {
   ContestLeg, 
   Game, 
   TeamWeekLine, 
+  Owner,
   SurvivorEntry, 
   SurvivorPick, 
   SurvivorHistory,
@@ -136,7 +137,8 @@ import {
   ILearningRepository,
   IModelWeightRepository,
   IRecommendationEvolutionRepository,
-  ISurvivorStrategyRoadmapRepository
+  ISurvivorStrategyRoadmapRepository,
+  IOwnerRepository
 } from "./interfaces";
 
 /**
@@ -153,6 +155,7 @@ export let mockContests: Contest[] = [];
 export let mockLegs: ContestLeg[] = [];
 export let mockGames: Game[] = [];
 export let mockLines: TeamWeekLine[] = [];
+export let mockOwners: Owner[] = [];
 export let mockEntries: SurvivorEntry[] = [];
 export let mockPicks: SurvivorPick[] = [];
 export let mockHistory: SurvivorHistory[] = [];
@@ -627,6 +630,11 @@ export function resetMockDatabase(
   mockTeams = [...teams];
   mockContests = [...contests];
   mockLegs = [...legs];
+  mockOwners = [
+    { id: "owner-steve", display_name: "Steve", email: "Steve.Schilhabel@gmail.com", owner_type: "individual", active: true },
+    { id: "owner-cameron", display_name: "Cameron", email: "cameron@example.com", owner_type: "individual", active: true },
+    { id: "owner-uw-oshkosh", display_name: "UW Oshkosh Group", email: "uwosh@example.com", owner_type: "group", active: true }
+  ];
   mockEntries = [...entries];
   mockPicks = [...picks];
   mockGames = [...games];
@@ -914,11 +922,15 @@ export class MockSurvivorEntryRepository implements ISurvivorEntryRepository {
     return mockEntries.find(e => e.id === id) || null;
   }
 
-  async create(entry: { contest_id?: string; name: string; notes?: string }): Promise<SurvivorEntry> {
+  async getByOwnerId(ownerId: string): Promise<SurvivorEntry[]> {
+    return mockEntries.filter(e => e.owner_id === ownerId);
+  }
+
+  async create(entry: { contest_id?: string; name: string; notes?: string; owner_id?: string }): Promise<SurvivorEntry> {
     /* 
       PostgreSQL Reference:
-      INSERT INTO survivor_entries (id, contest_id, name, status, notes)
-      VALUES (uuid_generate_v4(), $1, $2, 'alive', $3)
+      INSERT INTO survivor_entries (id, contest_id, name, status, notes, owner_id)
+      VALUES (uuid_generate_v4(), $1, $2, 'alive', $3, $4)
       RETURNING *;
     */
     const newEntry: SurvivorEntry = {
@@ -926,7 +938,8 @@ export class MockSurvivorEntryRepository implements ISurvivorEntryRepository {
       name: entry.name,
       status: "alive",
       notes: entry.notes || "",
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      owner_id: entry.owner_id
     };
     mockEntries.push(newEntry);
     return newEntry;
@@ -3453,6 +3466,43 @@ export class MockSurvivorStrategyRoadmapRepository implements ISurvivorStrategyR
 
   async getRoadmapWeeks(roadmapId: number): Promise<SurvivorEntryRoadmapWeek[]> {
     return mockSurvivorEntryRoadmapWeeks.filter(w => w.roadmap_id === roadmapId).sort((a, b) => a.week - b.week);
+  }
+}
+
+export class MockOwnerRepository implements IOwnerRepository {
+  async getAll(): Promise<Owner[]> {
+    return [...mockOwners];
+  }
+
+  async getById(id: string): Promise<Owner | null> {
+    return mockOwners.find(o => o.id === id) || null;
+  }
+
+  async save(owner: Owner): Promise<Owner> {
+    const idx = mockOwners.findIndex(o => o.id === owner.id);
+    if (idx !== -1) {
+      mockOwners[idx] = {
+        ...mockOwners[idx],
+        ...owner,
+        updated_at: new Date().toISOString()
+      };
+      return mockOwners[idx];
+    } else {
+      const newOwner = {
+        ...owner,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      mockOwners.push(newOwner);
+      return newOwner;
+    }
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const idx = mockOwners.findIndex(o => o.id === id);
+    if (idx === -1) return false;
+    mockOwners.splice(idx, 1);
+    return true;
   }
 }
 
