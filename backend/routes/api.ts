@@ -104,6 +104,37 @@ import { adaptiveModelWeightRepo, ensemblePredictionRepo, decisionPolicyRepo, su
 
 const router = Router();
 
+const getAdminToken = (req: Request): string | undefined => {
+  const customHeader = req.headers["x-admin-token"];
+  if (typeof customHeader === "string") return customHeader;
+
+  const authHeader = req.headers["authorization"];
+  if (typeof authHeader === "string" && authHeader.toLowerCase().startsWith("bearer ")) {
+    return authHeader.substring(7);
+  }
+
+  if (typeof req.query.token === "string" && req.query.token) {
+    return req.query.token;
+  }
+
+  return undefined;
+};
+
+const getCurrentUserFromReq = async (req: Request): Promise<any | null> => {
+  const token = getAdminToken(req);
+  if (!token) return null;
+  const status = AuthService.getAuthStatus(token);
+  if (!status.authenticated) return null;
+
+  const userId = UserAccessService.getSessionUserId(token);
+  if (userId) {
+    return await UserAccessService.getUserById(userId);
+  } else if (status.session?.role === "ADMIN") {
+    return await UserAccessService.getUserById("user-admin");
+  }
+  return null;
+};
+
 // Apply administrative and RBAC gateway controls across all protected api endpoints
 router.use("/admin", AuthenticationMiddleware, RoleMiddleware("ADMIN"));
 router.use("/orchestration", AuthenticationMiddleware, RoleMiddleware("ADMIN"));
@@ -161,10 +192,16 @@ router.get("/entries", async (req: Request, res: Response) => {
     const entries = await entryRepo.getAll();
     const metadataList = await entryStrategyService.getMetadata();
     // Filter out inactive entries (where active_flag === false)
-    const activeEntries = entries.filter((entry: any) => {
+    let activeEntries = entries.filter((entry: any) => {
       const meta = metadataList.find(m => m.entry_id === entry.id);
       return !meta || meta.active_flag !== false;
     });
+
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      activeEntries = activeEntries.filter(e => e.owner_id === currentUser.owner_id);
+    }
+
     res.json(activeEntries);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -178,7 +215,9 @@ router.post("/entries", async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Name is required" });
   }
   try {
-    const newEntry = await entryRepo.create({ name, notes });
+    const currentUser = await getCurrentUserFromReq(req);
+    const ownerId = (currentUser && currentUser.role !== "admin") ? currentUser.owner_id : null;
+    const newEntry = await entryRepo.create({ name, notes, owner_id: ownerId });
     res.json(newEntry);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -189,6 +228,14 @@ router.post("/entries", async (req: Request, res: Response) => {
 router.delete("/entries/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const entry = await entryRepo.getById(id);
+      if (!entry || entry.owner_id !== currentUser.owner_id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+      }
+    }
+
     const success = await entryRepo.delete(id);
     if (!success) {
       return res.status(404).json({ error: "Entry not found" });
@@ -206,6 +253,14 @@ router.patch("/entries/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
   const { name, notes, status } = req.body;
   try {
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const entry = await entryRepo.getById(id);
+      if (!entry || entry.owner_id !== currentUser.owner_id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+      }
+    }
+
     const updated = await entryRepo.update(id, { name, notes, status });
     if (!updated) {
       return res.status(404).json({ error: "Entry not found" });
@@ -236,11 +291,25 @@ router.post("/admin/reset", async (req: Request, res: Response) => {
 router.get("/picks", async (req: Request, res: Response) => {
   const { entry_id } = req.query;
   try {
+    const currentUser = await getCurrentUserFromReq(req);
+
     if (entry_id && typeof entry_id === "string") {
+      if (currentUser && currentUser.role !== "admin") {
+        const entry = await entryRepo.getById(entry_id);
+        if (!entry || entry.owner_id !== currentUser.owner_id) {
+          return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+        }
+      }
       const entryPicks = await pickRepo.getByEntryId(entry_id);
       return res.json(entryPicks);
     }
-    const allPicks = await pickRepo.getAll();
+
+    let allPicks = await pickRepo.getAll();
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      allPicks = allPicks.filter(p => myEntryIds.has(p.entry_id));
+    }
     res.json(allPicks);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -256,6 +325,14 @@ router.post("/picks/make", async (req: Request, res: Response) => {
   }
 
   try {
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const entry = await entryRepo.getById(entry_id);
+      if (!entry || entry.owner_id !== currentUser.owner_id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+      }
+    }
+
     const result = await createPick(entry_id, contest_leg_id, team_id);
     res.json(result);
   } catch (err: any) {
@@ -267,6 +344,17 @@ router.post("/picks/make", async (req: Request, res: Response) => {
 router.delete("/picks/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const pick = await pickRepo.getById(id);
+      if (pick) {
+        const entry = await entryRepo.getById(pick.entry_id);
+        if (!entry || entry.owner_id !== currentUser.owner_id) {
+          return res.status(403).json({ error: "Forbidden: You do not own this pick's entry." });
+        }
+      }
+    }
+
     const success = await pickRepo.delete(id);
     res.json({ success });
   } catch (err: any) {
@@ -313,9 +401,21 @@ router.get("/recommendations", async (req: Request, res: Response) => {
   }
 
   try {
-    const entry = await entryRepo.getById(entry_id);
+    let entry = await entryRepo.getById(entry_id);
+    if (!entry) {
+      const allEntries = await entryRepo.getAll();
+      entry = allEntries.find(e => e.id === entry_id || e.name === entry_id) || null;
+    }
+
     if (!entry) {
       return res.status(404).json({ error: "Entry not found" });
+    }
+
+    const currentUser = await getCurrentUserFromReq(req);
+    try {
+      await ownerAccessService.checkEntryAccess(currentUser, entry_id);
+    } catch (err: any) {
+      return res.status(403).json({ error: err.message });
     }
 
     const currentLeg = await legRepo.getById(leg_id);
@@ -373,6 +473,7 @@ router.get("/recommendations", async (req: Request, res: Response) => {
       inventory_depth_score: snap.inventory_depth
     });
   } catch (err: any) {
+    console.error("Error in GET /recommendations:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -549,6 +650,16 @@ router.get("/api/recommendations/portfolio/:legId", getPortfolio);
 const getCandidates = async (req: Request, res: Response) => {
   const { entryId, legId } = req.params;
   try {
+    const currentUser = await getCurrentUserFromReq(req);
+    try {
+      await ownerAccessService.checkEntryAccess(currentUser, entryId);
+    } catch (err: any) {
+      if (err.message === "Entry not found") {
+        return res.status(404).json({ error: "Entry not found" });
+      }
+      return res.status(403).json({ error: err.message });
+    }
+
     const candidates = await RecommendationEngineService.compileCandidates(entryId, legId);
     res.json(candidates);
   } catch (err: any) {
@@ -562,6 +673,16 @@ router.get("/api/recommendations/candidates/:entryId/:legId", getCandidates);
 const getEntryRec = async (req: Request, res: Response) => {
   const { entryId, legId } = req.params;
   try {
+    const currentUser = await getCurrentUserFromReq(req);
+    try {
+      await ownerAccessService.checkEntryAccess(currentUser, entryId);
+    } catch (err: any) {
+      if (err.message === "Entry not found") {
+        return res.status(404).json({ error: "Entry not found" });
+      }
+      return res.status(403).json({ error: err.message });
+    }
+
     const recommendation = await RecommendationEngineService.getEntryRecommendations(entryId, legId);
     res.json(recommendation);
   } catch (err: any) {
@@ -721,6 +842,14 @@ router.post("/api/simulation/run-chalk-upset", async (req: Request, res: Respons
 router.get("/api/simulation/compare-strategies/:entryId/:legId", async (req: Request, res: Response) => {
   try {
     const { entryId, legId } = req.params;
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const entry = await entryRepo.getById(entryId);
+      if (!entry || entry.owner_id !== currentUser.owner_id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+      }
+    }
+
     const result = await MonteCarloSurvivorService.compareStrategies(entryId, legId);
     res.json(result);
   } catch (err: any) {
@@ -732,6 +861,14 @@ router.get("/api/simulation/compare-strategies/:entryId/:legId", async (req: Req
 router.get("/api/simulation/project-inventory/:entryId/:legId", async (req: Request, res: Response) => {
   try {
     const { entryId, legId } = req.params;
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const entry = await entryRepo.getById(entryId);
+      if (!entry || entry.owner_id !== currentUser.owner_id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+      }
+    }
+
     const result = await MonteCarloSurvivorService.projectFutureInventory(entryId, legId);
     res.json(result);
   } catch (err: any) {
@@ -1573,23 +1710,6 @@ router.get("/pipeline/executions/:id", async (req: Request, res: Response) => {
  * SECURE ADMIN ACCESS ENDPOINTS
  * ==================================================================== */
 
-const getAdminToken = (req: Request): string | undefined => {
-  const customHeader = req.headers["x-admin-token"];
-  if (typeof customHeader === "string") return customHeader;
-
-  const authHeader = req.headers["authorization"];
-  if (typeof authHeader === "string" && authHeader.toLowerCase().startsWith("bearer ")) {
-    return authHeader.substring(7);
-  }
-
-  // Fallback to checking query params or cookies if present
-  if (typeof req.query.token === "string" && req.query.token) {
-    return req.query.token;
-  }
-
-  return undefined;
-};
-
 // GET /auth/status
 router.get("/auth/status", async (req: Request, res: Response) => {
   try {
@@ -1608,7 +1728,11 @@ router.get("/auth/status", async (req: Request, res: Response) => {
 // GET all strategic entries with profiles/metadata combined
 router.get("/api/strategies/entries", async (req: Request, res: Response) => {
   try {
-    const list = await entryStrategyService.getAllStrategicEntries();
+    let list = await entryStrategyService.getAllStrategicEntries();
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      list = list.filter(e => e.owner_id === currentUser.owner_id);
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -1618,7 +1742,13 @@ router.get("/api/strategies/entries", async (req: Request, res: Response) => {
 // GET all strategy profiles
 router.get("/api/strategies/profiles", async (req: Request, res: Response) => {
   try {
-    const list = await entryStrategyService.getProfiles();
+    let list = await entryStrategyService.getProfiles();
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      list = list.filter(p => myEntryIds.has(p.entry_id));
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -1628,7 +1758,13 @@ router.get("/api/strategies/profiles", async (req: Request, res: Response) => {
 // GET all metadata records
 router.get("/api/strategies/metadata", async (req: Request, res: Response) => {
   try {
-    const list = await entryStrategyService.getMetadata();
+    let list = await entryStrategyService.getMetadata();
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      list = list.filter(m => myEntryIds.has(m.entry_id));
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -1638,7 +1774,16 @@ router.get("/api/strategies/metadata", async (req: Request, res: Response) => {
 // GET specific entry strategy details
 router.get("/api/strategies/entry/:entryId", async (req: Request, res: Response) => {
   try {
-    const details = await entryStrategyService.getEntryStrategyDetails(req.params.entryId);
+    const { entryId } = req.params;
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const entry = await entryRepo.getById(entryId);
+      if (!entry || entry.owner_id !== currentUser.owner_id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+      }
+    }
+
+    const details = await entryStrategyService.getEntryStrategyDetails(entryId);
     if (!details) {
       res.status(404).json({ error: "Entry not found" });
     } else {
@@ -1652,6 +1797,17 @@ router.get("/api/strategies/entry/:entryId", async (req: Request, res: Response)
 // POST save strategy profile
 router.post("/api/strategies/profiles", async (req: Request, res: Response) => {
   try {
+    const entryId = req.body.entry_id;
+    if (entryId) {
+      const currentUser = await getCurrentUserFromReq(req);
+      if (currentUser && currentUser.role !== "admin") {
+        const entry = await entryRepo.getById(entryId);
+        if (!entry || entry.owner_id !== currentUser.owner_id) {
+          return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+        }
+      }
+    }
+
     const profile = await entryStrategyService.saveProfile(req.body);
     res.status(200).json(profile);
   } catch (err: any) {
@@ -1662,6 +1818,17 @@ router.post("/api/strategies/profiles", async (req: Request, res: Response) => {
 // POST save metadata record
 router.post("/api/strategies/metadata", async (req: Request, res: Response) => {
   try {
+    const entryId = req.body.entry_id;
+    if (entryId) {
+      const currentUser = await getCurrentUserFromReq(req);
+      if (currentUser && currentUser.role !== "admin") {
+        const entry = await entryRepo.getById(entryId);
+        if (!entry || entry.owner_id !== currentUser.owner_id) {
+          return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+        }
+      }
+    }
+
     const metadata = await entryStrategyService.saveMetadata(req.body);
     res.status(200).json(metadata);
   } catch (err: any) {
@@ -1686,7 +1853,11 @@ router.get("/api/strategies/portfolio/analyze/:groupName", async (req: Request, 
 // GET /api/entries/profiles (combined list of strategic entries)
 router.get("/api/entries/profiles", async (req: Request, res: Response) => {
   try {
-    const list = await entryStrategyService.getAllStrategicEntries();
+    let list = await entryStrategyService.getAllStrategicEntries();
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      list = list.filter(e => e.owner_id === currentUser.owner_id);
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -1696,7 +1867,11 @@ router.get("/api/entries/profiles", async (req: Request, res: Response) => {
 // GET /api/entries/strategies (alias/fallback support)
 router.get("/api/entries/strategies", async (req: Request, res: Response) => {
   try {
-    const list = await entryStrategyService.getAllStrategicEntries();
+    let list = await entryStrategyService.getAllStrategicEntries();
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      list = list.filter(e => e.owner_id === currentUser.owner_id);
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -1724,6 +1899,14 @@ router.put("/api/entries/profile", async (req: Request, res: Response) => {
 
     if (!entry_id) {
       return res.status(400).json({ error: "entry_id is required" });
+    }
+
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const entry = await entryRepo.getById(entry_id);
+      if (!entry || entry.owner_id !== currentUser.owner_id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+      }
     }
 
     // Save/Update Metadata
@@ -2077,7 +2260,13 @@ router.get("/admin/security/status", async (req: Request, res: Response) => {
 // GET /api/recommendation-candidates/latest
 router.get("/recommendation-candidates/latest", async (req: Request, res: Response) => {
   try {
-    const list = await recommendationCandidateService.getLatest();
+    let list = await recommendationCandidateService.getLatest();
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      list = list.filter(item => myEntryIds.has(item.entry_id));
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -2087,7 +2276,13 @@ router.get("/recommendation-candidates/latest", async (req: Request, res: Respon
 // GET /api/recommendation-candidates/history
 router.get("/recommendation-candidates/history", async (req: Request, res: Response) => {
   try {
-    const list = await recommendationCandidateService.getHistory();
+    let list = await recommendationCandidateService.getHistory();
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      list = list.filter(item => myEntryIds.has(item.entry_id));
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -2098,6 +2293,14 @@ router.get("/recommendation-candidates/history", async (req: Request, res: Respo
 router.get("/recommendation-candidates/by-entry/:entryId", async (req: Request, res: Response) => {
   try {
     const { entryId } = req.params;
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const entry = await entryRepo.getById(entryId);
+      if (!entry || entry.owner_id !== currentUser.owner_id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+      }
+    }
+
     const list = await recommendationCandidateService.getByEntryId(entryId);
     res.json(list);
   } catch (err: any) {
@@ -2241,7 +2444,13 @@ router.post("/contest-dynamics/calculate", async (req: Request, res: Response) =
 // GET /api/recommendations/latest
 router.get("/recommendations/latest", async (req: Request, res: Response) => {
   try {
-    const list = await survivorRecommendationService.getLatest();
+    let list = await survivorRecommendationService.getLatest();
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      list = list.filter(item => myEntryIds.has(item.entry_id));
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -2251,7 +2460,13 @@ router.get("/recommendations/latest", async (req: Request, res: Response) => {
 // GET /api/recommendations/history
 router.get("/recommendations/history", async (req: Request, res: Response) => {
   try {
-    const list = await survivorRecommendationService.getHistory();
+    let list = await survivorRecommendationService.getHistory();
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      list = list.filter(item => myEntryIds.has(item.entry_id));
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -2262,6 +2477,14 @@ router.get("/recommendations/history", async (req: Request, res: Response) => {
 router.get("/recommendations/by-entry/:entryId", async (req: Request, res: Response) => {
   try {
     const { entryId } = req.params;
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const entry = await entryRepo.getById(entryId);
+      if (!entry || entry.owner_id !== currentUser.owner_id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+      }
+    }
+
     const list = await survivorRecommendationService.getByEntryId(entryId);
     res.json(list);
   } catch (err: any) {
@@ -2273,7 +2496,13 @@ router.get("/recommendations/by-entry/:entryId", async (req: Request, res: Respo
 router.get("/recommendations/top", async (req: Request, res: Response) => {
   try {
     const limit = parseInt((req.query.limit || "5").toString(), 10);
-    const list = await survivorRecommendationService.getTop(limit);
+    let list = await survivorRecommendationService.getTop(limit);
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      list = list.filter(item => myEntryIds.has(item.entry_id));
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -2302,7 +2531,13 @@ router.post("/recommendations/calculate", async (req: Request, res: Response) =>
 // GET /api/recommendation-audits/latest
 router.get("/recommendation-audits/latest", async (req: Request, res: Response) => {
   try {
-    const list = await recommendationAuditService.getLatest();
+    let list = await recommendationAuditService.getLatest();
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      list = list.filter(item => myEntryIds.has(item.entry_id));
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -2312,7 +2547,13 @@ router.get("/recommendation-audits/latest", async (req: Request, res: Response) 
 // GET /api/recommendation-audits/history
 router.get("/recommendation-audits/history", async (req: Request, res: Response) => {
   try {
-    const list = await recommendationAuditService.getAll();
+    let list = await recommendationAuditService.getAll();
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      list = list.filter(item => myEntryIds.has(item.entry_id));
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -2323,6 +2564,14 @@ router.get("/recommendation-audits/history", async (req: Request, res: Response)
 router.get("/recommendation-audits/by-entry/:entryId", async (req: Request, res: Response) => {
   try {
     const { entryId } = req.params;
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const entry = await entryRepo.getById(entryId);
+      if (!entry || entry.owner_id !== currentUser.owner_id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+      }
+    }
+
     const list = await recommendationAuditService.getByEntryId(entryId);
     res.json(list);
   } catch (err: any) {
@@ -2334,7 +2583,13 @@ router.get("/recommendation-audits/by-entry/:entryId", async (req: Request, res:
 router.get("/recommendation-audits/by-team/:teamId", async (req: Request, res: Response) => {
   try {
     const { teamId } = req.params;
-    const list = await recommendationAuditService.getByTeamId(teamId.toUpperCase());
+    let list = await recommendationAuditService.getByTeamId(teamId.toUpperCase());
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      list = list.filter(item => !item.entry_id || myEntryIds.has(item.entry_id));
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -2366,7 +2621,13 @@ router.post("/recommendation-audits/generate", async (req: Request, res: Respons
 // GET /api/recommendation-confidence/latest
 router.get("/recommendation-confidence/latest", async (req: Request, res: Response) => {
   try {
-    const list = await recommendationConfidenceService.getLatest();
+    let list = await recommendationConfidenceService.getLatest();
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      list = list.filter(item => myEntryIds.has(item.entry_id));
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -2376,7 +2637,13 @@ router.get("/recommendation-confidence/latest", async (req: Request, res: Respon
 // GET /api/recommendation-confidence/history
 router.get("/recommendation-confidence/history", async (req: Request, res: Response) => {
   try {
-    const list = await recommendationConfidenceService.getAll();
+    let list = await recommendationConfidenceService.getAll();
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      list = list.filter(item => myEntryIds.has(item.entry_id));
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -2387,6 +2654,14 @@ router.get("/recommendation-confidence/history", async (req: Request, res: Respo
 router.get("/recommendation-confidence/by-entry/:entryId", async (req: Request, res: Response) => {
   try {
     const { entryId } = req.params;
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const entry = await entryRepo.getById(entryId);
+      if (!entry || entry.owner_id !== currentUser.owner_id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+      }
+    }
+
     const list = await recommendationConfidenceService.getByEntryId(entryId);
     res.json(list);
   } catch (err: any) {
@@ -2398,7 +2673,13 @@ router.get("/recommendation-confidence/by-entry/:entryId", async (req: Request, 
 router.get("/recommendation-confidence/top", async (req: Request, res: Response) => {
   try {
     const limit = parseInt((req.query.limit || "10").toString(), 10);
-    const list = await recommendationConfidenceService.getTopConfidence(limit);
+    let list = await recommendationConfidenceService.getTopConfidence(limit);
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      list = list.filter(item => myEntryIds.has(item.entry_id));
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -2430,7 +2711,13 @@ router.post("/recommendation-confidence/calculate", async (req: Request, res: Re
 // GET /api/recommendation-consensus/latest
 router.get("/recommendation-consensus/latest", async (req: Request, res: Response) => {
   try {
-    const list = await RecommendationConsensusService.getLatest();
+    let list = await RecommendationConsensusService.getLatest();
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      list = list.filter(item => myEntryIds.has(item.entry_id));
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -2440,7 +2727,13 @@ router.get("/recommendation-consensus/latest", async (req: Request, res: Respons
 // GET /api/recommendation-consensus/history
 router.get("/recommendation-consensus/history", async (req: Request, res: Response) => {
   try {
-    const list = await RecommendationConsensusService.getAll();
+    let list = await RecommendationConsensusService.getAll();
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      list = list.filter(item => myEntryIds.has(item.entry_id));
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -2451,6 +2744,14 @@ router.get("/recommendation-consensus/history", async (req: Request, res: Respon
 router.get("/recommendation-consensus/by-entry/:entryId", async (req: Request, res: Response) => {
   try {
     const { entryId } = req.params;
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const entry = await entryRepo.getById(entryId);
+      if (!entry || entry.owner_id !== currentUser.owner_id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+      }
+    }
+
     const list = await RecommendationConsensusService.getByEntryId(entryId);
     res.json(list);
   } catch (err: any) {
@@ -2462,7 +2763,13 @@ router.get("/recommendation-consensus/by-entry/:entryId", async (req: Request, r
 router.get("/recommendation-consensus/top", async (req: Request, res: Response) => {
   try {
     const limit = parseInt((req.query.limit || "10").toString(), 10);
-    const list = await RecommendationConsensusService.getTopConsensus(limit);
+    let list = await RecommendationConsensusService.getTopConsensus(limit);
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      list = list.filter(item => myEntryIds.has(item.entry_id));
+    }
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -3295,7 +3602,16 @@ router.get("/system/test-strategy", async (req: Request, res: Response) => {
 // GET active strategy for entry
 router.get("/survivor/entries/:entryId/strategy", async (req: Request, res: Response) => {
   try {
-    const strategy = await survivorStrategyService.getActiveStrategy(req.params.entryId);
+    const { entryId } = req.params;
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const entry = await entryRepo.getById(entryId);
+      if (!entry || entry.owner_id !== currentUser.owner_id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+      }
+    }
+
+    const strategy = await survivorStrategyService.getActiveStrategy(entryId);
     res.json(strategy);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -3305,6 +3621,17 @@ router.get("/survivor/entries/:entryId/strategy", async (req: Request, res: Resp
 // PUT update strategy for entry
 router.post("/survivor/entries/:entryId/strategy", async (req: Request, res: Response) => {
   try {
+    const entryId = req.params.entryId || req.body.entry_id;
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      if (entryId) {
+        const entry = await entryRepo.getById(entryId);
+        if (!entry || entry.owner_id !== currentUser.owner_id) {
+          return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+        }
+      }
+    }
+
     const updated = await survivorStrategyService.updateStrategy(req.body);
     res.json(updated);
   } catch (err: any) {
@@ -3315,6 +3642,17 @@ router.post("/survivor/entries/:entryId/strategy", async (req: Request, res: Res
 // Support standard PUT as well
 router.put("/survivor/entries/:entryId/strategy", async (req: Request, res: Response) => {
   try {
+    const entryId = req.params.entryId || req.body.entry_id;
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      if (entryId) {
+        const entry = await entryRepo.getById(entryId);
+        if (!entry || entry.owner_id !== currentUser.owner_id) {
+          return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+        }
+      }
+    }
+
     const updated = await survivorStrategyService.updateStrategy(req.body);
     res.json(updated);
   } catch (err: any) {
@@ -3325,10 +3663,19 @@ router.put("/survivor/entries/:entryId/strategy", async (req: Request, res: Resp
 // GET latest roadmap for entry
 router.get("/survivor/entries/:entryId/roadmap", async (req: Request, res: Response) => {
   try {
+    const { entryId } = req.params;
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const entry = await entryRepo.getById(entryId);
+      if (!entry || entry.owner_id !== currentUser.owner_id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+      }
+    }
+
     const season = (req.query.season as string) || "2026";
-    let data = await survivorRoadmapService.getLatestRoadmap(req.params.entryId, season);
+    let data = await survivorRoadmapService.getLatestRoadmap(entryId, season);
     if (!data) {
-      data = await survivorRoadmapService.generateRoadmap(req.params.entryId, season);
+      data = await survivorRoadmapService.generateRoadmap(entryId, season);
     }
     res.json(data);
   } catch (err: any) {
@@ -3339,8 +3686,17 @@ router.get("/survivor/entries/:entryId/roadmap", async (req: Request, res: Respo
 // POST regenerate roadmap for entry
 router.post("/survivor/entries/:entryId/roadmap/regenerate", async (req: Request, res: Response) => {
   try {
+    const { entryId } = req.params;
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const entry = await entryRepo.getById(entryId);
+      if (!entry || entry.owner_id !== currentUser.owner_id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+      }
+    }
+
     const season = (req.body.season as string) || (req.query.season as string) || "2026";
-    const data = await survivorRoadmapService.generateRoadmap(req.params.entryId, season);
+    const data = await survivorRoadmapService.generateRoadmap(entryId, season);
     res.json({ success: true, ...data });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -3350,11 +3706,20 @@ router.post("/survivor/entries/:entryId/roadmap/regenerate", async (req: Request
 // GET holiday reservations for entry
 router.get("/survivor/entries/:entryId/holiday-reservations", async (req: Request, res: Response) => {
   try {
+    const { entryId } = req.params;
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const entry = await entryRepo.getById(entryId);
+      if (!entry || entry.owner_id !== currentUser.owner_id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+      }
+    }
+
     const season = (req.query.season as string) || "2026";
-    let reservations = await holidayReservationService.getReservations(req.params.entryId, season);
+    let reservations = await holidayReservationService.getReservations(entryId, season);
     if (!reservations || reservations.length === 0) {
-      const strat = await survivorStrategyService.getActiveStrategy(req.params.entryId);
-      reservations = await holidayReservationService.generateReservations(req.params.entryId, season, strat.strategy_type);
+      const strat = await survivorStrategyService.getActiveStrategy(entryId);
+      reservations = await holidayReservationService.generateReservations(entryId, season, strat.strategy_type);
     }
     res.json(reservations);
   } catch (err: any) {
@@ -3365,6 +3730,17 @@ router.get("/survivor/entries/:entryId/holiday-reservations", async (req: Reques
 // POST update specific holiday reservation
 router.post("/survivor/entries/:entryId/holiday-reservations", async (req: Request, res: Response) => {
   try {
+    const entryId = req.params.entryId || req.body.entry_id;
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      if (entryId) {
+        const entry = await entryRepo.getById(entryId);
+        if (!entry || entry.owner_id !== currentUser.owner_id) {
+          return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+        }
+      }
+    }
+
     const saved = await holidayReservationService.saveReservation(req.body);
     res.json(saved);
   } catch (err: any) {
@@ -3375,9 +3751,18 @@ router.post("/survivor/entries/:entryId/holiday-reservations", async (req: Reque
 // POST regenerate holiday reservations
 router.post("/survivor/entries/:entryId/holiday-reservations/regenerate", async (req: Request, res: Response) => {
   try {
+    const { entryId } = req.params;
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const entry = await entryRepo.getById(entryId);
+      if (!entry || entry.owner_id !== currentUser.owner_id) {
+        return res.status(403).json({ error: "Forbidden: You do not own this entry." });
+      }
+    }
+
     const season = (req.body.season as string) || (req.query.season as string) || "2026";
-    const strat = await survivorStrategyService.getActiveStrategy(req.params.entryId);
-    const reservations = await holidayReservationService.generateReservations(req.params.entryId, season, strat.strategy_type);
+    const strat = await survivorStrategyService.getActiveStrategy(entryId);
+    const reservations = await holidayReservationService.generateReservations(entryId, season, strat.strategy_type);
     res.json({ success: true, reservations });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -3389,6 +3774,21 @@ router.get("/survivor/portfolio/roadmaps", async (req: Request, res: Response) =
   try {
     const season = (req.query.season as string) || "2026";
     const roadmaps = await survivorRoadmapService.getPortfolioRoadmaps(season);
+
+    // Filter by currentUser if not admin
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const myEntryIds = new Set(myEntries.map(e => e.id));
+      const filteredRoadmaps: Record<string, any> = {};
+      for (const entryId of Object.keys(roadmaps)) {
+        if (myEntryIds.has(entryId)) {
+          filteredRoadmaps[entryId] = roadmaps[entryId];
+        }
+      }
+      return res.json(filteredRoadmaps);
+    }
+
     res.json(roadmaps);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -3399,6 +3799,18 @@ router.get("/survivor/portfolio/roadmaps", async (req: Request, res: Response) =
 router.post("/survivor/portfolio/roadmaps/regenerate", async (req: Request, res: Response) => {
   try {
     const season = (req.body.season as string) || (req.query.season as string) || "2026";
+
+    const currentUser = await getCurrentUserFromReq(req);
+    if (currentUser && currentUser.role !== "admin") {
+      const myEntries = await entryRepo.getByOwnerId(currentUser.owner_id);
+      const results = [];
+      for (const entry of myEntries) {
+        const r = await survivorRoadmapService.generateRoadmap(entry.id, season);
+        results.push(r);
+      }
+      return res.json({ success: true, results });
+    }
+
     const results = await survivorRoadmapService.generateAllRoadmaps(season);
     res.json({ success: true, results });
   } catch (err: any) {

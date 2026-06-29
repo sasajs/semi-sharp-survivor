@@ -228,6 +228,7 @@ export function useAppData() {
     handleCreateEntry,
     handleDeleteEntry,
     handleResetAppDb,
+    loadAllData,
     activeEntryObj,
     activeLegObj,
     totalEntriesCount,

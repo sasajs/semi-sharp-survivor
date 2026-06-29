@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Flame, 
   TrendingUp, 
@@ -24,7 +24,8 @@ import {
   Shield,
   Cpu,
   Compass,
-  BrainCircuit
+  BrainCircuit,
+  Loader2
 } from "lucide-react";
 
 import { useAppData } from "./hooks/useAppData";
@@ -51,6 +52,11 @@ import { ChampionshipPlanningPanel } from "./components/ChampionshipPlanningPane
 import { DecisionAnalyticsPanel } from "./components/DecisionAnalyticsPanel";
 import { WeeklyLearningLoopPanel } from "./components/WeeklyLearningLoopPanel";
 import { AdminDashboard } from "./pages/AdminDashboard";
+
+import { LoginScreen } from "./components/LoginScreen";
+import { OwnerWorkspaceDashboard } from "./components/OwnerWorkspaceDashboard";
+import { apiService } from "./services/apiService";
+import { StrategyType } from "./types";
 
 export default function App() {
   const {
@@ -82,6 +88,7 @@ export default function App() {
     handleCreateEntry,
     handleDeleteEntry,
     handleResetAppDb,
+    loadAllData,
     activeEntryObj,
     activeLegObj,
     totalEntriesCount,
@@ -89,6 +96,242 @@ export default function App() {
     eliminatedEntriesCount,
     currentPickForLeg
   } = useAppData();
+
+  // Monkeypatch window.fetch for session authentication
+  useEffect(() => {
+    if (typeof window !== "undefined" && !(window as any).__fetchPatched) {
+      try {
+        const originalFetch = window.fetch;
+        Object.defineProperty(window, "fetch", {
+          configurable: true,
+          enumerable: true,
+          writable: true,
+          value: function (input: any, init: any) {
+            const t = localStorage.getItem("admin_token");
+            if (t) {
+              init = init || {};
+              const headers = new Headers(init.headers);
+              if (!headers.has("Authorization")) {
+                headers.set("Authorization", `Bearer ${t}`);
+              }
+              if (!headers.has("X-Admin-Token")) {
+                headers.set("X-Admin-Token", t);
+              }
+              init.headers = headers;
+            }
+            return originalFetch.call(window, input, init);
+          }
+        });
+        (window as any).__fetchPatched = true;
+      } catch (e) {
+        console.warn("Could not monkeypatch window.fetch globally, using local service fallbacks:", e);
+        try {
+          // Fallback simple assignment in case writable is true but defineProperty is restricted
+          const originalFetch = window.fetch;
+          (window as any).fetch = function (input: any, init: any) {
+            const t = localStorage.getItem("admin_token");
+            if (t) {
+              init = init || {};
+              const headers = new Headers(init.headers);
+              if (!headers.has("Authorization")) {
+                headers.set("Authorization", `Bearer ${t}`);
+              }
+              if (!headers.has("X-Admin-Token")) {
+                headers.set("X-Admin-Token", t);
+              }
+              init.headers = headers;
+            }
+            return originalFetch.call(window, input, init);
+          };
+          (window as any).__fetchPatched = true;
+        } catch (innerError) {
+          console.warn("Global fetch assignment fallback failed:", innerError);
+        }
+      }
+    }
+  }, []);
+
+  // Auth State
+  const [token, setToken] = useState<string | null>(localStorage.getItem("admin_token"));
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
+  const [loginLoading, setLoginLoading] = useState<boolean>(false);
+  const [authError, setAuthError] = useState<string>("");
+
+  const [workspace, setWorkspace] = useState<any[]>([]);
+  const [loadingWorkspace, setLoadingWorkspace] = useState<boolean>(false);
+  const [workspaceError, setWorkspaceError] = useState<string>("");
+
+  // Load session
+  const checkSession = async () => {
+    try {
+      const curToken = localStorage.getItem("admin_token");
+      if (!curToken) {
+        setCurrentUser(null);
+        setAuthLoading(false);
+        return;
+      }
+
+      const res = await fetch("/api/auth/session");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.authenticated && data.user) {
+          setCurrentUser(data.user);
+          setToken(curToken);
+        } else {
+          localStorage.removeItem("admin_token");
+          setToken(null);
+          setCurrentUser(null);
+        }
+      } else {
+        localStorage.removeItem("admin_token");
+        setToken(null);
+        setCurrentUser(null);
+      }
+    } catch (err) {
+      console.error("Session check error:", err);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkSession();
+  }, [token]);
+
+  // Load workspace for user
+  const loadWorkspace = async () => {
+    if (!token || !currentUser) return;
+    try {
+      setLoadingWorkspace(true);
+      setWorkspaceError("");
+      const res = await apiService.getCurrentOwnerWorkspace();
+      if (res.success) {
+        setWorkspace(res.workspace || []);
+      }
+    } catch (err: any) {
+      console.error("Workspace load error:", err);
+      const isAuthErr = err.message?.includes("Unauthorized") || err.message?.includes("expired") || err.message?.includes("401") || err.message?.includes("403");
+      if (isAuthErr) {
+        setWorkspaceError("Unauthorized: Invalid or expired token. Please log out and log in again.");
+        setErrorMsg("Unauthorized: Your session has expired. Please log in again.");
+      } else {
+        setWorkspaceError(err.message || "Failed to load owner workspace");
+        setErrorMsg("Failed to load owner workspace: " + (err.message || "Unknown error"));
+      }
+    } finally {
+      setLoadingWorkspace(false);
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser) {
+      loadWorkspace();
+    }
+  }, [currentUser]);
+
+  const handleLogin = async (usernameInput: string, passwordInput: string) => {
+    setLoginLoading(true);
+    setAuthError("");
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: usernameInput, password: passwordInput })
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.session?.token) {
+        localStorage.setItem("admin_token", data.session.token);
+        setToken(data.session.token);
+        setCurrentUser(data.user);
+        // Force reload useAppData to make sure it pulls fresh/auth-guarded data
+        await loadAllData(true);
+      } else {
+        setAuthError(data.error || "Authentication failed.");
+      }
+    } catch (err: any) {
+      setAuthError(err.message || "Network error. Failed to authenticate.");
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (err) {
+      console.error("Logout request failure", err);
+    } finally {
+      localStorage.removeItem("admin_token");
+      setToken(null);
+      setCurrentUser(null);
+      setWorkspace([]);
+    }
+  };
+
+  const handleChangeStrategy = async (entryId: string, strategyType: StrategyType) => {
+    try {
+      const res = await fetch("/api/strategies/profiles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          entry_id: entryId,
+          strategy_type: strategyType
+        })
+      });
+      if (!res.ok) {
+        throw new Error("Failed to update strategy profile");
+      }
+      // Refresh both workspace and standard data
+      await loadWorkspace();
+      await loadAllData(false);
+    } catch (err) {
+      console.error("Strategy update error:", err);
+    }
+  };
+
+  // Redirect non-admin users if activeTab is not allowed
+  useEffect(() => {
+    if (currentUser && currentUser.role !== "admin") {
+      const allowed = ["dashboard", "entries", "roadmaps", "recommendations", "reports"];
+      if (!allowed.includes(activeTab)) {
+        setActiveTab("dashboard");
+      }
+    }
+  }, [currentUser, activeTab, setActiveTab]);
+
+  // Filter entries & picks for non-admin owners
+  const filteredEntries = currentUser && currentUser.role !== "admin"
+    ? entries.filter(e => e.owner_id === currentUser.owner_id)
+    : entries;
+
+  const filteredPicks = currentUser && currentUser.role !== "admin"
+    ? picks.filter(p => {
+        const entry = entries.find(e => e.id === p.entry_id);
+        return entry && entry.owner_id === currentUser.owner_id;
+      })
+    : picks;
+
+  const ownerName = workspace[0]?.owner?.name || currentUser?.owner_id?.replace("owner-", "").toUpperCase() || "Portfolio";
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center space-y-4 font-sans">
+        <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+        <p className="text-xs font-semibold text-slate-500 animate-pulse">Initializing Security Posture & Database Connection...</p>
+      </div>
+    );
+  }
+
+  if (!currentUser || !token) {
+    return (
+      <LoginScreen 
+        onLogin={handleLogin} 
+        loading={loginLoading} 
+        errorMsg={authError} 
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans antialiased text-slate-900 flex flex-col justify-between">
@@ -116,26 +359,72 @@ export default function App() {
               </div>
             </div>
 
-            {/* Quick Stats Summary Pills */}
-            <div className="hidden md:flex items-center gap-4">
-              <div className="bg-slate-100 border px-3 py-1 bg-white/70 rounded-full text-xs flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></span>
-                <span className="text-slate-500 font-bold">ACTIVE CONTEST:</span>
-                <strong className="text-slate-800">CIRCA SURVIVOR 2026</strong>
-              </div>
+            {/* Quick Stats Summary Pills & User Profile */}
+            <div className="flex items-center gap-4">
+              {currentUser?.role === "admin" && (
+                <div className="hidden xl:flex items-center gap-4">
+                  <div className="bg-slate-100 border px-3 py-1 bg-white/70 rounded-full text-xs flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></span>
+                    <span className="text-slate-500 font-bold">ACTIVE CONTEST:</span>
+                    <strong className="text-slate-800">CIRCA SURVIVOR 2026</strong>
+                  </div>
 
-              <div className="bg-slate-100 border px-3 py-1 bg-white/70 rounded-full text-xs flex items-center gap-2">
-                <span className="text-slate-500 font-bold">TOTAL PORTFOLIO LINES:</span>
-                <strong className="text-slate-850 font-black">{totalEntriesCount}</strong>
-              </div>
+                  <div className="bg-slate-100 border px-3 py-1 bg-white/70 rounded-full text-xs flex items-center gap-2">
+                    <span className="text-slate-500 font-bold">TOTAL PORTFOLIO LINES:</span>
+                    <strong className="text-slate-850 font-black">{totalEntriesCount}</strong>
+                  </div>
 
-              <button 
-                onClick={handleResetAppDb}
-                className="bg-slate-900 hover:bg-slate-800 text-white rounded-full px-4 py-1.5 text-[11px] font-black tracking-wide flex items-center gap-1.5 cursor-pointer shadow-sm"
-              >
-                <Database className="w-3.5 h-3.5 text-indigo-300" />
-                RESEED TEST SCENARIOS
-              </button>
+                  <button 
+                    onClick={handleResetAppDb}
+                    className="bg-slate-900 hover:bg-slate-800 text-white rounded-full px-4 py-1.5 text-[11px] font-black tracking-wide flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  >
+                    <Database className="w-3.5 h-3.5 text-indigo-300" />
+                    RESEED TEST SCENARIOS
+                  </button>
+                </div>
+              )}
+
+              {currentUser && (
+                <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-1.5 px-3">
+                  <div className="hidden md:flex flex-col text-right leading-tight text-[11px]">
+                    <div className="font-extrabold text-slate-800">
+                      Logged in as: <span className="text-indigo-600 font-black">{currentUser.display_name}</span>
+                    </div>
+                    {currentUser.role !== "admin" ? (
+                      <>
+                        <div className="text-[10px] text-slate-500 font-bold">
+                          Owner: {ownerName}
+                        </div>
+                        <div className="text-[10px] text-indigo-600 font-black">
+                          Entries Visible: {filteredEntries.length}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-[10px] text-indigo-600 font-black">
+                        Entries Visible: {filteredEntries.length} (ALL)
+                      </div>
+                    )}
+                    <div className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider">
+                      Role: {currentUser.role}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 border-l border-slate-200 pl-3">
+                    <button
+                      onClick={handleLogout}
+                      className="text-[10px] font-black uppercase text-slate-600 hover:text-rose-600 bg-white border border-slate-200 px-2 py-1.5 rounded-xl transition cursor-pointer hover:bg-rose-50"
+                    >
+                      Logout
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="text-[10px] font-black uppercase bg-indigo-600 text-white hover:bg-indigo-700 px-2.5 py-1.5 rounded-xl transition cursor-pointer shadow-sm"
+                    >
+                      Switch User
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
           </div>
@@ -162,34 +451,43 @@ export default function App() {
 
             {/* Sidebar selection menu */}
             <nav className="space-y-1">
-              {[
-                { id: "dashboard", label: "Dashboard Overview", icon: Activity },
-                { id: "contest-setup", label: "Circa Survivor Rules & Leg Map", icon: Award },
-                { id: "entries", label: "Portfolio Entries", icon: Columns },
-                { id: "picks", label: "Weekly Pick Matrix", icon: TrendingUp },
-                { id: "inventory", label: "Full 32 Team Inventory", icon: Settings2 },
-                { id: "thanksgiving", label: "Thanksgiving Shield", icon: Flame, badge: "Leg 13" },
-                { id: "christmas", label: "Christmas Day Preservation", icon: Sparkles, badge: "Leg 18" },
-                { id: "reports", label: "Contest Equity Report", icon: FileText },
-                { id: "recommendation-audits", label: "Recommendation Audit", icon: History, badge: "New" },
-                { id: "recommendation-confidence", label: "Confidence & Stability", icon: ShieldCheck, badge: "Layer 2" },
-                { id: "recommendation-consensus", label: "Consensus Analysis", icon: Zap, badge: "Layer 2" },
-                { id: "recommendation-portfolio", label: "Portfolio Optimizer", icon: Layers, badge: "v0.39" },
-                { id: "contest-ev", label: "Contest EV Optimizer", icon: Award, badge: "v0.40" },
-                { id: "ownership-calibration", label: "Ownership Calibration", icon: Sliders, badge: "v0.41" },
-                { id: "market-calibration", label: "Market Calibration", icon: Scale, badge: "v0.42" },
-                { id: "model-performance", label: "Model Performance", icon: Target, badge: "v0.43" },
-                { id: "rolling-validation", label: "Rolling Validation", icon: History, badge: "v0.44" },
-                { id: "model-drift", label: "Model Drift Analysis", icon: Shield, badge: "v0.45" },
-                { id: "model-weights", label: "Adaptive Weights", icon: Scale, badge: "v0.46" },
-                { id: "decision-policies", label: "Decision Policies", icon: Shield, badge: "v0.48" },
-                { id: "survivor-decisions", label: "Survivor Decisions", icon: Cpu, badge: "v0.49" },
-                { id: "survivor-plans", label: "Survivor Plans", icon: Compass, badge: "v0.50" },
-                { id: "championship-plans", label: "Championship Plans", icon: Award, badge: "v0.51" },
-                { id: "decision-analytics", label: "Decision Analytics", icon: Activity, badge: "v0.52" },
-                { id: "weekly-learning", label: "Weekly Learning Loop", icon: BrainCircuit, badge: "v0.54" },
-                { id: "admin", label: "Admin Dashboard", icon: ShieldAlert, badge: "Secure" },
-              ].map(tab => {
+              {(currentUser?.role === "admin"
+                ? [
+                    { id: "dashboard", label: "Dashboard Overview", icon: Activity },
+                    { id: "contest-setup", label: "Circa Survivor Rules & Leg Map", icon: Award },
+                    { id: "entries", label: "Portfolio Entries", icon: Columns },
+                    { id: "picks", label: "Weekly Pick Matrix", icon: TrendingUp },
+                    { id: "inventory", label: "Full 32 Team Inventory", icon: Settings2 },
+                    { id: "thanksgiving", label: "Thanksgiving Shield", icon: Flame, badge: "Leg 13" },
+                    { id: "christmas", label: "Christmas Day Preservation", icon: Sparkles, badge: "Leg 18" },
+                    { id: "reports", label: "Contest Equity Report", icon: FileText },
+                    { id: "recommendation-audits", label: "Recommendation Audit", icon: History, badge: "New" },
+                    { id: "recommendation-confidence", label: "Confidence & Stability", icon: ShieldCheck, badge: "Layer 2" },
+                    { id: "recommendation-consensus", label: "Consensus Analysis", icon: Zap, badge: "Layer 2" },
+                    { id: "recommendation-portfolio", label: "Portfolio Optimizer", icon: Layers, badge: "v0.39" },
+                    { id: "contest-ev", label: "Contest EV Optimizer", icon: Award, badge: "v0.40" },
+                    { id: "ownership-calibration", label: "Ownership Calibration", icon: Sliders, badge: "v0.41" },
+                    { id: "market-calibration", label: "Market Calibration", icon: Scale, badge: "v0.42" },
+                    { id: "model-performance", label: "Model Performance", icon: Target, badge: "v0.43" },
+                    { id: "rolling-validation", label: "Rolling Validation", icon: History, badge: "v0.44" },
+                    { id: "model-drift", label: "Model Drift Analysis", icon: Shield, badge: "v0.45" },
+                    { id: "model-weights", label: "Adaptive Weights", icon: Scale, badge: "v0.46" },
+                    { id: "decision-policies", label: "Decision Policies", icon: Shield, badge: "v0.48" },
+                    { id: "survivor-decisions", label: "Survivor Decisions", icon: Cpu, badge: "v0.49" },
+                    { id: "survivor-plans", label: "Survivor Plans", icon: Compass, badge: "v0.50" },
+                    { id: "championship-plans", label: "Championship Plans", icon: Award, badge: "v0.51" },
+                    { id: "decision-analytics", label: "Decision Analytics", icon: Activity, badge: "v0.52" },
+                    { id: "weekly-learning", label: "Weekly Learning Loop", icon: BrainCircuit, badge: "v0.54" },
+                    { id: "admin", label: "Admin Dashboard", icon: ShieldAlert, badge: "Secure" },
+                  ]
+                : [
+                    { id: "dashboard", label: "My Dashboard", icon: Activity },
+                    { id: "entries", label: "My Entries", icon: Columns },
+                    { id: "roadmaps", label: "My Roadmaps", icon: Compass },
+                    { id: "recommendations", label: "My Recommendations", icon: TrendingUp },
+                    { id: "reports", label: "Reports", icon: FileText },
+                  ]
+              ).map(tab => {
                 const Icon = tab.icon;
                 const isSelected = activeTab === tab.id;
                 return (
@@ -283,87 +581,108 @@ export default function App() {
                   VIEW 1: DASHBOARD
                   ======================================================== */}
               {activeTab === "dashboard" && (
-                <div className="space-y-6">
-                  
-                  {/* Hero Title Box */}
-                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                    <h2 className="text-2xl font-black text-slate-950 tracking-tight">
-                      Contest Portfolio Overview &amp; Optimization Dashboard
-                    </h2>
-                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                      This MVP leverages advanced analytical calculations to assist you in managing multiple entry tracks, conserving powerhouse teams for Thanksgiving or Christmas, and generating optimal Survivor picks.
-                    </p>
-                  </div>
-
-                  {/* Reusable Dashboard Cards Component */}
-                  <DashboardCards 
-                    activeEntryObj={activeEntryObj}
-                    activeLegObj={activeLegObj}
-                    games={games}
-                  />
-
-                  {/* Quick Active Entries Status Grid */}
-                  <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5 space-y-4">
-                    <div className="border-b pb-3">
-                      <h3 className="font-extrabold text-slate-900 text-sm uppercase">My Active Entries &amp; Current Week Status</h3>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Quick lookup of all portfolio lines currently contesting the prize bank.</p>
+                currentUser?.role === "admin" ? (
+                  <div className="space-y-6">
+                    
+                    {/* Hero Title Box */}
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                      <h2 className="text-2xl font-black text-slate-950 tracking-tight">
+                        Contest Portfolio Overview &amp; Optimization Dashboard
+                      </h2>
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                        This MVP leverages advanced analytical calculations to assist you in managing multiple entry tracks, conserving powerhouse teams for Thanksgiving or Christmas, and generating optimal Survivor picks.
+                      </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {entries.map(ent => {
-                        const nextPick = picks.find(p => p.entry_id === ent.id && p.contest_leg_id === selectedLegId);
-                        const pickedTeamObj = nextPick ? teams.find(t => t.id === nextPick.team_id) : null;
-                        
-                        return (
-                          <div 
-                            key={ent.id}
-                            className={`border rounded-xl p-4 flex justify-between items-center ${
-                              ent.status === "alive" ? "bg-emerald-50/10 border-emerald-100" : "bg-rose-50/10 border-rose-100 opacity-60"
-                            }`}
-                          >
-                            <div>
-                              <h4 className="font-bold text-xs text-slate-900">{ent.name}</h4>
-                              <p className="text-[10px] text-slate-400 mt-0.5">Focus Track • Code: {ent.id}</p>
-                              
-                              <div className="mt-2.5 flex items-center gap-2">
-                                <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
-                                  ent.status === "alive" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
-                                }`}>
-                                  {ent.status.toUpperCase()}
-                                </span>
-                                <span className="text-[10px] text-slate-500">
-                                  Choice Selection for {activeLegObj?.name}:
-                                </span>
+                    {/* Reusable Dashboard Cards Component */}
+                    <DashboardCards 
+                      activeEntryObj={activeEntryObj}
+                      activeLegObj={activeLegObj}
+                      games={games}
+                    />
+
+                    {/* Quick Active Entries Status Grid */}
+                    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5 space-y-4">
+                      <div className="border-b pb-3">
+                        <h3 className="font-extrabold text-slate-900 text-sm uppercase">My Active Entries &amp; Current Week Status</h3>
+                        <p className="text-[11px] text-slate-400 mt-0.5">Quick lookup of all portfolio lines currently contesting the prize bank.</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {entries.map(ent => {
+                          const nextPick = picks.find(p => p.entry_id === ent.id && p.contest_leg_id === selectedLegId);
+                          const pickedTeamObj = nextPick ? teams.find(t => t.id === nextPick.team_id) : null;
+                          
+                          return (
+                            <div 
+                              key={ent.id}
+                              className={`border rounded-xl p-4 flex justify-between items-center ${
+                                ent.status === "alive" ? "bg-emerald-50/10 border-emerald-100" : "bg-rose-50/10 border-rose-100 opacity-60"
+                              }`}
+                            >
+                              <div>
+                                <h4 className="font-bold text-xs text-slate-900">{ent.name}</h4>
+                                <p className="text-[10px] text-slate-400 mt-0.5">Focus Track • Code: {ent.id}</p>
+                                
+                                <div className="mt-2.5 flex items-center gap-2">
+                                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
+                                    ent.status === "alive" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                                  }`}>
+                                    {ent.status.toUpperCase()}
+                                  </span>
+                                  <span className="text-[10px] text-slate-500">
+                                    Choice Selection for {activeLegObj?.name}:
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="text-right">
+                                {pickedTeamObj ? (
+                                  <div className="flex flex-col items-end gap-1">
+                                    <span className="text-[10px] font-semibold text-indigo-600 uppercase bg-indigo-50 px-2 py-0.5 rounded animate-pulse">
+                                      🏈 {pickedTeamObj.name}
+                                    </span>
+                                    <span className="text-[8px] text-slate-400 font-mono text-xs">LOCKED CONTENDER</span>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      setSelectedEntryId(ent.id);
+                                      setActiveTab("picks");
+                                    }}
+                                    className="text-[10px] bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-2.5 py-1.5 rounded"
+                                  >
+                                    PLACE SURVIVOR PICK
+                                  </button>
+                                )}
                               </div>
                             </div>
-
-                            <div className="text-right">
-                              {pickedTeamObj ? (
-                                <div className="flex flex-col items-end gap-1">
-                                  <span className="text-[10px] font-semibold text-indigo-600 uppercase bg-indigo-50 px-2 py-0.5 rounded animate-pulse">
-                                    🏈 {pickedTeamObj.name}
-                                  </span>
-                                  <span className="text-[8px] text-slate-400 font-mono text-xs">LOCKED CONTENDER</span>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={() => {
-                                    setSelectedEntryId(ent.id);
-                                    setActiveTab("picks");
-                                  }}
-                                  className="text-[10px] bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-2.5 py-1.5 rounded"
-                                >
-                                  PLACE SURVIVOR PICK
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
 
-                </div>
+                  </div>
+                ) : (
+                  <OwnerWorkspaceDashboard
+                    workspace={workspace}
+                    teams={teams}
+                    onViewRoadmap={(entryId) => {
+                      setSelectedEntryId(entryId);
+                      setActiveTab("roadmaps");
+                    }}
+                    onViewRecommendation={(entryId) => {
+                      setSelectedEntryId(entryId);
+                      setActiveTab("recommendations");
+                    }}
+                    onChangeStrategy={handleChangeStrategy}
+                    loadingWorkspace={loadingWorkspace}
+                    onRefresh={loadWorkspace}
+                    userDisplayName={currentUser?.display_name || "Owner"}
+                    ownerName={ownerName}
+                    workspaceError={workspaceError}
+                  />
+                )
               )}
 
               {/* ========================================================
@@ -486,14 +805,14 @@ export default function App() {
                     <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
                       <div className="border-b pb-3 mb-4 flex justify-between items-center">
                         <div>
-                          <h3 className="font-extrabold text-slate-900 text-sm uppercase">Currently Tracked Entries ({entries.length})</h3>
+                          <h3 className="font-extrabold text-slate-900 text-sm uppercase">Currently Tracked Entries ({filteredEntries.length})</h3>
                           <p className="text-[11px] text-slate-400 mt-0.5">Select visual tabs below to inspect team availability grids or execute simulation tracks.</p>
                         </div>
                       </div>
 
                       <EntryTable 
-                        entries={entries}
-                        picks={picks}
+                        entries={filteredEntries}
+                        picks={filteredPicks}
                         teams={teams}
                         legs={legs}
                         selectedEntryId={selectedEntryId}
@@ -525,7 +844,7 @@ export default function App() {
                           onChange={(e) => setSelectedEntryId(e.target.value)}
                           className="text-xs font-bold bg-slate-100 border rounded px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-800"
                         >
-                          {entries.map(e => (
+                          {filteredEntries.map(e => (
                             <option key={e.id} value={e.id}>{e.name} ({e.status.toUpperCase()})</option>
                           ))}
                         </select>
@@ -806,7 +1125,7 @@ export default function App() {
                         onChange={(e) => setSelectedEntryId(e.target.value)}
                         className="text-xs font-bold bg-slate-100 border rounded px-3 py-1.5 focus:outline-none"
                       >
-                        {entries.map(e => (
+                        {filteredEntries.map(e => (
                           <option key={e.id} value={e.id}>{e.name}</option>
                         ))}
                       </select>
@@ -988,6 +1307,200 @@ export default function App() {
 
               {activeTab === "admin" && (
                 <AdminDashboard />
+              )}
+
+              {/* ========================================================
+                  OWNER VIEW: ROADMAPS
+                  ======================================================== */}
+              {activeTab === "roadmaps" && (
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 space-y-6">
+                  <div className="border-b pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                      <h2 className="text-xl font-extrabold text-slate-950">Dynamic Contest Roadmaps</h2>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Weekly projected selections and safety ratings mapped for your active entries.
+                      </p>
+                    </div>
+                    <select
+                      value={selectedEntryId}
+                      onChange={(e) => setSelectedEntryId(e.target.value)}
+                      className="text-xs font-bold bg-slate-100 border rounded px-3 py-1.5 focus:outline-none text-slate-800"
+                    >
+                      {filteredEntries.map(e => (
+                        <option key={e.id} value={e.id}>{e.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {(() => {
+                    const entryDash = workspace.flatMap(sec => sec.entries || []).find((ed: any) => ed.entry.id === selectedEntryId) 
+                      || workspace.flatMap(sec => sec.entries || [])[0];
+
+                    if (!entryDash) {
+                      return (
+                        <div className="text-center py-12 text-slate-400 text-xs">
+                          No active entry found or workspace still synchronizing.
+                        </div>
+                      );
+                    }
+
+                    const { entry, roadmap, holidayReservations, strategy } = entryDash;
+                    return (
+                      <div className="space-y-6">
+                        <div className="bg-slate-50 border border-slate-150 p-5 rounded-2xl flex flex-col md:flex-row justify-between md:items-center gap-4">
+                          <div>
+                            <span className="text-[9px] font-black uppercase text-slate-400">Entry Context</span>
+                            <h3 className="text-lg font-bold text-slate-900">{entry.name}</h3>
+                            <p className="text-xs text-slate-500 mt-0.5">Strategy Profile: <strong className="text-indigo-600 font-bold uppercase">{strategy?.strategy_name || strategy?.strategy_type || "Standard"}</strong></p>
+                          </div>
+                          <div className="bg-white border px-4 py-2 rounded-xl text-center">
+                            <span className="block text-[8px] font-black uppercase text-slate-400">Roadmap Confidence</span>
+                            <span className="text-sm font-black text-indigo-600">
+                              {roadmap ? `${Math.round(roadmap.roadmap_confidence * 100)}%` : "N/A"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {roadmap?.scheduled_weeks ? (
+                          <div className="border border-slate-150 rounded-2xl overflow-hidden">
+                            <table className="w-full text-left text-xs">
+                              <thead>
+                                <tr className="bg-slate-50 border-b border-slate-150 text-slate-400 uppercase tracking-wider font-bold">
+                                  <th className="p-3">Leg / Week</th>
+                                  <th className="p-3">Selected Team</th>
+                                  <th className="p-3">Opponent</th>
+                                  <th className="p-3">Safety Rating</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                                {roadmap.scheduled_weeks.map((week: any, idx: number) => {
+                                  const teamObj = teams.find(t => t.id.toLowerCase() === week.team_id?.toLowerCase() || t.abbreviation.toLowerCase() === week.team_id?.toLowerCase());
+                                  return (
+                                    <tr key={idx} className="hover:bg-slate-50/50">
+                                      <td className="p-3 font-bold text-slate-900">Leg {week.leg_order || idx + 1}</td>
+                                      <td className="p-3 flex items-center gap-2">
+                                        {teamObj ? (
+                                          <>
+                                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: teamObj.primary_color }}></span>
+                                            <span className="font-bold text-slate-800">{teamObj.name}</span>
+                                          </>
+                                        ) : (
+                                          <span className="text-slate-500 font-semibold">{week.team_id || "TBD"}</span>
+                                        )}
+                                      </td>
+                                      <td className="p-3 text-slate-500">{week.opponent_id || "N/A"}</td>
+                                      <td className="p-3">
+                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                                          (week.safety_rating || 0.8) > 0.8 ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-amber-50 text-amber-700 border border-amber-100"
+                                        }`}>
+                                          {Math.round((week.safety_rating || 0.8) * 100)}% Match Safety
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <div className="border border-dashed p-10 text-center rounded-2xl text-slate-400 text-xs">
+                            No scheduled roadmap sequences calculated yet for this strategy profiles.
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* ========================================================
+                  OWNER VIEW: RECOMMENDATIONS
+                  ======================================================== */}
+              {activeTab === "recommendations" && (
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 space-y-6">
+                  <div className="border-b pb-4">
+                    <h2 className="text-xl font-extrabold text-slate-950">Active Recommendations Engine</h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Target recommendations and hedge alternatives generated for your portfolio lines.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {workspace.flatMap(sec => sec.entries || []).map((entryDash: any) => {
+                      const { entry, currentRecommendation, strategy } = entryDash;
+                      const teamObj = currentRecommendation?.teamId ? teams.find(t => t.id.toLowerCase() === currentRecommendation.teamId.toLowerCase()) : null;
+                      const altTeamObj = currentRecommendation?.alternateTeamId ? teams.find(t => t.id.toLowerCase() === currentRecommendation.alternateTeamId.toLowerCase()) : null;
+
+                      return (
+                        <div key={entry.id} className="border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4 flex flex-col justify-between">
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h3 className="font-extrabold text-slate-900 text-sm">{entry.name}</h3>
+                                <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Strategy: {strategy?.strategy_name || "Standard"}</span>
+                              </div>
+                              <span className={`text-[9px] font-black px-2 py-0.5 rounded ${
+                                entry.status === "alive" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
+                              }`}>{entry.status.toUpperCase()}</span>
+                            </div>
+
+                            {currentRecommendation ? (
+                              <div className="bg-slate-50 border p-3 rounded-xl space-y-2">
+                                <div className="flex justify-between text-[11px] font-bold text-slate-500 border-b pb-1">
+                                  <span>Primary Pick</span>
+                                  <span className="text-emerald-600 font-extrabold">Win Prob: {Math.round(currentRecommendation.winProb * 100)}%</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {teamObj ? (
+                                    <>
+                                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: teamObj.primary_color }}></span>
+                                      <strong className="text-slate-900 text-xs">{teamObj.name} ({teamObj.abbreviation})</strong>
+                                    </>
+                                  ) : (
+                                    <strong className="text-slate-900 text-xs">{currentRecommendation.teamId}</strong>
+                                  )}
+                                </div>
+                                {currentRecommendation.alternateTeamId && (
+                                  <div className="text-[10px] text-slate-400 font-semibold border-t pt-1.5 flex justify-between">
+                                    <span>Hedge Alt:</span>
+                                    <span>{altTeamObj ? altTeamObj.name : currentRecommendation.alternateTeamId}</span>
+                                  </div>
+                                )}
+                                {currentRecommendation.note && (
+                                  <p className="text-[10px] text-slate-500 italic mt-1 leading-tight">
+                                    "{currentRecommendation.note}"
+                                  </p>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="text-xs text-slate-400 py-4 italic text-center">
+                                No recommendations found.
+                              </div>
+                            )}
+                          </div>
+
+                          {currentRecommendation && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  // Lock the recommended pick for this entry
+                                  await apiService.makePick(entry.id, selectedLegId, currentRecommendation.teamId);
+                                  await loadAllData(false);
+                                  await loadWorkspace();
+                                } catch (err) {
+                                  console.error("Lock pick error:", err);
+                                }
+                              }}
+                              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs py-2 rounded-lg cursor-pointer"
+                            >
+                              CONFIRM &amp; LOCK SELECTION
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
 
             </>

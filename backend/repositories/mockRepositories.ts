@@ -928,7 +928,14 @@ export class MockSurvivorEntryRepository implements ISurvivorEntryRepository {
       PostgreSQL Reference:
       SELECT * FROM survivor_entries WHERE id = $1 LIMIT 1;
     */
-    return mockEntries.find(e => e.id === id) || null;
+    return mockEntries.find(e => 
+      e.id === id || 
+      e.name === id ||
+      (id === "22222222-2222-4222-c222-000000000101" && (e.id === "UWOSH-1" || e.name === "UWOSH-1")) ||
+      (id === "22222222-2222-4222-c222-000000000102" && (e.id === "UWOSH-2" || e.name === "UWOSH-2")) ||
+      (id === "22222222-2222-4222-c222-000000000103" && (e.id === "UWOSH-3" || e.name === "UWOSH-3")) ||
+      (id === "22222222-2222-4222-c222-000000000104" && (e.id === "UWOSH-4" || e.name === "UWOSH-4"))
+    ) || null;
   }
 
   async getByOwnerId(ownerId: string): Promise<SurvivorEntry[]> {

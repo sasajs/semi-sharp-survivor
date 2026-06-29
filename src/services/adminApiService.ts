@@ -26,6 +26,22 @@ import {
   ProjectMemoryResponse
 } from "../types/admin";
 
+const fetchWithAuth = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  const token = localStorage.getItem("admin_token");
+  const headers = new Headers(init?.headers);
+  if (token) {
+    if (!headers.has("Authorization")) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+    if (!headers.has("X-Admin-Token")) {
+      headers.set("X-Admin-Token", token);
+    }
+  }
+  return window.fetch(input, { ...init, headers });
+};
+
+const fetch = fetchWithAuth;
+
 export const adminApiService = {
   async fetchHealth(): Promise<SystemHealthResponse> {
     const res = await fetch("/api/system/health");

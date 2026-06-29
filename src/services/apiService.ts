@@ -8,6 +8,22 @@ import {
   SurvivorPick 
 } from "../types";
 
+const fetchWithAuth = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  const token = localStorage.getItem("admin_token");
+  const headers = new Headers(init?.headers);
+  if (token) {
+    if (!headers.has("Authorization")) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+    if (!headers.has("X-Admin-Token")) {
+      headers.set("X-Admin-Token", token);
+    }
+  }
+  return window.fetch(input, { ...init, headers });
+};
+
+const fetch = fetchWithAuth;
+
 export const apiService = {
   async fetchContests(): Promise<Contest[]> {
     const res = await fetch("/api/contests");
@@ -642,5 +658,29 @@ export const apiService = {
     const res = await fetch("/api/system/test-evolution");
     if (!res.ok) throw new Error("Failed to run recommendation evolution tests");
     return res.json();
+  },
+
+  async getCurrentOwnerWorkspace(): Promise<any> {
+    const token = localStorage.getItem("admin_token");
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json"
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    const res = await fetch("/api/owners/current-workspace", {
+      headers
+    });
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        throw new Error("Unauthorized: Invalid or expired token");
+      }
+      throw new Error("Failed to fetch current owner workspace");
+    }
+    return res.json();
+  },
+
+  async fetchCurrentWorkspace(): Promise<any> {
+    return this.getCurrentOwnerWorkspace();
   }
 };

@@ -47,11 +47,30 @@ export class UserAccessService {
     return userAccessRepo.getById(id);
   }
 
+  static mapUsername(username: string): string {
+    const lower = username.toLowerCase();
+    if (lower === "admin") return "admin";
+    if (lower === "sas") return "steve";
+    if (lower === "cns") return "cameron";
+    if (lower === "uwo") return "group";
+    return username;
+  }
+
+  static getEnvPasswordForUser(username: string): string | undefined {
+    const lower = username.toLowerCase();
+    if (lower === "admin") return process.env.ADMIN_PASSWORD;
+    if (lower === "sas" || lower === "steve") return process.env.SAS_PASSWORD;
+    if (lower === "cns" || lower === "cameron") return process.env.CNS_PASSWORD;
+    if (lower === "uwo" || lower === "group") return process.env.UWO_PASSWORD;
+    return undefined;
+  }
+
   /**
    * Retrieves a user by their unique username.
    */
   static async getUserByUsername(username: string): Promise<AppUser | null> {
-    return userAccessRepo.getByUsername(username);
+    const mapped = this.mapUsername(username);
+    return userAccessRepo.getByUsername(mapped);
   }
 
   /**
@@ -60,14 +79,22 @@ export class UserAccessService {
   static async authenticate(username: string, passwordPlain: string): Promise<AppUser | null> {
     if (!username || !passwordPlain) return null;
     
-    const user = await userAccessRepo.getByUsername(username);
+    const mapped = this.mapUsername(username);
+    const user = await userAccessRepo.getByUsername(mapped);
     if (!user || !user.active) {
       return null;
     }
 
-    const hash = this.hashPassword(passwordPlain);
-    if (user.password_hash === hash) {
-      return user;
+    const envPassword = this.getEnvPasswordForUser(username);
+    if (envPassword) {
+      if (passwordPlain === envPassword) {
+        return user;
+      }
+    } else {
+      const hash = this.hashPassword(passwordPlain);
+      if (user.password_hash === hash) {
+        return user;
+      }
     }
     return null;
   }

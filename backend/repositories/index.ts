@@ -55,16 +55,18 @@ function createRepositoryProxy<T extends object>(getRepoFn: () => T): T {
               err.message?.includes("query execution attempt") ||
               err.message?.includes("terminated abruptly");
 
-            if (isConnectionError && !databaseConfig.useMock) {
+            if (isConnectionError) {
               if (process.env.NODE_ENV === "production") {
                 console.error(`[Proxy] Relational connection error in production: ${err.message}. Entering DEGRADED mode. Mock persistent fallback is prohibited.`);
                 throw err;
               }
 
-              console.warn(`[Proxy Fallback] Database connection error detected [${err.message}]. Activating live mock fallback engine.`);
-              PostgresConnectionManager.getInstance().setFallbackMode(true);
-              databaseConfig.useMock = true;
-              updateUseMock(true);
+              if (!databaseConfig.useMock) {
+                console.warn(`[Proxy Fallback] Database connection error detected [${err.message}]. Activating live mock fallback engine.`);
+                PostgresConnectionManager.getInstance().setFallbackMode(true);
+                databaseConfig.useMock = true;
+                updateUseMock(true);
+              }
 
               // Immediately resolve mock version and execute
               const mockRepo = getRepoFn();
