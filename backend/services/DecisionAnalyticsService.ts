@@ -244,6 +244,14 @@ export class DecisionAnalyticsService {
       console.error(`[Decision Analytics] Failed to analyze completed week learning loop for ${season} Week ${week}:`, err);
     }
 
+    // V055: Adapt model weights automatically based on recent evidence
+    try {
+      const { ModelWeightingService } = await import("./ModelWeightingService");
+      await ModelWeightingService.adaptWeights(season, week, "v0.55");
+    } catch (err) {
+      console.error(`[Decision Analytics] Failed to adapt model weights automatically for ${season} Week ${week}:`, err);
+    }
+
     console.log(`[Decision Analytics] Completed Week ${week} evaluation. Survival Rate: ${weeklySummary.survival_rate}%`);
     return savedSummary;
   }

@@ -1555,6 +1555,35 @@ export interface LearningTrendRecord {
   updated_at?: string;
 }
 
+export interface ModelWeight {
+  id?: number;
+  model_name: string;
+  prediction_type: string;
+  current_weight: number;
+  normalized_weight: number;
+  rolling_accuracy: number;
+  rolling_brier: number;
+  rolling_logloss: number;
+  calibration_score: number;
+  last_updated?: string;
+  created_at?: string;
+}
+
+export interface ModelWeightHistory {
+  id?: number;
+  week: number;
+  season: string;
+  model_name: string;
+  prediction_type: string;
+  previous_weight: number;
+  new_weight: number;
+  reason: string;
+  metrics_snapshot: string;
+  policy_version: string;
+  created_at?: string;
+}
+
+
 
 
 

@@ -88,6 +88,7 @@ import { SurvivorPlanningService } from "../services/SurvivorPlanningService";
 import { ChampionshipPlanningService } from "../services/ChampionshipPlanningService";
 import { DecisionAnalyticsService } from "../services/DecisionAnalyticsService";
 import { LearningService } from "../services/LearningService";
+import { ModelWeightingService } from "../services/ModelWeightingService";
 import { adaptiveModelWeightRepo, ensemblePredictionRepo, decisionPolicyRepo, survivorDecisionRepo, survivorPlanningRepo, championshipPlanningRepo, decisionAnalyticsRepo } from "../repositories/index";
 
 const router = Router();
@@ -3025,6 +3026,45 @@ router.post("/learning/rebuild-history", async (req: Request, res: Response) => 
   try {
     const rebuildCount = await LearningService.rebuildHistory();
     res.json({ success: true, count: rebuildCount });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/model-reweights/active
+router.get("/model-reweights/active", async (req: Request, res: Response) => {
+  try {
+    const weights = await ModelWeightingService.getActiveWeights();
+    res.json(weights);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/model-reweights/history
+router.get("/model-reweights/history", async (req: Request, res: Response) => {
+  try {
+    const { season, week } = req.query;
+    const history = await ModelWeightingService.getWeightHistory(
+      season ? String(season) : undefined,
+      week ? Number(week) : undefined
+    );
+    res.json(history);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/model-reweights/adapt
+router.post("/model-reweights/adapt", async (req: Request, res: Response) => {
+  try {
+    const { season, week, policyVersion } = req.body;
+    if (!season || week === undefined) {
+      res.status(400).json({ error: "Missing season or week parameter" });
+      return;
+    }
+    const weights = await ModelWeightingService.adaptWeights(season, Number(week), policyVersion);
+    res.json({ success: true, data: weights });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

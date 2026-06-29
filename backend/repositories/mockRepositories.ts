@@ -61,7 +61,9 @@ import {
   ModelPerformanceHistoryRecord,
   ModelPerformanceSummaryRecord,
   WeeklyLearningHistoryRecord,
-  LearningTrendRecord
+  LearningTrendRecord,
+  ModelWeight,
+  ModelWeightHistory
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -122,7 +124,8 @@ import {
   ISurvivorPlanningRepository,
   IChampionshipPlanningRepository,
   IDecisionAnalyticsRepository,
-  ILearningRepository
+  ILearningRepository,
+  IModelWeightRepository
 } from "./interfaces";
 
 /**
@@ -254,6 +257,85 @@ export let mockChampionshipPlans: ChampionshipPlan[] = [];
 export let mockDecisionAnalytics: DecisionAnalyticsRecord[] = [];
 export let mockDecisionOutcomes: DecisionOutcomeRecord[] = [];
 export let mockWeeklyDecisionSummaries: WeeklyDecisionSummary[] = [];
+
+export let mockModelWeights: ModelWeight[] = [
+  {
+    model_name: "Ensemble Consensus Model",
+    prediction_type: "survival",
+    current_weight: 0.25,
+    normalized_weight: 0.25,
+    rolling_accuracy: 85.0,
+    rolling_brier: 0.12,
+    rolling_logloss: 0.35,
+    calibration_score: 90.0,
+    last_updated: new Date().toISOString(),
+    created_at: new Date().toISOString()
+  },
+  {
+    model_name: "Machine Learning Regressor",
+    prediction_type: "survival",
+    current_weight: 0.20,
+    normalized_weight: 0.20,
+    rolling_accuracy: 82.5,
+    rolling_brier: 0.14,
+    rolling_logloss: 0.38,
+    calibration_score: 85.0,
+    last_updated: new Date().toISOString(),
+    created_at: new Date().toISOString()
+  },
+  {
+    model_name: "Market Calibration Model",
+    prediction_type: "survival",
+    current_weight: 0.22,
+    normalized_weight: 0.22,
+    rolling_accuracy: 84.0,
+    rolling_brier: 0.13,
+    rolling_logloss: 0.36,
+    calibration_score: 88.0,
+    last_updated: new Date().toISOString(),
+    created_at: new Date().toISOString()
+  },
+  {
+    model_name: "Expert Consensus Model",
+    prediction_type: "survival",
+    current_weight: 0.18,
+    normalized_weight: 0.18,
+    rolling_accuracy: 80.0,
+    rolling_brier: 0.15,
+    rolling_logloss: 0.40,
+    calibration_score: 82.0,
+    last_updated: new Date().toISOString(),
+    created_at: new Date().toISOString()
+  },
+  {
+    model_name: "Historical Trend Model",
+    prediction_type: "survival",
+    current_weight: 0.15,
+    normalized_weight: 0.15,
+    rolling_accuracy: 78.0,
+    rolling_brier: 0.16,
+    rolling_logloss: 0.42,
+    calibration_score: 80.0,
+    last_updated: new Date().toISOString(),
+    created_at: new Date().toISOString()
+  }
+];
+
+export let mockModelWeightHistory: ModelWeightHistory[] = [
+  {
+    week: 4,
+    season: "2026",
+    model_name: "Ensemble Consensus Model",
+    prediction_type: "survival",
+    previous_weight: 0.20,
+    new_weight: 0.25,
+    reason: "Consistent model outperformance in Weeks 1-3. Accuracy 85.0%, Low Brier Score 0.12.",
+    metrics_snapshot: '{"rolling_accuracy": 85.0, "rolling_brier": 0.12, "rolling_logloss": 0.35, "calibration_score": 90.0}',
+    policy_version: "v0.54-default",
+    created_at: "2026-06-25T12:00:00Z"
+  }
+];
+
 export let mockWeeklyLearningHistories: WeeklyLearningHistoryRecord[] = [
   {
     season: "2026",
@@ -3059,6 +3141,76 @@ export class MockDecisionAnalyticsRepository implements IDecisionAnalyticsReposi
 
   async getWeeklySummary(season: string, week: number): Promise<WeeklyDecisionSummary | null> {
     return mockWeeklyDecisionSummaries.find(s => s.season === season && s.week === week) || null;
+  }
+}
+
+export class MockModelWeightRepository implements IModelWeightRepository {
+  async getActiveWeights(): Promise<ModelWeight[]> {
+    return [...mockModelWeights];
+  }
+
+  async getWeightByModel(modelName: string, predictionType: string): Promise<ModelWeight | null> {
+    return mockModelWeights.find(w => w.model_name === modelName && w.prediction_type === predictionType) || null;
+  }
+
+  async saveWeight(weight: ModelWeight): Promise<ModelWeight> {
+    const item = { ...weight };
+    if (!item.id) {
+      item.id = mockModelWeights.length + 1;
+    }
+    const idx = mockModelWeights.findIndex(w => w.model_name === item.model_name && w.prediction_type === item.prediction_type);
+    if (idx !== -1) {
+      mockModelWeights[idx] = {
+        ...mockModelWeights[idx],
+        ...item,
+        last_updated: new Date().toISOString()
+      };
+      return mockModelWeights[idx];
+    } else {
+      item.created_at = item.created_at || new Date().toISOString();
+      item.last_updated = item.last_updated || new Date().toISOString();
+      mockModelWeights.push(item);
+      return item;
+    }
+  }
+
+  async saveWeightMany(weights: ModelWeight[]): Promise<ModelWeight[]> {
+    const results: ModelWeight[] = [];
+    for (const w of weights) {
+      const saved = await this.saveWeight(w);
+      results.push(saved);
+    }
+    return results;
+  }
+
+  async getWeightHistory(season?: string, week?: number): Promise<ModelWeightHistory[]> {
+    let list = [...mockModelWeightHistory];
+    if (season) {
+      list = list.filter(h => h.season === season);
+    }
+    if (week !== undefined) {
+      list = list.filter(h => h.week === week);
+    }
+    return list.sort((a, b) => b.week - a.week);
+  }
+
+  async saveHistory(history: ModelWeightHistory): Promise<ModelWeightHistory> {
+    const item = {
+      ...history,
+      id: history.id || mockModelWeightHistory.length + 1,
+      created_at: history.created_at || new Date().toISOString()
+    };
+    mockModelWeightHistory.push(item);
+    return item;
+  }
+
+  async saveHistoryMany(historyRecords: ModelWeightHistory[]): Promise<ModelWeightHistory[]> {
+    const results: ModelWeightHistory[] = [];
+    for (const r of historyRecords) {
+      const saved = await this.saveHistory(r);
+      results.push(saved);
+    }
+    return results;
   }
 }
 

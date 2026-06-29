@@ -60,7 +60,9 @@ import {
   ModelPerformanceHistoryRecord,
   ModelPerformanceSummaryRecord,
   WeeklyLearningHistoryRecord,
-  LearningTrendRecord
+  LearningTrendRecord,
+  ModelWeight,
+  ModelWeightHistory
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -543,6 +545,17 @@ export interface ILearningRepository {
   saveLearningTrend(record: LearningTrendRecord): Promise<LearningTrendRecord>;
   getLearningTrends(): Promise<LearningTrendRecord[]>;
   getLearningTrendByName(metricName: string): Promise<LearningTrendRecord | null>;
+}
+
+export interface IModelWeightRepository {
+  getActiveWeights(): Promise<ModelWeight[]>;
+  getWeightByModel(modelName: string, predictionType: string): Promise<ModelWeight | null>;
+  saveWeight(weight: ModelWeight): Promise<ModelWeight>;
+  saveWeightMany(weights: ModelWeight[]): Promise<ModelWeight[]>;
+  
+  getWeightHistory(season?: string, week?: number): Promise<ModelWeightHistory[]>;
+  saveHistory(history: ModelWeightHistory): Promise<ModelWeightHistory>;
+  saveHistoryMany(historyRecords: ModelWeightHistory[]): Promise<ModelWeightHistory[]>;
 }
 
 

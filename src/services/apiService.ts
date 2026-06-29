@@ -564,5 +564,30 @@ export const apiService = {
     });
     if (!res.ok) throw new Error("Failed to rebuild learning loop history");
     return res.json();
-  }
+  },
+
+  async fetchActiveModelReweights(): Promise<any[]> {
+    const res = await fetch("/api/model-reweights/active");
+    if (!res.ok) throw new Error("Failed to fetch active model reweights");
+    return res.json();
+  },
+
+  async fetchModelReweightsHistory(season?: string, week?: number): Promise<any[]> {
+    const query = new URLSearchParams();
+    if (season) query.append("season", season);
+    if (week !== undefined) query.append("week", String(week));
+    const res = await fetch(`/api/model-reweights/history?${query.toString()}`);
+    if (!res.ok) throw new Error("Failed to fetch model reweights history");
+    return res.json();
+  },
+
+  async runModelReweightsAdapt(season: string, week: number, policyVersion: string = "v0.55"): Promise<any> {
+    const res = await fetch("/api/model-reweights/adapt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week, policyVersion })
+    });
+    if (!res.ok) throw new Error("Failed to run model reweights adaptation");
+    return res.json();
+  },
 };
