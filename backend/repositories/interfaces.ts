@@ -65,7 +65,13 @@ import {
   ModelWeightHistory,
   RecommendationEvolution,
   RecommendationChangeEvent,
-  RecommendationEvolutionSummary
+  RecommendationEvolutionSummary,
+  SurvivorStrategyType,
+  HolidayType,
+  SurvivorEntryStrategy,
+  SurvivorHolidayReservation,
+  SurvivorEntryRoadmap,
+  SurvivorEntryRoadmapWeek
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -575,6 +581,30 @@ export interface IRecommendationEvolutionRepository {
   saveSummary(summary: RecommendationEvolutionSummary): Promise<RecommendationEvolutionSummary>;
   getSummaries(season?: string, week?: number): Promise<RecommendationEvolutionSummary[]>;
 }
+
+export interface ISurvivorStrategyRoadmapRepository {
+  // Strategy
+  saveStrategy(strategy: SurvivorEntryStrategy): Promise<SurvivorEntryStrategy>;
+  getStrategyByEntryId(entryId: string): Promise<SurvivorEntryStrategy | null>;
+  getAllStrategies(): Promise<SurvivorEntryStrategy[]>;
+  
+  // Holiday Reservations
+  saveHolidayReservation(reservation: SurvivorHolidayReservation): Promise<SurvivorHolidayReservation>;
+  saveHolidayReservationMany(reservations: SurvivorHolidayReservation[]): Promise<SurvivorHolidayReservation[]>;
+  getHolidayReservationsByEntryId(entryId: string, season?: string): Promise<SurvivorHolidayReservation[]>;
+  getAllHolidayReservations(season?: string): Promise<SurvivorHolidayReservation[]>;
+  
+  // Roadmaps
+  saveRoadmap(roadmap: SurvivorEntryRoadmap): Promise<SurvivorEntryRoadmap>;
+  getRoadmapByEntryId(entryId: string, season: string): Promise<SurvivorEntryRoadmap | null>;
+  getRoadmapHistory(entryId: string, season: string): Promise<SurvivorEntryRoadmap[]>;
+  getAllActiveRoadmaps(season: string): Promise<SurvivorEntryRoadmap[]>;
+  
+  // Roadmap Weeks
+  saveRoadmapWeeks(weeks: SurvivorEntryRoadmapWeek[]): Promise<SurvivorEntryRoadmapWeek[]>;
+  getRoadmapWeeks(roadmapId: number): Promise<SurvivorEntryRoadmapWeek[]>;
+}
+
 
 
 

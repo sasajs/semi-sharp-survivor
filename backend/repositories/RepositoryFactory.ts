@@ -60,7 +60,8 @@ import {
   MockDecisionAnalyticsRepository,
   MockLearningRepository,
   MockModelWeightRepository,
-  MockRecommendationEvolutionRepository
+  MockRecommendationEvolutionRepository,
+  MockSurvivorStrategyRoadmapRepository
 } from "./mockRepositories";
 
 import {
@@ -119,6 +120,7 @@ import { PostgresDecisionAnalyticsRepository } from "./postgres/PostgresDecision
 import { PostgresLearningRepository } from "./postgres/PostgresLearningRepository";
 import { PostgresModelWeightRepository } from "./postgres/PostgresModelWeightRepository";
 import { PostgresRecommendationEvolutionRepository } from "./postgres/PostgresRecommendationEvolutionRepository";
+import { PostgresSurvivorStrategyRoadmapRepository } from "./postgres/PostgresSurvivorStrategyRoadmapRepository";
 
 export let useMock = databaseConfig.useMock;
 
@@ -310,6 +312,9 @@ export class RepositoryFactory {
   }
   static getRecommendationEvolutionRepo() {
     return useMock ? new MockRecommendationEvolutionRepository() : new PostgresRecommendationEvolutionRepository();
+  }
+  static getSurvivorStrategyRoadmapRepo() {
+    return useMock ? new MockSurvivorStrategyRoadmapRepository() : new PostgresSurvivorStrategyRoadmapRepository();
   }
 }
 

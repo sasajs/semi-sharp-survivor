@@ -144,6 +144,7 @@ export const decisionAnalyticsRepo = createRepositoryProxy(() => RepositoryFacto
 export const learningRepo = createRepositoryProxy(() => RepositoryFactory.getLearningRepo());
 export const modelWeightRepo = createRepositoryProxy(() => RepositoryFactory.getModelWeightRepo());
 export const recommendationEvolutionRepo = createRepositoryProxy(() => RepositoryFactory.getRecommendationEvolutionRepo());
+export const survivorStrategyRoadmapRepo = createRepositoryProxy(() => RepositoryFactory.getSurvivorStrategyRoadmapRepo());
 
 
 

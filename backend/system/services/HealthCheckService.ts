@@ -1,5 +1,5 @@
 import { HealthStatus, HealthState } from "../models";
-import { contestRepo, modelPerformanceRepo, learningRepo, recommendationEvolutionRepo } from "../../repositories";
+import { contestRepo, modelPerformanceRepo, learningRepo, recommendationEvolutionRepo, survivorStrategyRoadmapRepo } from "../../repositories";
 import { WorkflowStatusService } from "../../orchestration/services/WorkflowStatusService";
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
 import { WeeklyReportService } from "../../reports/services/WeeklyReportService";
@@ -17,6 +17,9 @@ import { RemoteAccessStatusService } from "./RemoteAccessStatusService";
 import { DecisionAnalyticsService } from "../../services/DecisionAnalyticsService";
 import { ModelPerformanceService } from "../../services/ModelPerformanceService";
 import { LearningService } from "../../services/LearningService";
+import { survivorStrategyService } from "../../services/SurvivorStrategyService";
+import { survivorRoadmapService } from "../../services/SurvivorRoadmapService";
+import { holidayReservationService } from "../../services/HolidayReservationService";
 
 export class HealthCheckService {
   /**
@@ -63,6 +66,18 @@ export class HealthCheckService {
 
     let recommendationEvolutionState = HealthState.HEALTHY;
     let recommendationEvolutionMessage: string | null = null;
+
+    let survivorStrategyRoadmapRepositoryState = HealthState.HEALTHY;
+    let survivorStrategyRoadmapRepositoryMessage: string | null = null;
+
+    let survivorStrategyServiceState = HealthState.HEALTHY;
+    let survivorStrategyServiceMessage: string | null = null;
+
+    let survivorRoadmapServiceState = HealthState.HEALTHY;
+    let survivorRoadmapServiceMessage: string | null = null;
+
+    let holidayReservationServiceState = HealthState.HEALTHY;
+    let holidayReservationServiceMessage: string | null = null;
 
     // 1. Repository check
     try {
@@ -225,6 +240,47 @@ export class HealthCheckService {
       recommendationEvolutionMessage = `Recommendation Evolution Repository failure: ${err.message}`;
     }
 
+    // Survivor Strategy & Roadmap Repository check
+    try {
+      const allStrats = await survivorStrategyRoadmapRepo.getAllStrategies();
+      if (!Array.isArray(allStrats)) {
+        throw new Error("Repository returned non-array strategy dataset.");
+      }
+    } catch (err: any) {
+      survivorStrategyRoadmapRepositoryState = HealthState.DEGRADED;
+      survivorStrategyRoadmapRepositoryMessage = `Survivor Strategy Roadmap Repository failure: ${err.message}`;
+    }
+
+    // Survivor Strategy Service check
+    try {
+      if (typeof survivorStrategyService.assignStrategy !== "function") {
+        throw new Error("assignStrategy method is uninitialized in runtime.");
+      }
+    } catch (err: any) {
+      survivorStrategyServiceState = HealthState.UNHEALTHY;
+      survivorStrategyServiceMessage = `Survivor Strategy Service error: ${err.message}`;
+    }
+
+    // Survivor Roadmap Service check
+    try {
+      if (typeof survivorRoadmapService.generateRoadmap !== "function") {
+        throw new Error("generateRoadmap method is uninitialized in runtime.");
+      }
+    } catch (err: any) {
+      survivorRoadmapServiceState = HealthState.UNHEALTHY;
+      survivorRoadmapServiceMessage = `Survivor Roadmap Service error: ${err.message}`;
+    }
+
+    // Holiday Reservation Service check
+    try {
+      if (typeof holidayReservationService.generateReservations !== "function") {
+        throw new Error("generateReservations method is uninitialized in runtime.");
+      }
+    } catch (err: any) {
+      holidayReservationServiceState = HealthState.UNHEALTHY;
+      holidayReservationServiceMessage = `Holiday Reservation Service error: ${err.message}`;
+    }
+
     // 8. Postgres Readiness Layer check
     let postgresReadinessState: "HEALTHY" | "WARNING" | "FAILED" = "HEALTHY";
     let postgresReadinessMessage: string | null = null;
@@ -349,7 +405,10 @@ export class HealthCheckService {
       ingestionState,
       decisionAnalyticsState,
       modelPerformanceServiceState,
-      learningServiceState
+      learningServiceState,
+      survivorStrategyServiceState,
+      survivorRoadmapServiceState,
+      holidayReservationServiceState
     ].some(state => state === HealthState.UNHEALTHY);
 
     if (
@@ -366,6 +425,7 @@ export class HealthCheckService {
       modelPerformanceRepositoryState === HealthState.DEGRADED ||
       learningRepositoryState === HealthState.DEGRADED ||
       recommendationEvolutionState === HealthState.DEGRADED ||
+      survivorStrategyRoadmapRepositoryState === HealthState.DEGRADED ||
       dbHealth.status === "degraded" ||
       preseasonStatus === "WARNING" ||
       historicalReplayState === "WARNING" ||
@@ -397,7 +457,11 @@ export class HealthCheckService {
         modelPerformanceService: { status: modelPerformanceServiceState, message: modelPerformanceServiceMessage },
         learningRepository: { status: learningRepositoryState, message: learningRepositoryMessage },
         learningService: { status: learningServiceState, message: learningServiceMessage },
-        recommendationEvolution: { status: recommendationEvolutionState, message: recommendationEvolutionMessage }
+        recommendationEvolution: { status: recommendationEvolutionState, message: recommendationEvolutionMessage },
+        survivorStrategyRoadmapRepository: { status: survivorStrategyRoadmapRepositoryState, message: survivorStrategyRoadmapRepositoryMessage },
+        survivorStrategyService: { status: survivorStrategyServiceState, message: survivorStrategyServiceMessage },
+        survivorRoadmapService: { status: survivorRoadmapServiceState, message: survivorRoadmapServiceMessage },
+        holidayReservationService: { status: holidayReservationServiceState, message: holidayReservationServiceMessage }
       },
       timestamp
     };

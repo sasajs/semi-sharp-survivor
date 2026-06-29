@@ -66,7 +66,13 @@ import {
   ModelWeightHistory,
   RecommendationEvolution,
   RecommendationChangeEvent,
-  RecommendationEvolutionSummary
+  RecommendationEvolutionSummary,
+  SurvivorStrategyType,
+  HolidayType,
+  SurvivorEntryStrategy,
+  SurvivorHolidayReservation,
+  SurvivorEntryRoadmap,
+  SurvivorEntryRoadmapWeek
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -129,7 +135,8 @@ import {
   IDecisionAnalyticsRepository,
   ILearningRepository,
   IModelWeightRepository,
-  IRecommendationEvolutionRepository
+  IRecommendationEvolutionRepository,
+  ISurvivorStrategyRoadmapRepository
 } from "./interfaces";
 
 /**
@@ -138,6 +145,10 @@ import {
  * ====================================================================
  */
 export let mockTeams: Team[] = [];
+export let mockSurvivorEntryStrategies: SurvivorEntryStrategy[] = [];
+export let mockSurvivorHolidayReservations: SurvivorHolidayReservation[] = [];
+export let mockSurvivorEntryRoadmaps: SurvivorEntryRoadmap[] = [];
+export let mockSurvivorEntryRoadmapWeeks: SurvivorEntryRoadmapWeek[] = [];
 export let mockContests: Contest[] = [];
 export let mockLegs: ContestLeg[] = [];
 export let mockGames: Game[] = [];
@@ -3320,6 +3331,128 @@ export class MockRecommendationEvolutionRepository implements IRecommendationEvo
       if (a.season !== b.season) return b.season.localeCompare(a.season);
       return b.week - a.week;
     });
+  }
+}
+
+export class MockSurvivorStrategyRoadmapRepository implements ISurvivorStrategyRoadmapRepository {
+  async saveStrategy(strategy: SurvivorEntryStrategy): Promise<SurvivorEntryStrategy> {
+    const existingIdx = mockSurvivorEntryStrategies.findIndex(s => s.entry_id === strategy.entry_id);
+    const item = {
+      ...strategy,
+      id: strategy.id || mockSurvivorEntryStrategies.length + 1,
+      created_at: strategy.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    if (existingIdx >= 0) {
+      mockSurvivorEntryStrategies[existingIdx] = item;
+    } else {
+      mockSurvivorEntryStrategies.push(item);
+    }
+    return item;
+  }
+
+  async getStrategyByEntryId(entryId: string): Promise<SurvivorEntryStrategy | null> {
+    return mockSurvivorEntryStrategies.find(s => s.entry_id === entryId && s.is_active !== false) || null;
+  }
+
+  async getAllStrategies(): Promise<SurvivorEntryStrategy[]> {
+    return mockSurvivorEntryStrategies.filter(s => s.is_active !== false);
+  }
+
+  // Holiday Reservations
+  async saveHolidayReservation(reservation: SurvivorHolidayReservation): Promise<SurvivorHolidayReservation> {
+    const existingIdx = mockSurvivorHolidayReservations.findIndex(
+      r => r.entry_id === reservation.entry_id && r.season === reservation.season && r.holiday_type === reservation.holiday_type
+    );
+    const item = {
+      ...reservation,
+      id: reservation.id || mockSurvivorHolidayReservations.length + 1,
+      created_at: reservation.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    if (existingIdx >= 0) {
+      mockSurvivorHolidayReservations[existingIdx] = item;
+    } else {
+      mockSurvivorHolidayReservations.push(item);
+    }
+    return item;
+  }
+
+  async saveHolidayReservationMany(reservations: SurvivorHolidayReservation[]): Promise<SurvivorHolidayReservation[]> {
+    const results: SurvivorHolidayReservation[] = [];
+    for (const r of reservations) {
+      const saved = await this.saveHolidayReservation(r);
+      results.push(saved);
+    }
+    return results;
+  }
+
+  async getHolidayReservationsByEntryId(entryId: string, season?: string): Promise<SurvivorHolidayReservation[]> {
+    let list = mockSurvivorHolidayReservations.filter(r => r.entry_id === entryId);
+    if (season) {
+      list = list.filter(r => r.season === season);
+    }
+    return list;
+  }
+
+  async getAllHolidayReservations(season?: string): Promise<SurvivorHolidayReservation[]> {
+    let list = [...mockSurvivorHolidayReservations];
+    if (season) {
+      list = list.filter(r => r.season === season);
+    }
+    return list;
+  }
+
+  // Roadmaps
+  async saveRoadmap(roadmap: SurvivorEntryRoadmap): Promise<SurvivorEntryRoadmap> {
+    const item = {
+      ...roadmap,
+      id: roadmap.id || mockSurvivorEntryRoadmaps.length + 1,
+      created_at: roadmap.created_at || new Date().toISOString()
+    };
+    mockSurvivorEntryRoadmaps.push(item);
+    return item;
+  }
+
+  async getRoadmapByEntryId(entryId: string, season: string): Promise<SurvivorEntryRoadmap | null> {
+    const list = mockSurvivorEntryRoadmaps.filter(r => r.entry_id === entryId && r.season === season);
+    if (list.length === 0) return null;
+    return list[list.length - 1];
+  }
+
+  async getRoadmapHistory(entryId: string, season: string): Promise<SurvivorEntryRoadmap[]> {
+    return mockSurvivorEntryRoadmaps
+      .filter(r => r.entry_id === entryId && r.season === season)
+      .reverse();
+  }
+
+  async getAllActiveRoadmaps(season: string): Promise<SurvivorEntryRoadmap[]> {
+    const map = new Map<string, SurvivorEntryRoadmap>();
+    for (const r of mockSurvivorEntryRoadmaps) {
+      if (r.season === season) {
+        map.set(r.entry_id, r);
+      }
+    }
+    return Array.from(map.values());
+  }
+
+  // Roadmap Weeks
+  async saveRoadmapWeeks(weeks: SurvivorEntryRoadmapWeek[]): Promise<SurvivorEntryRoadmapWeek[]> {
+    const results: SurvivorEntryRoadmapWeek[] = [];
+    for (const w of weeks) {
+      const item = {
+        ...w,
+        id: w.id || mockSurvivorEntryRoadmapWeeks.length + 1,
+        created_at: w.created_at || new Date().toISOString()
+      };
+      mockSurvivorEntryRoadmapWeeks.push(item);
+      results.push(item);
+    }
+    return results;
+  }
+
+  async getRoadmapWeeks(roadmapId: number): Promise<SurvivorEntryRoadmapWeek[]> {
+    return mockSurvivorEntryRoadmapWeeks.filter(w => w.roadmap_id === roadmapId).sort((a, b) => a.week - b.week);
   }
 }
 

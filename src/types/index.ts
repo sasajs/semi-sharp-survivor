@@ -849,6 +849,10 @@ export interface HealthStatus {
     learningRepository?: { status: HealthState; message: string | null };
     learningService?: { status: HealthState; message: string | null };
     recommendationEvolution?: { status: HealthState; message: string | null };
+    survivorStrategyRoadmapRepository?: { status: HealthState; message: string | null };
+    survivorStrategyService?: { status: HealthState; message: string | null };
+    survivorRoadmapService?: { status: HealthState; message: string | null };
+    holidayReservationService?: { status: HealthState; message: string | null };
   };
   timestamp: string;
 }
@@ -1630,6 +1634,90 @@ export interface RecommendationEvolutionSummary {
   average_rank_delta: number;
   created_at?: string;
 }
+
+// === V057: Survivor Strategy & Roadmap Framework Types ===
+
+export enum SurvivorStrategyType {
+  CHAMPIONSHIP = "CHAMPIONSHIP",
+  DIVERSIFICATION = "DIVERSIFICATION",
+  MARKETPLACE = "MARKETPLACE",
+  GROUP_CONSENSUS = "GROUP_CONSENSUS",
+  CONSERVATIVE = "CONSERVATIVE",
+  CONTRARIAN = "CONTRARIAN",
+  CUSTOM = "CUSTOM"
+}
+
+export enum HolidayType {
+  THANKSGIVING = "THANKSGIVING",
+  CHRISTMAS = "CHRISTMAS"
+}
+
+export interface SurvivorEntryStrategy {
+  id?: number;
+  entry_id: string;
+  strategy_type: SurvivorStrategyType;
+  strategy_name: string;
+  strategy_description?: string;
+  risk_tolerance?: string;
+  diversification_weight?: number;
+  future_value_weight?: number;
+  survival_weight?: number;
+  ownership_leverage_weight?: number;
+  marketplace_weight?: number;
+  consensus_weight?: number;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface SurvivorHolidayReservation {
+  id?: number;
+  entry_id: string;
+  season: string;
+  holiday_type: HolidayType;
+  reserved_team_id?: string;
+  alternate_team_id?: string;
+  confidence_score?: number;
+  reservation_reason?: string;
+  strategy_type?: SurvivorStrategyType;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface SurvivorEntryRoadmap {
+  id?: number;
+  entry_id: string;
+  season: string;
+  generated_week: number;
+  strategy_type: SurvivorStrategyType;
+  roadmap_version: string;
+  total_projected_survival?: number;
+  total_projected_equity?: number;
+  portfolio_correlation_score?: number;
+  roadmap_confidence?: number;
+  generated_reason?: string;
+  model_version?: string;
+  policy_version?: string;
+  created_at?: string;
+}
+
+export interface SurvivorEntryRoadmapWeek {
+  id?: number;
+  roadmap_id: number;
+  season: string;
+  week: number;
+  recommended_team_id?: string;
+  alternate_team_id?: string;
+  win_probability?: number;
+  future_value_cost?: number;
+  contest_equity_score?: number;
+  ownership_projection?: number;
+  roadmap_note?: string;
+  is_current_week?: boolean;
+  is_holiday_week?: boolean;
+  created_at?: string;
+}
+
 
 
 

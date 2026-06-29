@@ -66,6 +66,11 @@ const survivorEquityService = new SurvivorEquityService();
 const recommendationCandidateService = new RecommendationCandidateService();
 const ownershipProjectionService = new OwnershipProjectionService();
 const contestDynamicsService = new ContestDynamicsService();
+
+import { survivorStrategyService } from "../services/SurvivorStrategyService";
+import { survivorRoadmapService } from "../services/SurvivorRoadmapService";
+import { holidayReservationService } from "../services/HolidayReservationService";
+import { SurvivorStrategyType, HolidayType } from "../../src/types";
 import { SurvivorRecommendationService } from "../services/SurvivorRecommendationService";
 const survivorRecommendationService = new SurvivorRecommendationService();
 import { RecommendationAuditService } from "../services/RecommendationAuditService";
@@ -91,6 +96,7 @@ import { LearningService } from "../services/LearningService";
 import { ModelWeightingService } from "../services/ModelWeightingService";
 import { RecommendationEvolutionService } from "../services/RecommendationEvolutionService";
 import { RecommendationEvolutionTestingService } from "../testing/services/RecommendationEvolutionTestingService";
+import { SurvivorStrategyTestingService } from "../testing/services/SurvivorStrategyTestingService";
 import { adaptiveModelWeightRepo, ensemblePredictionRepo, decisionPolicyRepo, survivorDecisionRepo, survivorPlanningRepo, championshipPlanningRepo, decisionAnalyticsRepo, recommendationEvolutionRepo } from "../repositories/index";
 
 const router = Router();
@@ -3150,6 +3156,134 @@ router.get("/system/test-evolution", async (req: Request, res: Response) => {
   try {
     const results = await RecommendationEvolutionTestingService.runAllTests();
     res.json(results);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/system/test-strategy
+router.get("/system/test-strategy", async (req: Request, res: Response) => {
+  try {
+    const results = await SurvivorStrategyTestingService.runAllTests();
+    res.json(results);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ====================================================================
+ * V057 - SURVIVOR STRATEGY, ROADMAP, & HOLIDAY RESERVATION API ROUTES
+ * ==================================================================== */
+
+// GET active strategy for entry
+router.get("/survivor/entries/:entryId/strategy", async (req: Request, res: Response) => {
+  try {
+    const strategy = await survivorStrategyService.getActiveStrategy(req.params.entryId);
+    res.json(strategy);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT update strategy for entry
+router.post("/survivor/entries/:entryId/strategy", async (req: Request, res: Response) => {
+  try {
+    const updated = await survivorStrategyService.updateStrategy(req.body);
+    res.json(updated);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Support standard PUT as well
+router.put("/survivor/entries/:entryId/strategy", async (req: Request, res: Response) => {
+  try {
+    const updated = await survivorStrategyService.updateStrategy(req.body);
+    res.json(updated);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET latest roadmap for entry
+router.get("/survivor/entries/:entryId/roadmap", async (req: Request, res: Response) => {
+  try {
+    const season = (req.query.season as string) || "2026";
+    let data = await survivorRoadmapService.getLatestRoadmap(req.params.entryId, season);
+    if (!data) {
+      data = await survivorRoadmapService.generateRoadmap(req.params.entryId, season);
+    }
+    res.json(data);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST regenerate roadmap for entry
+router.post("/survivor/entries/:entryId/roadmap/regenerate", async (req: Request, res: Response) => {
+  try {
+    const season = (req.body.season as string) || (req.query.season as string) || "2026";
+    const data = await survivorRoadmapService.generateRoadmap(req.params.entryId, season);
+    res.json({ success: true, ...data });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET holiday reservations for entry
+router.get("/survivor/entries/:entryId/holiday-reservations", async (req: Request, res: Response) => {
+  try {
+    const season = (req.query.season as string) || "2026";
+    let reservations = await holidayReservationService.getReservations(req.params.entryId, season);
+    if (!reservations || reservations.length === 0) {
+      const strat = await survivorStrategyService.getActiveStrategy(req.params.entryId);
+      reservations = await holidayReservationService.generateReservations(req.params.entryId, season, strat.strategy_type);
+    }
+    res.json(reservations);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST update specific holiday reservation
+router.post("/survivor/entries/:entryId/holiday-reservations", async (req: Request, res: Response) => {
+  try {
+    const saved = await holidayReservationService.saveReservation(req.body);
+    res.json(saved);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST regenerate holiday reservations
+router.post("/survivor/entries/:entryId/holiday-reservations/regenerate", async (req: Request, res: Response) => {
+  try {
+    const season = (req.body.season as string) || (req.query.season as string) || "2026";
+    const strat = await survivorStrategyService.getActiveStrategy(req.params.entryId);
+    const reservations = await holidayReservationService.generateReservations(req.params.entryId, season, strat.strategy_type);
+    res.json({ success: true, reservations });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET portfolio roadmaps for all active entries
+router.get("/survivor/portfolio/roadmaps", async (req: Request, res: Response) => {
+  try {
+    const season = (req.query.season as string) || "2026";
+    const roadmaps = await survivorRoadmapService.getPortfolioRoadmaps(season);
+    res.json(roadmaps);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST regenerate all portfolio roadmaps
+router.post("/survivor/portfolio/roadmaps/regenerate", async (req: Request, res: Response) => {
+  try {
+    const season = (req.body.season as string) || (req.query.season as string) || "2026";
+    const results = await survivorRoadmapService.generateAllRoadmaps(season);
+    res.json({ success: true, results });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
