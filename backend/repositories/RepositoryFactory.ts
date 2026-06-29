@@ -59,7 +59,8 @@ import {
   MockChampionshipPlanningRepository,
   MockDecisionAnalyticsRepository,
   MockLearningRepository,
-  MockModelWeightRepository
+  MockModelWeightRepository,
+  MockRecommendationEvolutionRepository
 } from "./mockRepositories";
 
 import {
@@ -117,6 +118,7 @@ import { PostgresChampionshipPlanningRepository } from "./postgres/PostgresChamp
 import { PostgresDecisionAnalyticsRepository } from "./postgres/PostgresDecisionAnalyticsRepository";
 import { PostgresLearningRepository } from "./postgres/PostgresLearningRepository";
 import { PostgresModelWeightRepository } from "./postgres/PostgresModelWeightRepository";
+import { PostgresRecommendationEvolutionRepository } from "./postgres/PostgresRecommendationEvolutionRepository";
 
 export let useMock = databaseConfig.useMock;
 
@@ -305,6 +307,9 @@ export class RepositoryFactory {
   }
   static getModelWeightRepo() {
     return useMock ? new MockModelWeightRepository() : new PostgresModelWeightRepository();
+  }
+  static getRecommendationEvolutionRepo() {
+    return useMock ? new MockRecommendationEvolutionRepository() : new PostgresRecommendationEvolutionRepository();
   }
 }
 

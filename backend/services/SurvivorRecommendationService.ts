@@ -30,6 +30,7 @@ import { ModelDriftService } from "./ModelDriftService";
 import { AdaptiveModelWeightService } from "./AdaptiveModelWeightService";
 import { EnsemblePredictionService } from "./EnsemblePredictionService";
 import { DecisionPolicyService } from "./DecisionPolicyService";
+import { RecommendationEvolutionService } from "./RecommendationEvolutionService";
 
 export const STRATEGY_RECOMMENDATION_WEIGHTS: Record<StrategyType, {
   candidateWeight: number;      // baseline 40%
@@ -317,6 +318,13 @@ export class SurvivorRecommendationService {
       await DecisionPolicyService.calculate(season, week, calculationVersion);
     } catch (policyErr: any) {
       console.error("[Survivor Recommendation Service] Failed to calculate decision policies:", policyErr.message);
+    }
+
+    // 21. Track Recommendation Evolution (V056)
+    try {
+      await RecommendationEvolutionService.trackEvolution(season, week, calculationVersion);
+    } catch (evoErr: any) {
+      console.error("[Survivor Recommendation Service] Failed to track recommendation evolution:", evoErr.message);
     }
 
     return saved;

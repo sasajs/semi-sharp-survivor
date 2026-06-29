@@ -848,6 +848,7 @@ export interface HealthStatus {
     modelPerformanceService?: { status: HealthState; message: string | null };
     learningRepository?: { status: HealthState; message: string | null };
     learningService?: { status: HealthState; message: string | null };
+    recommendationEvolution?: { status: HealthState; message: string | null };
   };
   timestamp: string;
 }
@@ -1580,6 +1581,53 @@ export interface ModelWeightHistory {
   reason: string;
   metrics_snapshot: string;
   policy_version: string;
+  created_at?: string;
+}
+
+export interface RecommendationEvolution {
+  id?: number;
+  season: string;
+  week: number;
+  contest_id?: number;
+  recommendation_id?: number;
+  team_id?: string;
+  previous_rank?: number;
+  new_rank?: number;
+  previous_confidence?: number;
+  new_confidence?: number;
+  previous_probability?: number;
+  new_probability?: number;
+  previous_expected_value?: number;
+  new_expected_value?: number;
+  previous_model_weight?: number;
+  new_model_weight?: number;
+  evolution_reason: string;
+  triggering_event: string;
+  recommendation_status: string;
+  created_at?: string;
+}
+
+export interface RecommendationChangeEvent {
+  id?: number;
+  recommendation_id: number;
+  event_type: string;
+  event_source: string;
+  event_description: string;
+  impact_score: number;
+  previous_value?: string;
+  new_value?: string;
+  created_at?: string;
+}
+
+export interface RecommendationEvolutionSummary {
+  id?: number;
+  season: string;
+  week: number;
+  total_changes: number;
+  major_changes: number;
+  stable_recommendations: number;
+  average_confidence_delta: number;
+  average_rank_delta: number;
   created_at?: string;
 }
 

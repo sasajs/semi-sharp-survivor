@@ -590,4 +590,57 @@ export const apiService = {
     if (!res.ok) throw new Error("Failed to run model reweights adaptation");
     return res.json();
   },
+
+  // === V056: Recommendation Evolution Tracking ===
+  async fetchRecommendationEvolutionHistory(season?: string, week?: number): Promise<any[]> {
+    const query = new URLSearchParams();
+    if (season) query.append("season", season);
+    if (week !== undefined) query.append("week", String(week));
+    const res = await fetch(`/api/recommendation-evolution/history?${query.toString()}`);
+    if (!res.ok) throw new Error("Failed to fetch recommendation evolution history");
+    return res.json();
+  },
+
+  async fetchRecommendationEvolutionSummary(season?: string, week?: number): Promise<any[]> {
+    const query = new URLSearchParams();
+    if (season) query.append("season", season);
+    if (week !== undefined) query.append("week", String(week));
+    const res = await fetch(`/api/recommendation-evolution/summary?${query.toString()}`);
+    if (!res.ok) throw new Error("Failed to fetch recommendation evolution summary");
+    return res.json();
+  },
+
+  async fetchRecommendationEvolutionEvents(recommendationId?: number): Promise<any[]> {
+    const query = new URLSearchParams();
+    if (recommendationId !== undefined) query.append("recommendation_id", String(recommendationId));
+    const res = await fetch(`/api/recommendation-evolution/events?${query.toString()}`);
+    if (!res.ok) throw new Error("Failed to fetch recommendation change events");
+    return res.json();
+  },
+
+  async runRecommendationEvolutionTrack(season: string, week: number, currentVersion: string): Promise<any> {
+    const res = await fetch("/api/recommendation-evolution/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week, currentVersion })
+    });
+    if (!res.ok) throw new Error("Failed to run recommendation evolution tracking");
+    return res.json();
+  },
+
+  async runRecommendationEvolutionEvaluate(season: string, week: number): Promise<any> {
+    const res = await fetch("/api/recommendation-evolution/evaluate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ season, week })
+    });
+    if (!res.ok) throw new Error("Failed to run recommendation outcome evaluation");
+    return res.json();
+  },
+
+  async runRecommendationEvolutionTests(): Promise<any> {
+    const res = await fetch("/api/system/test-evolution");
+    if (!res.ok) throw new Error("Failed to run recommendation evolution tests");
+    return res.json();
+  }
 };

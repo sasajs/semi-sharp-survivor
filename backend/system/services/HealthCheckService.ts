@@ -1,5 +1,5 @@
 import { HealthStatus, HealthState } from "../models";
-import { contestRepo, modelPerformanceRepo, learningRepo } from "../../repositories";
+import { contestRepo, modelPerformanceRepo, learningRepo, recommendationEvolutionRepo } from "../../repositories";
 import { WorkflowStatusService } from "../../orchestration/services/WorkflowStatusService";
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
 import { WeeklyReportService } from "../../reports/services/WeeklyReportService";
@@ -60,6 +60,9 @@ export class HealthCheckService {
 
     let learningServiceState = HealthState.HEALTHY;
     let learningServiceMessage: string | null = null;
+
+    let recommendationEvolutionState = HealthState.HEALTHY;
+    let recommendationEvolutionMessage: string | null = null;
 
     // 1. Repository check
     try {
@@ -211,6 +214,17 @@ export class HealthCheckService {
       learningServiceMessage = `Learning Service error: ${err.message}`;
     }
 
+    // 7g. Recommendation Evolution Repository check (V056)
+    try {
+      const summaries = await recommendationEvolutionRepo.getSummaries();
+      if (!Array.isArray(summaries)) {
+        throw new Error("Repository returned non-array dataset.");
+      }
+    } catch (err: any) {
+      recommendationEvolutionState = HealthState.DEGRADED;
+      recommendationEvolutionMessage = `Recommendation Evolution Repository failure: ${err.message}`;
+    }
+
     // 8. Postgres Readiness Layer check
     let postgresReadinessState: "HEALTHY" | "WARNING" | "FAILED" = "HEALTHY";
     let postgresReadinessMessage: string | null = null;
@@ -351,6 +365,7 @@ export class HealthCheckService {
       repositoryState === HealthState.DEGRADED ||
       modelPerformanceRepositoryState === HealthState.DEGRADED ||
       learningRepositoryState === HealthState.DEGRADED ||
+      recommendationEvolutionState === HealthState.DEGRADED ||
       dbHealth.status === "degraded" ||
       preseasonStatus === "WARNING" ||
       historicalReplayState === "WARNING" ||
@@ -381,7 +396,8 @@ export class HealthCheckService {
         modelPerformanceRepository: { status: modelPerformanceRepositoryState, message: modelPerformanceRepositoryMessage },
         modelPerformanceService: { status: modelPerformanceServiceState, message: modelPerformanceServiceMessage },
         learningRepository: { status: learningRepositoryState, message: learningRepositoryMessage },
-        learningService: { status: learningServiceState, message: learningServiceMessage }
+        learningService: { status: learningServiceState, message: learningServiceMessage },
+        recommendationEvolution: { status: recommendationEvolutionState, message: recommendationEvolutionMessage }
       },
       timestamp
     };

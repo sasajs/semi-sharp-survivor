@@ -62,7 +62,10 @@ import {
   WeeklyLearningHistoryRecord,
   LearningTrendRecord,
   ModelWeight,
-  ModelWeightHistory
+  ModelWeightHistory,
+  RecommendationEvolution,
+  RecommendationChangeEvent,
+  RecommendationEvolutionSummary
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 
@@ -556,6 +559,21 @@ export interface IModelWeightRepository {
   getWeightHistory(season?: string, week?: number): Promise<ModelWeightHistory[]>;
   saveHistory(history: ModelWeightHistory): Promise<ModelWeightHistory>;
   saveHistoryMany(historyRecords: ModelWeightHistory[]): Promise<ModelWeightHistory[]>;
+}
+
+export interface IRecommendationEvolutionRepository {
+  saveEvolution(evolution: RecommendationEvolution): Promise<RecommendationEvolution>;
+  saveEvolutionMany(evolutions: RecommendationEvolution[]): Promise<RecommendationEvolution[]>;
+  getEvolutionHistory(season?: string, week?: number): Promise<RecommendationEvolution[]>;
+  getEvolutionById(id: number): Promise<RecommendationEvolution | null>;
+  getEvolutionByRecommendationId(recommendationId: number): Promise<RecommendationEvolution[]>;
+
+  saveChangeEvent(event: RecommendationChangeEvent): Promise<RecommendationChangeEvent>;
+  saveChangeEventMany(events: RecommendationChangeEvent[]): Promise<RecommendationChangeEvent[]>;
+  getChangeEvents(recommendationId?: number): Promise<RecommendationChangeEvent[]>;
+
+  saveSummary(summary: RecommendationEvolutionSummary): Promise<RecommendationEvolutionSummary>;
+  getSummaries(season?: string, week?: number): Promise<RecommendationEvolutionSummary[]>;
 }
 
 

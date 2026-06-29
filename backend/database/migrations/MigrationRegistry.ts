@@ -156,5 +156,10 @@ export const migrationRegistry: Migration[] = [
     version: "V055",
     description: "Automatic Model Reweighting.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "V055__AutomaticModelReweighting.sql")
+  },
+  {
+    version: "V056",
+    description: "Recommendation Evolution Tracking.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "V056__RecommendationEvolutionTracking.sql")
   }
 ];

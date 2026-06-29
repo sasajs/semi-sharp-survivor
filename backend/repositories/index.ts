@@ -143,6 +143,7 @@ export const championshipPlanningRepo = createRepositoryProxy(() => RepositoryFa
 export const decisionAnalyticsRepo = createRepositoryProxy(() => RepositoryFactory.getDecisionAnalyticsRepo());
 export const learningRepo = createRepositoryProxy(() => RepositoryFactory.getLearningRepo());
 export const modelWeightRepo = createRepositoryProxy(() => RepositoryFactory.getModelWeightRepo());
+export const recommendationEvolutionRepo = createRepositoryProxy(() => RepositoryFactory.getRecommendationEvolutionRepo());
 
 
 

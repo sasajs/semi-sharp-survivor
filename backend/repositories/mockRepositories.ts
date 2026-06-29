@@ -63,7 +63,10 @@ import {
   WeeklyLearningHistoryRecord,
   LearningTrendRecord,
   ModelWeight,
-  ModelWeightHistory
+  ModelWeightHistory,
+  RecommendationEvolution,
+  RecommendationChangeEvent,
+  RecommendationEvolutionSummary
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
@@ -125,7 +128,8 @@ import {
   IChampionshipPlanningRepository,
   IDecisionAnalyticsRepository,
   ILearningRepository,
-  IModelWeightRepository
+  IModelWeightRepository,
+  IRecommendationEvolutionRepository
 } from "./interfaces";
 
 /**
@@ -257,6 +261,10 @@ export let mockChampionshipPlans: ChampionshipPlan[] = [];
 export let mockDecisionAnalytics: DecisionAnalyticsRecord[] = [];
 export let mockDecisionOutcomes: DecisionOutcomeRecord[] = [];
 export let mockWeeklyDecisionSummaries: WeeklyDecisionSummary[] = [];
+
+export let mockRecommendationEvolutions: RecommendationEvolution[] = [];
+export let mockRecommendationChangeEvents: RecommendationChangeEvent[] = [];
+export let mockRecommendationEvolutionSummaries: RecommendationEvolutionSummary[] = [];
 
 export let mockModelWeights: ModelWeight[] = [
   {
@@ -3211,6 +3219,107 @@ export class MockModelWeightRepository implements IModelWeightRepository {
       results.push(saved);
     }
     return results;
+  }
+}
+
+export class MockRecommendationEvolutionRepository implements IRecommendationEvolutionRepository {
+  async saveEvolution(evolution: RecommendationEvolution): Promise<RecommendationEvolution> {
+    const item = {
+      ...evolution,
+      id: evolution.id || mockRecommendationEvolutions.length + 1,
+      created_at: evolution.created_at || new Date().toISOString()
+    };
+    mockRecommendationEvolutions.push(item);
+    return item;
+  }
+
+  async saveEvolutionMany(evolutions: RecommendationEvolution[]): Promise<RecommendationEvolution[]> {
+    const results: RecommendationEvolution[] = [];
+    for (const e of evolutions) {
+      const saved = await this.saveEvolution(e);
+      results.push(saved);
+    }
+    return results;
+  }
+
+  async getEvolutionHistory(season?: string, week?: number): Promise<RecommendationEvolution[]> {
+    let list = [...mockRecommendationEvolutions];
+    if (season) {
+      list = list.filter(e => e.season === season);
+    }
+    if (week !== undefined) {
+      list = list.filter(e => e.week === week);
+    }
+    return list.sort((a, b) => {
+      if (a.season !== b.season) return b.season.localeCompare(a.season);
+      if (a.week !== b.week) return b.week - a.week;
+      return (b.id || 0) - (a.id || 0);
+    });
+  }
+
+  async getEvolutionById(id: number): Promise<RecommendationEvolution | null> {
+    return mockRecommendationEvolutions.find(e => e.id === id) || null;
+  }
+
+  async getEvolutionByRecommendationId(recommendationId: number): Promise<RecommendationEvolution[]> {
+    return mockRecommendationEvolutions
+      .filter(e => e.recommendation_id === recommendationId)
+      .sort((a, b) => (a.id || 0) - (b.id || 0));
+  }
+
+  async saveChangeEvent(event: RecommendationChangeEvent): Promise<RecommendationChangeEvent> {
+    const item = {
+      ...event,
+      id: event.id || mockRecommendationChangeEvents.length + 1,
+      created_at: event.created_at || new Date().toISOString()
+    };
+    mockRecommendationChangeEvents.push(item);
+    return item;
+  }
+
+  async saveChangeEventMany(events: RecommendationChangeEvent[]): Promise<RecommendationChangeEvent[]> {
+    const results: RecommendationChangeEvent[] = [];
+    for (const e of events) {
+      const saved = await this.saveChangeEvent(e);
+      results.push(saved);
+    }
+    return results;
+  }
+
+  async getChangeEvents(recommendationId?: number): Promise<RecommendationChangeEvent[]> {
+    let list = [...mockRecommendationChangeEvents];
+    if (recommendationId !== undefined) {
+      list = list.filter(e => e.recommendation_id === recommendationId);
+    }
+    return list.sort((a, b) => {
+      const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return bTime - aTime || (b.id || 0) - (a.id || 0);
+    });
+  }
+
+  async saveSummary(summary: RecommendationEvolutionSummary): Promise<RecommendationEvolutionSummary> {
+    const item = {
+      ...summary,
+      id: summary.id || mockRecommendationEvolutionSummaries.length + 1,
+      created_at: summary.created_at || new Date().toISOString()
+    };
+    mockRecommendationEvolutionSummaries.push(item);
+    return item;
+  }
+
+  async getSummaries(season?: string, week?: number): Promise<RecommendationEvolutionSummary[]> {
+    let list = [...mockRecommendationEvolutionSummaries];
+    if (season) {
+      list = list.filter(s => s.season === season);
+    }
+    if (week !== undefined) {
+      list = list.filter(s => s.week === week);
+    }
+    return list.sort((a, b) => {
+      if (a.season !== b.season) return b.season.localeCompare(a.season);
+      return b.week - a.week;
+    });
   }
 }
 

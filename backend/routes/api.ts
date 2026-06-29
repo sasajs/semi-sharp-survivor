@@ -89,7 +89,9 @@ import { ChampionshipPlanningService } from "../services/ChampionshipPlanningSer
 import { DecisionAnalyticsService } from "../services/DecisionAnalyticsService";
 import { LearningService } from "../services/LearningService";
 import { ModelWeightingService } from "../services/ModelWeightingService";
-import { adaptiveModelWeightRepo, ensemblePredictionRepo, decisionPolicyRepo, survivorDecisionRepo, survivorPlanningRepo, championshipPlanningRepo, decisionAnalyticsRepo } from "../repositories/index";
+import { RecommendationEvolutionService } from "../services/RecommendationEvolutionService";
+import { RecommendationEvolutionTestingService } from "../testing/services/RecommendationEvolutionTestingService";
+import { adaptiveModelWeightRepo, ensemblePredictionRepo, decisionPolicyRepo, survivorDecisionRepo, survivorPlanningRepo, championshipPlanningRepo, decisionAnalyticsRepo, recommendationEvolutionRepo } from "../repositories/index";
 
 const router = Router();
 
@@ -3065,6 +3067,89 @@ router.post("/model-reweights/adapt", async (req: Request, res: Response) => {
     }
     const weights = await ModelWeightingService.adaptWeights(season, Number(week), policyVersion);
     res.json({ success: true, data: weights });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// === V056: Recommendation Evolution Tracking Endpoints ===
+
+// GET /api/recommendation-evolution/history
+router.get("/recommendation-evolution/history", async (req: Request, res: Response) => {
+  try {
+    const { season, week } = req.query;
+    const history = await recommendationEvolutionRepo.getEvolutionHistory(
+      season ? String(season) : undefined,
+      week ? Number(week) : undefined
+    );
+    res.json(history);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendation-evolution/summary
+router.get("/recommendation-evolution/summary", async (req: Request, res: Response) => {
+  try {
+    const { season, week } = req.query;
+    const summaries = await recommendationEvolutionRepo.getSummaries(
+      season ? String(season) : undefined,
+      week ? Number(week) : undefined
+    );
+    res.json(summaries);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/recommendation-evolution/events
+router.get("/recommendation-evolution/events", async (req: Request, res: Response) => {
+  try {
+    const { recommendation_id } = req.query;
+    const events = await recommendationEvolutionRepo.getChangeEvents(
+      recommendation_id ? Number(recommendation_id) : undefined
+    );
+    res.json(events);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/recommendation-evolution/track
+router.post("/recommendation-evolution/track", async (req: Request, res: Response) => {
+  try {
+    const { season, week, currentVersion } = req.body;
+    if (!season || week === undefined || !currentVersion) {
+      res.status(400).json({ error: "Missing season, week, or currentVersion parameter" });
+      return;
+    }
+    const result = await RecommendationEvolutionService.trackEvolution(season, Number(week), String(currentVersion));
+    res.json({ success: true, data: result });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/recommendation-evolution/evaluate
+router.post("/recommendation-evolution/evaluate", async (req: Request, res: Response) => {
+  try {
+    const { season, week } = req.body;
+    if (!season || week === undefined) {
+      res.status(400).json({ error: "Missing season or week parameter" });
+      return;
+    }
+    const result = await RecommendationEvolutionService.evaluateOutcomes(season, Number(week));
+    res.json({ success: true, data: result });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/system/test-evolution
+router.get("/system/test-evolution", async (req: Request, res: Response) => {
+  try {
+    const results = await RecommendationEvolutionTestingService.runAllTests();
+    res.json(results);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

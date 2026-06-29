@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { adminApiService } from "../../services/adminApiService";
+import { apiService } from "../../services/apiService";
 import { WeeklyReport } from "../../types/admin";
 import { safeArray, safeString, safeDate } from "../../utils/safeFormat";
-import { FileText, RefreshCw, Calendar, Eye, Hash, ShieldCheck, HelpCircle } from "lucide-react";
+import { FileText, RefreshCw, Calendar, Eye, Hash, ShieldCheck, HelpCircle, Layers } from "lucide-react";
 
 export const ReportArtifactsPanel: React.FC = () => {
   const [reports, setReports] = useState<WeeklyReport[]>([]);
+  const [evolutionSummaries, setEvolutionSummaries] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -13,8 +15,12 @@ export const ReportArtifactsPanel: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await adminApiService.fetchReports();
+      const [data, summaries] = await Promise.all([
+        adminApiService.fetchReports(),
+        apiService.fetchRecommendationEvolutionSummary()
+      ]);
       setReports(data);
+      setEvolutionSummaries(summaries);
     } catch (err: any) {
       console.error("Failed to load reports:", err);
       setError(err.message || "Failed to retrieve compiled weekly reports list");
@@ -26,6 +32,10 @@ export const ReportArtifactsPanel: React.FC = () => {
   useEffect(() => {
     fetchReports();
   }, []);
+
+  const getEvolutionSummaryForWeek = (weekNum: number): any => {
+    return (evolutionSummaries || []).find((s: any) => s.week === weekNum);
+  };
 
   return (
     <div id="admin-reports-artifacts-panel" className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm">
@@ -90,6 +100,24 @@ export const ReportArtifactsPanel: React.FC = () => {
                       {rep?.executive_summary?.top_recommended_pick?.team_name || "None"}
                     </span>
                   </div>
+
+                  {(() => {
+                    const sum = getEvolutionSummaryForWeek(Number(rep?.week_number));
+                    return sum ? (
+                      <div className="flex items-center space-x-2 text-xs text-slate-700">
+                        <Layers className="w-3.5 h-3.5 text-indigo-500 font-bold" />
+                        <span>Evolution Changes: </span>
+                        <span className="font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">
+                          {sum.total_changes} total ({sum.major_changes} major)
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2 text-xs text-slate-500 italic">
+                        <Layers className="w-3.5 h-3.5 text-slate-300" />
+                        <span>No recommendation evolution logged for this week</span>
+                      </div>
+                    );
+                  })()}
 
                   {rep?.audit_metadata?.hash && (
                     <div className="flex items-center space-x-2 text-xs text-slate-700">
