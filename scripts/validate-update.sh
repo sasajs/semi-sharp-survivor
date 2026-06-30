@@ -104,6 +104,41 @@ test -f src/hooks/useAppData.ts
 echo "✓ Repository structure verified."
 
 echo ""
+echo "10) Local configuration checks"
+
+config_error=0
+
+if ! grep -q "semisharp.steveschilhabel.com" vite.config.ts; then
+    echo "✗ vite.config.ts missing semisharp allowed host."
+    config_error=1
+fi
+
+if ! grep -q "allowedHosts" vite.config.ts; then
+    echo "✗ vite.config.ts missing allowedHosts."
+    config_error=1
+fi
+
+if ! grep -q "\"validate:all\"" package.json; then
+    echo "✗ package.json missing validate:all script."
+    config_error=1
+fi
+
+if ! grep -q "\"validate:regression\"" package.json; then
+    echo "✗ package.json missing validate:regression script."
+    config_error=1
+fi
+
+if [ "$config_error" -ne 0 ]; then
+    echo ""
+    echo "Run:"
+    echo "  ./scripts/restore-local-config.sh"
+    exit 1
+else
+    echo "✓ Local configuration verified."
+fi
+
+
+echo ""
 echo "==============================================="
 echo " Validation Complete"
 echo "==============================================="
