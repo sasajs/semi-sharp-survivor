@@ -32,9 +32,9 @@ ON CONFLICT (id) DO UPDATE
 SET display_name = EXCLUDED.display_name, email = EXCLUDED.email, owner_type = EXCLUDED.owner_type, active = EXCLUDED.active;
 
 -- Update existing survivor_entries to connect to owners
-UPDATE survivor_entries SET owner_id = 'owner-steve' WHERE id IN ('UWOSH-1', 'UWOSH-2');
-UPDATE survivor_entries SET owner_id = 'owner-cameron' WHERE id = 'UWOSH-3';
-UPDATE survivor_entries SET owner_id = 'owner-uw-oshkosh' WHERE id = 'UWOSH-4';
+UPDATE survivor_entries SET owner_id = 'owner-steve' WHERE name IN ('UWOSH-1', 'UWOSH-2');
+UPDATE survivor_entries SET owner_id = 'owner-cameron' WHERE name = 'UWOSH-3';
+UPDATE survivor_entries SET owner_id = 'owner-uw-oshkosh' WHERE name = 'UWOSH-4';
 
 -- Indices for rapid querying
 CREATE INDEX IF NOT EXISTS idx_survivor_entries_owner_id ON survivor_entries(owner_id);

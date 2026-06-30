@@ -26,6 +26,18 @@ CREATE TABLE IF NOT EXISTS entry_strategy_profiles (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Ensure Circa Survivor 2026 contest exists before entry seed inserts.
+INSERT INTO contests (id, name, year, status)
+SELECT
+  '20262026-c17c-4c0a-bd6e-000000000001',
+  'Circa Survivor 2026',
+  2026,
+  'active'
+WHERE NOT EXISTS (
+  SELECT 1 FROM contests
+  WHERE id = '20262026-c17c-4c0a-bd6e-000000000001'
+);
+
 -- Seed initial real-world entries into survivor_entries if they don't already exist.
 -- Match the Circa Survivor contest ID UUID: 20262026-c17c-4c0a-bd6e-000000000001
 -- Match specific entry UUID slots to stay consistent with custom mapped UUID prefixes (22222222-2222-4222-c222-...)
