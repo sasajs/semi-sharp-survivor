@@ -75,6 +75,27 @@ echo "5) Active migration check"
 psql "$DB_URL" -c "SELECT * FROM schema_migrations ORDER BY version DESC LIMIT 5;" || true
 
 echo ""
+
+echo ""
+echo "6) Required seeded data checks"
+
+contest_count=$(psql "$DB_URL" -t -A -c "SELECT COUNT(*) FROM contests;")
+entry_count=$(psql "$DB_URL" -t -A -c "SELECT COUNT(*) FROM survivor_entries;")
+
+if [ "$contest_count" -lt "1" ]; then
+  echo "✗ No contests found"
+  exit 1
+else
+  echo "✓ Contests found: $contest_count"
+fi
+
+if [ "$entry_count" -lt "1" ]; then
+  echo "✗ No survivor entries found"
+  exit 1
+else
+  echo "✓ Survivor entries found: $entry_count"
+fi
+
 echo "==============================================="
 echo " Database Validation Complete"
 echo "==============================================="
