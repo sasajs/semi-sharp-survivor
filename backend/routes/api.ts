@@ -72,6 +72,7 @@ const contestDynamicsService = new ContestDynamicsService();
 import { survivorStrategyService } from "../services/SurvivorStrategyService";
 import { survivorRoadmapService } from "../services/SurvivorRoadmapService";
 import { holidayReservationService } from "../services/HolidayReservationService";
+import { contestRulesService } from "../services/ContestRulesService";
 import { SurvivorStrategyType, HolidayType } from "../../src/types";
 import { SurvivorRecommendationService } from "../services/SurvivorRecommendationService";
 const survivorRecommendationService = new SurvivorRecommendationService();
@@ -291,6 +292,27 @@ router.get("/contest-types/:id", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Contest type not found" });
     }
     res.json(contestType);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get Contest Rules by Contest Type ID
+router.get("/contest-types/:id/rules", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const rules = contestRulesService.getRules(id);
+    res.json({
+      success: true,
+      contestTypeId: rules.contestTypeId,
+      name: rules.name,
+      totalLegs: rules.totalLegs,
+      usesThanksgivingLeg: rules.usesThanksgivingLeg,
+      usesChristmasLeg: rules.usesChristmasLeg,
+      usesHolidayReservations: rules.usesHolidayReservations,
+      holidayLegs: rules.holidayLegs(),
+      roadmapLegs: rules.roadmapLegs()
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

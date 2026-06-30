@@ -181,5 +181,10 @@ export const migrationRegistry: Migration[] = [
     version: "V060",
     description: "Contest Type Foundation.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "V060__ContestTypeFoundation.sql")
+  },
+  {
+    version: "V061",
+    description: "Extend Roadmap Metadata.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "V061__ExtendRoadmapMetadata.sql")
   }
 ];

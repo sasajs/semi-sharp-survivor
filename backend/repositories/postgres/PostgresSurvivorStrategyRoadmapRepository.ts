@@ -62,7 +62,10 @@ export class PostgresSurvivorStrategyRoadmapRepository implements ISurvivorStrat
       generated_reason: r.generated_reason || undefined,
       model_version: r.model_version || undefined,
       policy_version: r.policy_version || undefined,
-      created_at: r.created_at ? new Date(r.created_at).toISOString() : undefined
+      created_at: r.created_at ? new Date(r.created_at).toISOString() : undefined,
+      contest_type_id: r.contest_type_id || undefined,
+      total_legs: r.total_legs !== null && r.total_legs !== undefined ? Number(r.total_legs) : undefined,
+      holiday_enabled: r.holiday_enabled !== null && r.holiday_enabled !== undefined ? Boolean(r.holiday_enabled) : undefined
     };
   }
 
@@ -258,8 +261,9 @@ export class PostgresSurvivorStrategyRoadmapRepository implements ISurvivorStrat
       `INSERT INTO survivor_entry_roadmaps (
         entry_id, season, generated_week, strategy_type, roadmap_version,
         total_projected_survival, total_projected_equity, portfolio_correlation_score,
-        roadmap_confidence, generated_reason, model_version, policy_version, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_TIMESTAMP)
+        roadmap_confidence, generated_reason, model_version, policy_version,
+        contest_type_id, total_legs, holiday_enabled, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, CURRENT_TIMESTAMP)
       RETURNING *`,
       [
         roadmap.entry_id,
@@ -273,7 +277,10 @@ export class PostgresSurvivorStrategyRoadmapRepository implements ISurvivorStrat
         roadmap.roadmap_confidence !== undefined ? roadmap.roadmap_confidence : null,
         roadmap.generated_reason || null,
         roadmap.model_version || null,
-        roadmap.policy_version || null
+        roadmap.policy_version || null,
+        roadmap.contest_type_id || null,
+        roadmap.total_legs !== undefined ? roadmap.total_legs : null,
+        roadmap.holiday_enabled !== undefined ? roadmap.holiday_enabled : null
       ]
     );
     return this.mapRoadmapRow(rows[0]);

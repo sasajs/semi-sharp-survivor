@@ -1728,6 +1728,9 @@ export interface SurvivorEntryRoadmap {
   generated_reason?: string;
   model_version?: string;
   policy_version?: string;
+  contest_type_id?: string;
+  total_legs?: number;
+  holiday_enabled?: boolean;
   created_at?: string;
 }
 

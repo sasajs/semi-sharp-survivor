@@ -42,6 +42,7 @@ export interface OwnerDashboardEntry {
     generated_reason: string;
     roadmap_version: string;
     weeks: SurvivorEntryRoadmapWeek[];
+    scheduled_weeks?: any[];
   } | null;
   currentRecommendation: {
     week: number;
@@ -165,7 +166,15 @@ export class OwnerService {
             roadmap_confidence: roadmapData.roadmap.roadmap_confidence,
             generated_reason: roadmapData.roadmap.generated_reason || "",
             roadmap_version: roadmapData.roadmap.roadmap_version,
-            weeks: roadmapData.weeks
+            weeks: roadmapData.weeks,
+            scheduled_weeks: roadmapData.weeks.map(w => ({
+              leg_order: w.week,
+              week_number: w.week,
+              team_id: w.recommended_team_id,
+              opponent_id: "TBD",
+              safety_rating: w.win_probability,
+              is_holiday_week: w.is_holiday_week
+            }))
           } : null,
           currentRecommendation: currentRec
         });

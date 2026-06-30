@@ -14,6 +14,7 @@ import {
 } from "../repositories/index";
 import { survivorStrategyService } from "./SurvivorStrategyService";
 import { holidayReservationService } from "./HolidayReservationService";
+import { contestRulesService } from "./ContestRulesService";
 
 // Standard NFL team metadata with default capabilities for deterministic roadmap calculation
 interface NFLTeamSeed {
@@ -65,12 +66,11 @@ export class SurvivorRoadmapService {
    * Generate full season roadmap for an entry
    */
   async generateRoadmap(entryId: string, season: string): Promise<{ roadmap: SurvivorEntryRoadmap; weeks: SurvivorEntryRoadmapWeek[] }> {
-    // 1. Fetch active strategy and holiday reservations
+    // 1. Fetch active strategy, entry details, and contest rules
     const strategy = await survivorStrategyService.getActiveStrategy(entryId);
-    let reservations = await holidayReservationService.getReservations(entryId, season);
-    if (!reservations || reservations.length === 0) {
-      reservations = await holidayReservationService.generateReservations(entryId, season, strategy.strategy_type);
-    }
+    const entryObj = await entryRepo.getById(entryId);
+    const contestTypeId = entryObj?.contest_type_id || "circa";
+    const rules = contestRulesService.getRules(contestTypeId);
 
     // 2. Fetch used teams based on historical picks
     const entryPicks = await pickRepo.getByEntryId(entryId);
@@ -83,34 +83,41 @@ export class SurvivorRoadmapService {
 
     // 3. Determine current week (fallback to 1 if not detectable)
     let currentWeekNum = 1;
-    // Let's check entry status to make it dynamic
-    const entryObj = await entryRepo.getById(entryId);
     if (entryPicks.length > 0) {
-      // Find the latest leg/week pick and default current week to the next week or max week
       const maxPickWeek = Math.max(...entryPicks.map(p => {
-        // extract digit from contest leg ID or assume size
         const digits = p.contest_leg_id.match(/\d+/);
         return digits ? Number(digits[0]) : 1;
       }));
-      currentWeekNum = Math.min(18, maxPickWeek + 1);
+      currentWeekNum = Math.min(rules.totalLegs, maxPickWeek + 1);
     }
 
-    // 4. Generate the roadmap week-by-week (1 to 18)
+    // 4. Fetch or generate holiday reservations if enabled
+    let reservations: any[] = [];
+    if (rules.usesHolidayReservations) {
+      reservations = await holidayReservationService.getReservations(entryId, season);
+      if (!reservations || reservations.length === 0) {
+        reservations = await holidayReservationService.generateReservations(entryId, season, strategy.strategy_type);
+      }
+    }
+
+    // 5. Generate the roadmap week-by-week using contest definitions
     const weeksData: SurvivorEntryRoadmapWeek[] = [];
     const roadmapUsedTeams = new Set<string>(usedTeams);
 
     // Track holiday reserved teams to avoid picking them in regular weeks
     const holidayReservedTeams = new Set<string>();
-    for (const res of reservations) {
-      if (res.reserved_team_id) holidayReservedTeams.add(res.reserved_team_id.toLowerCase());
-      if (res.alternate_team_id) holidayReservedTeams.add(res.alternate_team_id.toLowerCase());
+    if (rules.usesHolidayReservations) {
+      for (const res of reservations) {
+        if (res.reserved_team_id) holidayReservedTeams.add(res.reserved_team_id.toLowerCase());
+        if (res.alternate_team_id) holidayReservedTeams.add(res.alternate_team_id.toLowerCase());
+      }
     }
 
     // Keep track of roadmap version using timestamp
     const roadmapVersion = `v1.${Date.now().toString().slice(-4)}`;
+    const roadmapLegs = rules.roadmapLegs();
 
-    for (let w = 1; w <= 18; w++) {
-      const isHolidayWeek = w === 12 || w === 16;
+    for (const leg of roadmapLegs) {
       let primaryTeam = "";
       let alternateTeam = "";
       let winProb = 0.50;
@@ -119,8 +126,8 @@ export class SurvivorRoadmapService {
       let ownershipProj = 0.05;
       let note = "";
 
-      if (isHolidayWeek) {
-        const hType = w === 12 ? HolidayType.THANKSGIVING : HolidayType.CHRISTMAS;
+      if (leg.isHoliday && rules.usesHolidayReservations) {
+        const hType = leg.type === "thanksgiving" ? HolidayType.THANKSGIVING : HolidayType.CHRISTMAS;
         const res = reservations.find(r => r.holiday_type === hType);
         
         const primaryCandidate = res?.reserved_team_id?.toLowerCase() || "";
@@ -151,13 +158,11 @@ export class SurvivorRoadmapService {
         eqScore = tMetadata.baseEquity;
         ownershipProj = tMetadata.basePopularity;
       } else {
-        // Regular week
+        // Regular week or standard survivor format without holiday legs
         // Rank available teams based on strategy weights
         const candidates = NFL_TEAMS.filter(t => {
-          // Must not be already used in previous roadmap weeks or actual picks
           if (roadmapUsedTeams.has(t.id)) return false;
-          // Avoid using holiday reserved teams in regular weeks unless absolutely necessary
-          if (holidayReservedTeams.has(t.id)) return false;
+          if (rules.usesHolidayReservations && holidayReservedTeams.has(t.id)) return false;
           return true;
         });
 
@@ -169,9 +174,8 @@ export class SurvivorRoadmapService {
           const consensusW = strategy.consensus_weight ?? 0.15;
           const marketplaceW = strategy.marketplace_weight ?? 0.15;
 
-          // Influence metrics slightly based on week number to make roadmap progressive
-          const weekFactor = (w / 18);
-          // Later weeks have slightly higher future value costs, lower win probabilities
+          // Influence metrics slightly based on leg order to make roadmap progressive
+          const weekFactor = (leg.displayOrder / rules.totalLegs);
           const adjWinProb = Math.max(0.40, t.baseWinProb - (weekFactor * 0.10));
           const adjFV = Math.max(0.10, t.baseFV * (1 - weekFactor));
           const adjEq = Math.max(0.10, t.baseEquity * weekFactor);
@@ -182,7 +186,7 @@ export class SurvivorRoadmapService {
             ((1 - adjFV) * futureValW) + 
             ((1 - adjPop) * ownershipW) + 
             (adjWinProb * consensusW) + 
-            (marketplaceW * (w <= 4 ? adjWinProb : 1 - adjFV));
+            (marketplaceW * (leg.displayOrder <= 4 ? adjWinProb : 1 - adjFV));
 
           return { team: t, score, adjWinProb, adjFV, adjEq, adjPop };
         }).sort((a, b) => b.score - a.score);
@@ -203,9 +207,9 @@ export class SurvivorRoadmapService {
       roadmapUsedTeams.add(primaryTeam);
 
       weeksData.push({
-        roadmap_id: 0, // Will update after saving roadmap
+        roadmap_id: 0,
         season,
-        week: w,
+        week: leg.displayOrder,
         recommended_team_id: primaryTeam,
         alternate_team_id: alternateTeam,
         win_probability: winProb,
@@ -213,21 +217,21 @@ export class SurvivorRoadmapService {
         contest_equity_score: eqScore,
         ownership_projection: ownershipProj,
         roadmap_note: note,
-        is_current_week: w === currentWeekNum,
-        is_holiday_week: isHolidayWeek
+        is_current_week: leg.displayOrder === currentWeekNum,
+        is_holiday_week: leg.isHoliday
       });
     }
 
-    // 5. Calculate summary indicators
+    // 6. Calculate summary indicators
     const totalSurvivalProb = weeksData.reduce((prod, wk) => prod * (wk.win_probability ?? 0.70), 1.0);
-    const avgEquityScore = weeksData.reduce((sum, wk) => sum + (wk.contest_equity_score ?? 0.50), 0) / 18;
-    const roadmapConfidence = weeksData.reduce((sum, wk) => sum + (wk.win_probability ?? 0.70), 0) / 18;
+    const avgEquityScore = weeksData.reduce((sum, wk) => sum + (wk.contest_equity_score ?? 0.50), 0) / rules.totalLegs;
+    const roadmapConfidence = weeksData.reduce((sum, wk) => sum + (wk.win_probability ?? 0.70), 0) / rules.totalLegs;
 
     // Portfolio correlation based on how much this roadmap overlaps with others
     const correlationScore = strategy.strategy_type === SurvivorStrategyType.DIVERSIFICATION ? 0.32 : 0.68;
 
-    const generatedReason = `Full-season roadmap generated utilizing ${strategy.strategy_name} strategy parameters. ` + 
-      `Holiday weeks (Thanksgiving/Christmas) have been strictly preserved with top-tier asset locks to insulate from late-season supply shocks. ` + 
+    const generatedReason = `Full-season roadmap generated utilizing ${strategy.strategy_name} strategy parameters for ${rules.name}. ` + 
+      (rules.usesHolidayReservations ? `Holiday weeks (Thanksgiving/Christmas) have been strictly preserved with top-tier asset locks to insulate from late-season supply shocks. ` : "") + 
       `Entry-specific historical usage respects the immutable exclusion of ${usedTeams.size} already played teams.`;
 
     const roadmapRecord: SurvivorEntryRoadmap = {
@@ -242,10 +246,13 @@ export class SurvivorRoadmapService {
       roadmap_confidence: roadmapConfidence,
       generated_reason: generatedReason,
       model_version: "v4.2.0-adaptive",
-      policy_version: "v0.57-strategic"
+      policy_version: "v0.57-strategic",
+      contest_type_id: rules.contestTypeId,
+      total_legs: rules.totalLegs,
+      holiday_enabled: rules.usesHolidayReservations
     };
 
-    // 6. Save structures to database
+    // 7. Save structures to database
     const savedRoadmap = await survivorStrategyRoadmapRepo.saveRoadmap(roadmapRecord);
     if (!savedRoadmap.id) {
       savedRoadmap.id = 1; // Safeguard for memory repository

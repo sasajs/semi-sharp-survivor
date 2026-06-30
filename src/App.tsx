@@ -296,7 +296,7 @@ export default function App() {
   // Redirect non-admin users if activeTab is not allowed
   useEffect(() => {
     if (currentUser && currentUser.role !== "admin") {
-      const allowed = ["dashboard", "entries", "roadmaps", "recommendations", "reports"];
+      const allowed = ["dashboard", "entries", "roadmaps", "recommendations", "reports", "circa-rules", "standard-rules"];
       if (!allowed.includes(activeTab)) {
         setActiveTab("dashboard");
       }
@@ -489,6 +489,8 @@ export default function App() {
                     { id: "roadmaps", label: "My Roadmaps", icon: Compass },
                     { id: "recommendations", label: "My Recommendations", icon: TrendingUp },
                     { id: "reports", label: "Reports", icon: FileText },
+                    { id: "circa-rules", label: "Circa Rules", icon: Award },
+                    { id: "standard-rules", label: "Standard Rules", icon: ShieldAlert },
                   ]
               ).map(tab => {
                 const Icon = tab.icon;
@@ -743,6 +745,124 @@ export default function App() {
                                 Standard
                               </span>
                             )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+              {/* ========================================================
+                  VIEW: CIRCA SURVIVOR RULES (OWNER ACCESS)
+                  ======================================================== */}
+              {activeTab === "circa-rules" && (
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 space-y-6">
+                  
+                  <div className="border-b pb-4">
+                    <h2 className="text-xl font-extrabold text-slate-950">Circa Survivor Official Rules</h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Official rules and isolated holiday slates for the premier Circa Survivor professional contest.
+                    </p>
+                  </div>
+
+                  <div className="bg-indigo-50/30 border border-indigo-100 p-5 rounded-2xl space-y-3">
+                    <h3 className="font-bold text-indigo-950 text-sm">Official Contest Rules &amp; Tie Mechanics</h3>
+                    <p className="text-xs text-indigo-900 leading-relaxed">
+                      The Circa Survivor is the premier professional contest. Major constraints are fully modeled in this context:
+                    </p>
+                    <ul className="list-disc pl-5 text-xs text-indigo-900 space-y-1.5 leading-relaxed font-semibold">
+                      <li><strong>No Split Points on Ties:</strong> If an NFL matchup ends in a tie, the selection is scored a loss. Your entry is instantly eliminated.</li>
+                      <li><strong>Solo Selection:</strong> Each NFL squad can be selected exactly ONE time during the duration of an entry's lifespan.</li>
+                      <li><strong>Double Holiday Slates:</strong> Thanksgiving (Leg 13) and Christmas (Leg 18) are scored as distinct, isolated standalone weeks. Strategic team preservation is mandatory for success.</li>
+                    </ul>
+                  </div>
+
+                  {/* Complete 20-Leg Visual Grid */}
+                  <div>
+                    <h3 className="font-extrabold text-xs text-slate-400 uppercase tracking-widest block mb-3">CONTEST LEG MAP GRID (20 LEGS)</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {legs.map(l => {
+                        const isHoliday = l.leg_type !== "regular";
+                        return (
+                          <div 
+                            key={l.id}
+                            className={`p-3.5 border rounded-xl flex items-center justify-between ${
+                              isHoliday 
+                                ? "bg-amber-50/40 border-amber-200" 
+                                : "bg-white border-slate-200"
+                            }`}
+                          >
+                            <div className="space-y-1">
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">CONTEST LEG {l.display_order}</span>
+                              <span className="font-black text-xs text-slate-900 block leading-tight">{l.name}</span>
+                              <span className="text-[9px] text-slate-500 block">Scoring Week Reference: NFL Week {l.nfl_week}</span>
+                            </div>
+
+                            {isHoliday ? (
+                              <span className="text-[9px] bg-amber-100 text-amber-800 font-black uppercase px-2 py-0.5 rounded tracking-wide shrink-0">
+                                HOLIDAY SLATE
+                              </span>
+                            ) : (
+                              <span className="text-[9px] bg-indigo-50 text-indigo-600 font-serif font-semibold px-2 py-0.5 rounded shrink-0">
+                                Standard
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+              {/* ========================================================
+                  VIEW: STANDARD SURVIVOR RULES (OWNER ACCESS)
+                  ======================================================== */}
+              {activeTab === "standard-rules" && (
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 space-y-6">
+                  
+                  <div className="border-b pb-4">
+                    <h2 className="text-xl font-extrabold text-slate-950">Standard Survivor Official Rules</h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Official rules for standard survivor contests with straightforward week-by-week scoring.
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-3">
+                    <h3 className="font-bold text-slate-900 text-sm">Official Contest Rules &amp; Week Mechanics</h3>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Standard Survivor contests follow a simple, week-by-week progression structure without custom holiday legs:
+                    </p>
+                    <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1.5 leading-relaxed font-semibold">
+                      <li><strong>Standard Scoring:</strong> Choose one winning team per NFL week. If they win, you advance. If they lose or tie (depending on league rules), you are eliminated.</li>
+                      <li><strong>Solo Selection:</strong> Once you select a team, you cannot use that team again for the rest of the season.</li>
+                      <li><strong>No Holiday Weeks:</strong> Matches played on Thanksgiving or Christmas are simply part of their respective NFL Week (Week 12 and Week 16). No extra selections are required.</li>
+                      <li><strong>Total Legs:</strong> 18 legs across 18 weeks.</li>
+                    </ul>
+                  </div>
+
+                  {/* Complete 18-Week Visual Grid */}
+                  <div>
+                    <h3 className="font-extrabold text-xs text-slate-400 uppercase tracking-widest block mb-3">CONTEST LEG MAP GRID (18 WEEKS)</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {Array.from({ length: 18 }).map((_, idx) => {
+                        const weekNum = idx + 1;
+                        return (
+                          <div 
+                            key={weekNum}
+                            className="p-3.5 border border-slate-200 bg-white rounded-xl flex items-center justify-between"
+                          >
+                            <div className="space-y-1">
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">WEEK {weekNum}</span>
+                              <span className="font-black text-xs text-slate-900 block leading-tight">Week {weekNum} Action</span>
+                              <span className="text-[9px] text-slate-500 block">Scoring Week Reference: NFL Week {weekNum}</span>
+                            </div>
+                            <span className="text-[9px] bg-slate-100 text-slate-600 font-serif font-semibold px-2 py-0.5 rounded shrink-0">
+                              Standard
+                            </span>
                           </div>
                         );
                       })}
@@ -1422,13 +1542,23 @@ export default function App() {
                     }
 
                     const { entry, roadmap, holidayReservations, strategy } = entryDash;
+                    const isCirca = entry.contest_type_id?.toLowerCase() === "circa";
+
                     return (
                       <div className="space-y-6">
                         <div className="bg-slate-50 border border-slate-150 p-5 rounded-2xl flex flex-col md:flex-row justify-between md:items-center gap-4">
                           <div>
                             <span className="text-[9px] font-black uppercase text-slate-400">Entry Context</span>
                             <h3 className="text-lg font-bold text-slate-900">{entry.name}</h3>
-                            <p className="text-xs text-slate-500 mt-0.5">Strategy Profile: <strong className="text-indigo-600 font-bold uppercase">{strategy?.strategy_name || strategy?.strategy_type || "Standard"}</strong></p>
+                            <div className="flex flex-wrap items-center gap-2 mt-1">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider ${
+                                isCirca ? "bg-amber-100 text-amber-850 border border-amber-250 shadow-sm" : "bg-blue-50 text-blue-800 border border-blue-200"
+                              }`}>
+                                {isCirca ? "🏆 Circa Survivor" : "🛡️ Standard Survivor"}
+                              </span>
+                              <span className="text-slate-300 text-xs">|</span>
+                              <p className="text-xs text-slate-500">Strategy Profile: <strong className="text-indigo-600 font-bold uppercase">{strategy?.strategy_name || strategy?.strategy_type || "Standard"}</strong></p>
+                            </div>
                           </div>
                           <div className="bg-white border px-4 py-2 rounded-xl text-center">
                             <span className="block text-[8px] font-black uppercase text-slate-400">Roadmap Confidence</span>
@@ -1443,7 +1573,7 @@ export default function App() {
                             <table className="w-full text-left text-xs">
                               <thead>
                                 <tr className="bg-slate-50 border-b border-slate-150 text-slate-400 uppercase tracking-wider font-bold">
-                                  <th className="p-3">Leg / Week</th>
+                                  <th className="p-3">{isCirca ? "Contest Leg" : "Contest Week"}</th>
                                   <th className="p-3">Selected Team</th>
                                   <th className="p-3">Opponent</th>
                                   <th className="p-3">Safety Rating</th>
@@ -1452,9 +1582,19 @@ export default function App() {
                               <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                                 {roadmap.scheduled_weeks.map((week: any, idx: number) => {
                                   const teamObj = teams.find(t => t.id.toLowerCase() === week.team_id?.toLowerCase() || t.abbreviation.toLowerCase() === week.team_id?.toLowerCase());
+                                  const isHoliday = isCirca && week.is_holiday_week;
                                   return (
-                                    <tr key={idx} className="hover:bg-slate-50/50">
-                                      <td className="p-3 font-bold text-slate-900">Leg {week.leg_order || idx + 1}</td>
+                                    <tr key={idx} className={`hover:bg-slate-50/50 ${isHoliday ? "bg-amber-50/20" : ""}`}>
+                                      <td className="p-3 font-bold text-slate-900">
+                                        <div className="flex items-center gap-2">
+                                          <span>{isCirca ? `Leg ${week.leg_order || idx + 1}` : `Week ${week.week_number || idx + 1}`}</span>
+                                          {isHoliday && (
+                                            <span className="text-[8px] bg-amber-100 text-amber-800 border border-amber-250 px-2 py-0.5 rounded-full font-black uppercase tracking-wider shrink-0 animate-pulse-subtle">
+                                              {week.leg_order === 13 ? "Thanksgiving / Black Friday" : "Christmas"}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </td>
                                       <td className="p-3 flex items-center gap-2">
                                         {teamObj ? (
                                           <>
