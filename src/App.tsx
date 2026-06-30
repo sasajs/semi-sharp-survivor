@@ -1380,21 +1380,42 @@ export default function App() {
                       </div>
 
                       {/* Contest-Aware Context Card */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 border border-slate-150 p-4 rounded-2xl">
+                      <div className="grid grid-cols-2 md:grid-cols-6 gap-4 bg-slate-50 border border-slate-150 p-4 rounded-2xl">
                         <div className="space-y-0.5">
-                          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Contest Name</span>
+                          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Owner</span>
                           <div className="text-sm font-black text-slate-800">
+                            {recReport.entry?.owner_name || "Steve"}
+                          </div>
+                        </div>
+                        <div className="space-y-0.5">
+                          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Entry</span>
+                          <div className="text-sm font-black text-slate-800">
+                            {recReport.entry?.name}
+                          </div>
+                        </div>
+                        <div className="space-y-0.5">
+                          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Contest</span>
+                          <div className="text-sm font-black text-indigo-650">
                             {recReport.contest_type?.toLowerCase() === "standard" ? "Standard Survivor" : "Circa Survivor"}
                           </div>
                         </div>
                         <div className="space-y-0.5">
-                          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Format</span>
+                          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Strategy</span>
+                          <div className="text-sm font-black text-slate-800">
+                            {recReport.entry?.strategy_type 
+                              ? (recReport.entry.strategy_type === 'safe' ? 'Conservative' : recReport.entry.strategy_type === 'balanced' ? 'Balanced' : 'Championship') 
+                              : (recReport.contest_type?.toLowerCase() === "standard" ? "Conservative" : "Championship")
+                            }
+                          </div>
+                        </div>
+                        <div className="space-y-0.5">
+                          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Roadmap</span>
                           <div className="text-sm font-black text-slate-800">
                             {recReport.contest_type?.toLowerCase() === "standard" ? "18 Weeks" : "20 Legs"}
                           </div>
                         </div>
                         <div className="space-y-0.5">
-                          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Holiday Strategy</span>
+                          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Holiday Reservations</span>
                           <div className="text-sm font-black text-slate-800">
                             {recReport.contest_type?.toLowerCase() === "standard" ? "Not Applicable" : "Enabled"}
                           </div>
@@ -1407,6 +1428,68 @@ export default function App() {
                         handleLockPick={handleLockPick}
                         setActiveTab={setActiveTab}
                       />
+
+                      {/* Contest Rules & Strategy Comparison Card */}
+                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
+                        <div className="flex items-center gap-2">
+                          <Compass className="w-5 h-5 text-indigo-600" />
+                          <h4 className="text-sm font-black text-slate-950">Contest Rules &amp; Strategy Comparison</h4>
+                        </div>
+                        <p className="text-xs text-slate-650 leading-relaxed">
+                          The recommendation and roadmap behavior adapts dynamically to the active contest rules, while the underlying mathematical forecast models and simulation engines remain unified.
+                        </p>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left text-xs border-collapse">
+                            <thead>
+                              <tr className="border-b border-slate-200 text-slate-400 font-extrabold uppercase tracking-wider">
+                                <th className="py-2 pr-4">Feature / Rule</th>
+                                <th className="py-2 px-4">Circa Survivor</th>
+                                <th className="py-2 pl-4">Standard Survivor</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                              <tr>
+                                <td className="py-2 pr-4 font-bold text-slate-900">Contest Legs</td>
+                                <td className="py-2 px-4">20 Contest Legs</td>
+                                <td className="py-2 pl-4">18 Weeks</td>
+                              </tr>
+                              <tr>
+                                <td className="py-2 pr-4 font-bold text-slate-900">Thanksgiving Leg</td>
+                                <td className="py-2 px-4">Included (Leg 13)</td>
+                                <td className="py-2 pl-4">No Holiday Legs</td>
+                              </tr>
+                              <tr>
+                                <td className="py-2 pr-4 font-bold text-slate-900">Christmas Leg</td>
+                                <td className="py-2 px-4">Included (Leg 18)</td>
+                                <td className="py-2 pl-4">No Holiday Legs</td>
+                              </tr>
+                              <tr>
+                                <td className="py-2 pr-4 font-bold text-slate-900">Holiday Reservations</td>
+                                <td className="py-2 px-4 text-emerald-600 font-bold">Enabled</td>
+                                <td className="py-2 pl-4 text-slate-400">Not Applicable</td>
+                              </tr>
+                              <tr>
+                                <td className="py-2 pr-4 font-bold text-slate-900">Forecast Models</td>
+                                <td className="py-2 px-4 text-indigo-600">Shared</td>
+                                <td className="py-2 pl-4 text-indigo-600">Shared</td>
+                              </tr>
+                              <tr>
+                                <td className="py-2 pr-4 font-bold text-slate-900">Recommendation Engine</td>
+                                <td className="py-2 px-4 text-indigo-600">Shared</td>
+                                <td className="py-2 pl-4 text-indigo-600">Shared</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <div className="bg-indigo-50/50 rounded-xl p-3 border border-indigo-100 text-xs text-slate-650">
+                          <strong className="text-indigo-950">Strategy Divergence Analysis: </strong>
+                          {recReport.contest_type?.toLowerCase() === "standard" ? (
+                            <span>Traditional 18-week format allows aggressive usage of high-tier options during regular weeks as no Thanksgiving or Christmas Day preservation shields are required to survive. Selections prioritize maximum immediate week survival probability.</span>
+                          ) : (
+                            <span>Circa's 20-leg structure forces the engine to heavily penalize burning Detroit, Dallas, Kansas City, San Francisco, and Baltimore prior to their respective holiday legs. This preservation strategy reduces short-term safety slightly but dramatically maximizes long-term championship equity.</span>
+                          )}
+                        </div>
+                      </div>
 
                       {/* Portfolio Allocation Integration */}
                       <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 mt-6" id="report-portfolio-integration">

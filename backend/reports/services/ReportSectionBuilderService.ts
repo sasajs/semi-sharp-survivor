@@ -84,23 +84,111 @@ ${narrative}`;
     };
   }
 
-  static buildInventorySection(inv: WeeklyReportInventorySummary, narrative: string): WeeklyReportSection {
-    const md = `### Portfolio Inventory Preservation Report
+  static buildInventorySection(inv: WeeklyReportInventorySummary, narrative: string, contestTypeId?: string): WeeklyReportSection {
+    const isCirca = (contestTypeId || "circa").toLowerCase() !== "standard";
+    let md = `### Portfolio Inventory Preservation Report
 - **Used Picks Count**: ${inv.used_teams.length} teams
 - **Available Matchups**: ${inv.available_teams.length} teams
-- **Preserved Elite Franchises**: ${inv.remaining_elite_teams.join(", ") || "None remaining"}
+- **Preserved Elite Franchises**: ${inv.remaining_elite_teams.join(", ") || "None remaining"}`;
 
-#### Special Multi-Split Holiday Reserves
+    if (isCirca) {
+      md += `\n\n#### Special Multi-Split Holiday Reserves
 - **Thanksgiving Day Inventory**: ${inv.thanksgiving_inventory.join(", ") || "None"}
-- **Christmas Day Inventory**: ${inv.christmas_inventory.join(", ") || "None"}
+- **Christmas Day Inventory**: ${inv.christmas_inventory.join(", ") || "None"}`;
+    }
 
-#### Operational Insight:
+    md += `\n\n#### Operational Insight:
 ${narrative}`;
 
     return {
       id: "sec-inventory-summary",
       title: "4. Future Inventory Allocation Status",
       type: "inventory_summary",
+      content_markdown: md
+    };
+  }
+
+  static buildRoadmapSection(contestTypeId: string, inv: WeeklyReportInventorySummary): WeeklyReportSection {
+    const isCirca = (contestTypeId || "circa").toLowerCase() !== "standard";
+    let md = "";
+    if (isCirca) {
+      md = `### Embedded Contest Roadmap Mapping
+- **Total Contest Legs**: 20 Legs
+- **Holiday Reservations Status**: Active & Mapped
+
+#### 📋 20-Leg Sequence Mapping (Circa)
+| Leg | Type | Indicator | Reservation Summary / Mapped Teams |
+|---|---|---|---|
+`;
+      for (let legNum = 1; legNum <= 20; legNum++) {
+        let legType = "Regular Week";
+        let indicator = "🟢 Active";
+        let summary = "Unrestricted Selection";
+        if (legNum === 13) {
+          legType = "Thanksgiving/Black Friday";
+          indicator = "🦃 Holiday Leg";
+          summary = inv.thanksgiving_inventory.length > 0 
+            ? `Protected Target: ${inv.thanksgiving_inventory.join(", ")}`
+            : "No Reserved Teams Mapped";
+        } else if (legNum === 18) {
+          legType = "Christmas Day";
+          indicator = "🎄 Holiday Leg";
+          summary = inv.christmas_inventory.length > 0 
+            ? `Protected Target: ${inv.christmas_inventory.join(", ")}`
+            : "No Reserved Teams Mapped";
+        }
+        md += `| Leg ${legNum} | ${legType} | ${indicator} | ${summary} |\n`;
+      }
+      md += `\n#### 🛡️ Holiday Reservation Summary\n`;
+      md += `- Thanksgiving Mapped: **${inv.thanksgiving_inventory.join(", ") || "None Reserved"}**\n`;
+      md += `- Christmas Mapped: **${inv.christmas_inventory.join(", ") || "None Reserved"}**\n`;
+    } else {
+      md = `### Embedded Contest Roadmap Mapping
+- **Total Contest Legs**: 18 Weeks
+- **Holiday Reservations Status**: Not Applicable (Standard Rules)
+
+#### 📋 18-Week Sequence Mapping (Standard)
+| Week | Type | Status |
+|---|---|---|
+`;
+      for (let weekNum = 1; weekNum <= 18; weekNum++) {
+        md += `| Week ${weekNum} | Regular Week | 🟢 Active |\n`;
+      }
+    }
+
+    return {
+      id: "sec-embedded-roadmap",
+      title: "Contest Roadmap & Sequence Alignment",
+      type: "inventory_summary",
+      content_markdown: md
+    };
+  }
+
+  static buildComparisonSection(contestTypeId: string): WeeklyReportSection {
+    const isCirca = (contestTypeId || "circa").toLowerCase() !== "standard";
+    const md = `### Contest Rules Summary Comparison
+The recommendation and roadmap behavior adapts dynamically to the active contest rules, while the underlying mathematical forecast models and simulation engines remain unified.
+
+| Feature / Rule | Circa Survivor | Standard Survivor |
+|---|---|---|
+| **Contest Legs** | 20 Contest Legs | 18 Weeks |
+| **Thanksgiving Leg** | Included (Leg 13) | No Holiday Legs |
+| **Christmas Leg** | Included (Leg 18) | No Holiday Legs |
+| **Holiday Reservation Strategy** | Enabled | Disabled / Not Applicable |
+| **Forecast Models** | Shared | Shared |
+| **Recommendation Engine** | Shared | Shared |
+
+#### Strategy Divergence Analysis:
+${!isCirca 
+  ? "Traditional 18-week format allows aggressive usage of high-tier options during regular weeks as no Thanksgiving or Christmas Day preservation shields are required to survive. Selections prioritize maximum immediate week survival probability."
+  : "Circa's 20-leg structure forces the engine to heavily penalize burning Detroit, Dallas, Kansas City, San Francisco, and Baltimore prior to their respective holiday legs. This preservation strategy reduces short-term safety slightly but dramatically maximizes long-term championship equity."
+}
+`;
+
+    return {
+      id: "sec-rules-comparison",
+      title: "Contest Rules & Strategy Comparison",
+      type: "executive_summary",
       content_markdown: md
     };
   }

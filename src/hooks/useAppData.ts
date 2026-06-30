@@ -107,13 +107,19 @@ export function useAppData() {
     if (!selectedEntryId || !selectedLegId) return;
 
     const fetchRecs = async () => {
+      const token = localStorage.getItem("admin_token");
+      if (!token) {
+        setRecReport(null);
+        return;
+      }
+
       try {
         setLoadingRecs(true);
         const data = await apiService.fetchRecommendations(selectedEntryId, selectedLegId);
         setRecReport(data);
         setLoadingRecs(false);
       } catch (err) {
-        console.error("Error loading mathematical recommendations:", err);
+        console.warn("Error loading mathematical recommendations:", err);
         setLoadingRecs(false);
       }
     };

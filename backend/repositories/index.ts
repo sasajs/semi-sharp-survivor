@@ -150,6 +150,7 @@ export const recommendationEvolutionRepo = createRepositoryProxy(() => Repositor
 export const survivorStrategyRoadmapRepo = createRepositoryProxy(() => RepositoryFactory.getSurvivorStrategyRoadmapRepo());
 export const userAccessRepo = createRepositoryProxy(() => RepositoryFactory.getUserAccessRepo());
 export const contestTypeRepo = createRepositoryProxy(() => RepositoryFactory.getContestTypeRepo());
+export const teamAliasRepo = createRepositoryProxy(() => RepositoryFactory.getTeamAliasRepo());
 
 
 

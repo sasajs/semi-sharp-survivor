@@ -81,7 +81,7 @@ export class RecommendationExplanationService {
     const isCirca = (contestTypeId || "circa").toLowerCase() !== "standard";
     let holiday_inventory_impact = "";
     if (isCirca) {
-      holiday_inventory_impact = "This recommendation accounts for Circa's 20-leg format, including Thanksgiving and Christmas holiday legs.";
+      holiday_inventory_impact = "Recommendation accounts for Thanksgiving and Christmas preservation.";
       if (isThanksgivingReserved) {
         holiday_inventory_impact += ` CRITICAL: ${teamName} is actively designated for Thanksgiving protection. Selecting them now breaks holiday safety schemas.`;
       } else if (isChristmasReserved) {
@@ -90,7 +90,7 @@ export class RecommendationExplanationService {
         holiday_inventory_impact += ` No holiday conflicts detected for ${teamName}.`;
       }
     } else {
-      holiday_inventory_impact = "This recommendation uses the standard 18-week Survivor format. Holiday reservation logic is not applied.";
+      holiday_inventory_impact = "Recommendation generated using traditional 18-week Survivor rules.";
     }
 
     return {

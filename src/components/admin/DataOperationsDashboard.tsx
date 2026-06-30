@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { TeamAliasesManager } from "./TeamAliasesManager";
 import {
   LayoutDashboard,
   Brain,
@@ -246,7 +247,7 @@ export const DataOperationsDashboard: React.FC = () => {
                   </div>
                   <div>
                     <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest font-mono bg-indigo-50 px-2 py-0.5 rounded-full">
-                      Epic 2 Blueprint
+                      {activeSubTab === "team-aliases" ? "EPIC 2 OPERATIONAL" : "Epic 2 Blueprint"}
                     </span>
                     <h3 className="text-lg font-black text-slate-950 tracking-tight mt-0.5">
                       {activeData.name}
@@ -258,80 +259,93 @@ export const DataOperationsDashboard: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex items-center gap-1.5 shrink-0 bg-amber-50 text-amber-800 border border-amber-200/55 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">
-                <Lock className="w-3 h-3" />
-                Coming in Epic 2
-              </div>
-            </div>
-
-            {/* Simulated Data Preview Grid */}
-            <div className="mt-8 space-y-6">
-              <div>
-                <h4 className="text-xs font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-1.5">
-                  <RefreshCw className="w-3.5 h-3.5 text-indigo-500 animate-spin-slow" />
-                  Proposed Database Fields & Properties
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                  {activeData.details.map((detail, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-slate-50 border border-slate-100 hover:border-slate-200 rounded-xl p-3 flex items-start gap-2.5 transition"
-                    >
-                      <ArrowRight className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
-                      <span className="text-xs text-slate-600 leading-relaxed">{detail}</span>
-                    </div>
-                  ))}
+              {activeSubTab === "team-aliases" ? (
+                <div className="flex items-center gap-1.5 shrink-0 bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                  Operational
                 </div>
-              </div>
-
-              {/* Graphical Operational Wireframe Placeholder */}
-              <div className="border border-dashed border-slate-200 bg-slate-50/50 rounded-2xl p-8 flex flex-col items-center justify-center text-center space-y-3 min-h-[220px]">
-                <div className="p-3.5 bg-slate-100 rounded-full text-slate-400 border border-slate-200">
-                  <Database className="w-6 h-6" />
-                </div>
-                <div className="space-y-1">
-                  <h5 className="text-xs font-bold text-slate-900">Database Schema Standby</h5>
-                  <p className="text-[11px] text-slate-400 max-w-md mx-auto leading-relaxed">
-                    The backend schemas and real-time ingestion listeners are undergoing strict unit-testing in local sandbox repositories. Production database migrations are deferred until Epic 2 validation completes.
-                  </p>
-                </div>
-                <div className="flex gap-2 pt-1">
-                  <button
-                    disabled
-                    className="opacity-50 text-xs font-bold bg-slate-200 text-slate-400 border border-slate-300 py-1.5 px-3 rounded-lg cursor-not-allowed flex items-center gap-1.5"
-                  >
-                    Run Draft Import
-                  </button>
-                  <button
-                    disabled
-                    className="opacity-50 text-xs font-bold bg-slate-100 text-slate-400 border border-slate-200 py-1.5 px-3 rounded-lg cursor-not-allowed flex items-center gap-1.5"
-                  >
-                    Verify Schema Integrity
-                  </button>
-                </div>
-              </div>
-
-              {/* Data Operations Live Ingestion Schema Mock for Developer Preview */}
-              {activeSubTab === "dashboard" && (
-                <div className="bg-slate-950 text-slate-100 rounded-xl p-4 font-mono text-[11px] leading-relaxed overflow-x-auto shadow-inner border border-slate-800">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2 text-[10px] text-slate-400 uppercase tracking-widest">
-                    <span>SYSTEM_ORCHESTRATOR_LOG_MOCK</span>
-                    <span className="text-emerald-500 font-bold animate-pulse">● READY FOR COUPLING</span>
-                  </div>
-                  <div>{"{"}</div>
-                  <div className="pl-4 text-slate-400">"status": "AWAITING_EPIC_2_INTEGRATION",</div>
-                  <div className="pl-4 text-slate-400">"scheduler": "active_standby",</div>
-                  <div className="pl-4 text-slate-400">"supported_operations": [</div>
-                  <div className="pl-8 text-indigo-400">"REFERENCE_DATA_MANAGEMENT",</div>
-                  <div className="pl-8 text-indigo-400">"SCHEDULE_INGESTION_V2",</div>
-                  <div className="pl-8 text-indigo-400">"ODDS_MARKET_CALIBRATION_V2",</div>
-                  <div className="pl-8 text-indigo-400">"INJURY_AND_WEATHER_ANALYSIS"</div>
-                  <div className="pl-4 text-slate-400">],</div>
-                  <div className="pl-4 text-slate-400">"total_mock_schemas_mapped": 13</div>
-                  <div>{"}"}</div>
+              ) : (
+                <div className="flex items-center gap-1.5 shrink-0 bg-amber-50 text-amber-800 border border-amber-200/55 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">
+                  <Lock className="w-3 h-3" />
+                  Coming in Epic 2
                 </div>
               )}
             </div>
+
+            {activeSubTab === "team-aliases" ? (
+              <div className="mt-8">
+                <TeamAliasesManager />
+              </div>
+            ) : (
+              /* Simulated Data Preview Grid */
+              <div className="mt-8 space-y-6">
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-1.5">
+                    <RefreshCw className="w-3.5 h-3.5 text-indigo-500 animate-spin-slow" />
+                    Proposed Database Fields & Properties
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                    {activeData.details.map((detail, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-slate-50 border border-slate-100 hover:border-slate-200 rounded-xl p-3 flex items-start gap-2.5 transition"
+                      >
+                        <ArrowRight className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
+                        <span className="text-xs text-slate-600 leading-relaxed">{detail}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Graphical Operational Wireframe Placeholder */}
+                <div className="border border-dashed border-slate-200 bg-slate-50/50 rounded-2xl p-8 flex flex-col items-center justify-center text-center space-y-3 min-h-[220px]">
+                  <div className="p-3.5 bg-slate-100 rounded-full text-slate-400 border border-slate-200">
+                    <Database className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <h5 className="text-xs font-bold text-slate-900">Database Schema Standby</h5>
+                    <p className="text-[11px] text-slate-400 max-w-md mx-auto leading-relaxed">
+                      The backend schemas and real-time ingestion listeners are undergoing strict unit-testing in local sandbox repositories. Production database migrations are deferred until Epic 2 validation completes.
+                    </p>
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      disabled
+                      className="opacity-50 text-xs font-bold bg-slate-200 text-slate-400 border border-slate-300 py-1.5 px-3 rounded-lg cursor-not-allowed flex items-center gap-1.5"
+                    >
+                      Run Draft Import
+                    </button>
+                    <button
+                      disabled
+                      className="opacity-50 text-xs font-bold bg-slate-100 text-slate-400 border border-slate-200 py-1.5 px-3 rounded-lg cursor-not-allowed flex items-center gap-1.5"
+                    >
+                      Verify Schema Integrity
+                    </button>
+                  </div>
+                </div>
+
+                {/* Data Operations Live Ingestion Schema Mock for Developer Preview */}
+                {activeSubTab === "dashboard" && (
+                  <div className="bg-slate-950 text-slate-100 rounded-xl p-4 font-mono text-[11px] leading-relaxed overflow-x-auto shadow-inner border border-slate-800">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2 text-[10px] text-slate-400 uppercase tracking-widest">
+                      <span>SYSTEM_ORCHESTRATOR_LOG_MOCK</span>
+                      <span className="text-emerald-500 font-bold animate-pulse">● READY FOR COUPLING</span>
+                    </div>
+                    <div>{"{"}</div>
+                    <div className="pl-4 text-slate-400">"status": "AWAITING_EPIC_2_INTEGRATION",</div>
+                    <div className="pl-4 text-slate-400">"scheduler": "active_standby",</div>
+                    <div className="pl-4 text-slate-400">"supported_operations": [</div>
+                    <div className="pl-8 text-indigo-400">"REFERENCE_DATA_MANAGEMENT",</div>
+                    <div className="pl-8 text-indigo-400">"SCHEDULE_INGESTION_V2",</div>
+                    <div className="pl-8 text-indigo-400">"ODDS_MARKET_CALIBRATION_V2",</div>
+                    <div className="pl-8 text-indigo-400">"INJURY_AND_WEATHER_ANALYSIS"</div>
+                    <div className="pl-4 text-slate-400 flex">],</div>
+                    <div className="pl-4 text-slate-400">"total_mock_schemas_mapped": 13</div>
+                    <div>{"}"}</div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

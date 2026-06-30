@@ -689,5 +689,40 @@ export const apiService = {
 
   async fetchCurrentWorkspace(): Promise<any> {
     return this.getCurrentOwnerWorkspace();
+  },
+
+  async fetchTeamAliases(): Promise<any[]> {
+    const res = await fetch("/api/admin/data/team-aliases");
+    if (!res.ok) throw new Error("Failed to fetch team aliases");
+    return res.json();
+  },
+
+  async resolveTeamAlias(value: string, providerName?: string): Promise<any> {
+    const url = `/api/admin/data/resolve-team?value=${encodeURIComponent(value)}${providerName ? `&providerName=${encodeURIComponent(providerName)}` : ""}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Failed to resolve team");
+    return res.json();
+  },
+
+  async createTeamAlias(alias: any): Promise<any> {
+    const res = await fetch("/api/admin/data/team-aliases", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(alias)
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || "Failed to create team alias");
+    }
+    return res.json();
+  },
+
+  async deactivateTeamAlias(id: string): Promise<boolean> {
+    const res = await fetch(`/api/admin/data/team-aliases/${id}`, {
+      method: "DELETE"
+    });
+    if (!res.ok) throw new Error("Failed to deactivate team alias");
+    const data = await res.json();
+    return data.success;
   }
 };

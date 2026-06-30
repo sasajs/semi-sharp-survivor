@@ -64,7 +64,8 @@ import {
   MockSurvivorStrategyRoadmapRepository,
   MockOwnerRepository,
   MockUserAccessRepository,
-  MockContestTypeRepository
+  MockContestTypeRepository,
+  MockTeamAliasRepository
 } from "./mockRepositories";
 
 import {
@@ -92,6 +93,7 @@ import { PostgresEntryRepository } from "./postgres/PostgresEntryRepository";
 import { PostgresPickRepository } from "./postgres/PostgresPickRepository";
 import { PostgresUserAccessRepository } from "./postgres/PostgresUserAccessRepository";
 import { PostgresContestTypeRepository } from "./postgres/PostgresContestTypeRepository";
+import { PostgresTeamAliasRepository } from "./postgres/PostgresTeamAliasRepository";
 import { PostgresWorkflowRepository } from "./postgres/PostgresWorkflowRepository";
 import { PostgresSnapshotRepository } from "./postgres/PostgresSnapshotRepository";
 import { PostgresFeatureDefinitionRepository } from "./postgres/PostgresFeatureDefinitionRepository";
@@ -330,6 +332,9 @@ export class RepositoryFactory {
   }
   static getContestTypeRepo() {
     return useMock ? new MockContestTypeRepository() : new PostgresContestTypeRepository();
+  }
+  static getTeamAliasRepo() {
+    return useMock ? new MockTeamAliasRepository() : new PostgresTeamAliasRepository();
   }
 }
 

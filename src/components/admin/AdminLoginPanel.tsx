@@ -28,11 +28,7 @@ export const AdminLoginPanel: React.FC<AdminLoginPanelProps> = ({ onLoginSuccess
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          username: role === "ADMIN" ? "admin" : "sas",
-          password,
-          role
-        })
+        body: JSON.stringify({ password, role })
       });
 
       const data = await res.json();

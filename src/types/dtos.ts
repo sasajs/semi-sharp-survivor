@@ -883,6 +883,19 @@ export interface WeeklyReportDTO {
   audit_metadata: WeeklyReportAuditMetadataDTO;
   sections: WeeklyReportSectionDTO[];
   created_at: string;
+  contest_type?: string;
+  contest_name?: string;
+  total_contest_legs?: number;
+  holiday_strategy_enabled?: boolean;
+  report_generation_date?: string;
+  roadmap_version?: string;
+  recommendation_version?: number;
+  ContestTypeCode?: string;
+  ContestTypeName?: string;
+  TotalLegs?: number;
+  HolidayStrategyEnabled?: boolean;
+  RoadmapSummary?: string;
+  RecommendationSummary?: string;
 }
 
 export interface WeeklyReportRunDTO {

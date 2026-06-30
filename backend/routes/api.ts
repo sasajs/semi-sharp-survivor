@@ -13,9 +13,11 @@ import {
   projectDecisionsRepo,
   operationsEventsRepo,
   contestTypeRepo,
+  teamAliasRepo,
   useMock
 } from "../repositories/index";
 import { buildAndSeedMockState } from "../services/mockSeeder";
+import { teamAliasResolverService } from "../services/TeamAliasResolverService";
 import { calculateRecommendations, RecommendationService } from "../services/recommendationEngine";
 import { runMigrations } from "../database/migrations/runMigrations";
 import { seedDatabase } from "../database/seed/seedData";
@@ -123,6 +125,9 @@ const getAdminToken = (req: Request): string | undefined => {
 };
 
 const getCurrentUserFromReq = async (req: Request): Promise<any | null> => {
+  if (!AuthService.isAuthEnabled()) {
+    return await UserAccessService.getUserById("user-admin");
+  }
   const token = getAdminToken(req);
   if (!token) return null;
   const status = AuthService.getAuthStatus(token);
@@ -3868,6 +3873,85 @@ router.post("/survivor/portfolio/roadmaps/regenerate", async (req: Request, res:
 
     const results = await survivorRoadmapService.generateAllRoadmaps(season);
     res.json({ success: true, results });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ====================================================================
+// CANONICAL TEAM ALIAS RESOLUTION LAYER ENDPOINTS
+// ====================================================================
+
+// GET /api/admin/data/team-aliases - Get all team aliases
+router.get("/admin/data/team-aliases", async (req: Request, res: Response) => {
+  try {
+    const aliases = await teamAliasResolverService.listAliases();
+    res.json(aliases);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/admin/data/team-aliases/:teamId - Get aliases for a specific team
+router.get("/admin/data/team-aliases/:teamId", async (req: Request, res: Response) => {
+  try {
+    const aliases = await teamAliasResolverService.listAliasesForTeam(req.params.teamId);
+    res.json(aliases);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/admin/data/resolve-team - Resolve team alias to canonical team
+router.get("/admin/data/resolve-team", async (req: Request, res: Response) => {
+  try {
+    const value = req.query.value as string;
+    const providerName = req.query.providerName as string;
+    if (!value) {
+      return res.status(400).json({ error: "Missing required parameter: value" });
+    }
+
+    const normalized = teamAliasResolverService.normalizeTeamAlias(value);
+    const teamId = await teamAliasResolverService.resolveTeamId(value, providerName);
+    const team = teamId ? await teamRepo.getById(teamId) : null;
+
+    res.json({
+      success: !!teamId,
+      teamId,
+      normalized,
+      team
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/data/team-aliases - Create a new team alias
+router.post("/admin/data/team-aliases", async (req: Request, res: Response) => {
+  try {
+    const { team_id, alias, provider_name, alias_type, active } = req.body;
+    if (!team_id || !alias || !alias_type) {
+      return res.status(400).json({ error: "Missing required fields: team_id, alias, alias_type" });
+    }
+
+    const newAlias = await teamAliasResolverService.createAlias({
+      team_id,
+      alias,
+      provider_name: provider_name || null,
+      alias_type,
+      active: active !== false
+    });
+    res.status(201).json(newAlias);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/admin/data/team-aliases/:id - Deactivate a team alias
+router.delete("/api/admin/data/team-aliases/:id", async (req: Request, res: Response) => {
+  try {
+    const success = await teamAliasResolverService.deactivateAlias(req.params.id);
+    res.json({ success });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

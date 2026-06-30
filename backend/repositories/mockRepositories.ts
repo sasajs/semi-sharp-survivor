@@ -75,11 +75,13 @@ import {
   SurvivorHolidayReservation,
   SurvivorEntryRoadmap,
   SurvivorEntryRoadmapWeek,
-  AppUser
+  AppUser,
+  TeamAlias
 } from "../../src/types";
 import { AuthAuditRecord, SystemMetadata, ApplicationVersion, ProjectDecision, OperationsEvent } from "../../src/types/admin";
 import { 
   ITeamRepository, 
+  ITeamAliasRepository,
   IContestRepository, 
   IContestLegRepository, 
   IGameRepository, 
@@ -151,7 +153,78 @@ import {
  * ====================================================================
  */
 export let mockTeams: Team[] = [];
+export let mockTeamAliases: TeamAlias[] = [];
 export let mockAppUsers: AppUser[] = [];
+
+const extraVariants = [
+  { teamId: "ari", alias: "AZ", type: "abbreviation" },
+  { teamId: "ari", alias: "Ariz", type: "historical" },
+  { teamId: "gb", alias: "GNB", type: "abbreviation" },
+  { teamId: "jax", alias: "JAC", type: "abbreviation" },
+  { teamId: "kc", alias: "KAN", type: "abbreviation" },
+  { teamId: "lv", alias: "LVR", type: "abbreviation" },
+  { teamId: "lv", alias: "Vegas Raiders", type: "common" },
+  { teamId: "lv", alias: "Oakland Raiders", type: "historical" },
+  { teamId: "lac", alias: "LA Chargers", type: "common" },
+  { teamId: "lac", alias: "San Diego Chargers", type: "historical" },
+  { teamId: "lac", alias: "SD", type: "abbreviation" },
+  { teamId: "lar", alias: "LA Rams", type: "common" },
+  { teamId: "lar", alias: "St Louis Rams", type: "historical" },
+  { teamId: "lar", alias: "STL", type: "abbreviation" },
+  { teamId: "ne", alias: "NWE", type: "abbreviation" },
+  { teamId: "no", alias: "NOR", type: "abbreviation" },
+  { teamId: "sf", alias: "SFO", type: "abbreviation" },
+  { teamId: "sf", alias: "Niners", type: "nickname" },
+  { teamId: "tb", alias: "TBB", type: "abbreviation" },
+  { teamId: "tb", alias: "Bucs", type: "nickname" },
+  { teamId: "ten", alias: "Houston Oilers", type: "historical" },
+  { teamId: "was", alias: "WSH", type: "abbreviation" },
+  { teamId: "was", alias: "Washington Football Team", type: "historical" },
+  { teamId: "was", alias: "Football Team", type: "nickname" },
+  { teamId: "was", alias: "Redskins", type: "historical" }
+];
+
+export function seedMockTeamAliases(teamsList: Team[]) {
+  const list: TeamAlias[] = [];
+  const added = new Set<string>();
+
+  const add = (teamId: string, alias: string, type: string) => {
+    const norm = alias.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const key = `${norm}:null`;
+    if (added.has(key)) return;
+    added.add(key);
+
+    list.push({
+      id: `alias-${teamId}-${norm}`,
+      team_id: teamId,
+      alias,
+      normalized_alias: norm,
+      provider_name: null,
+      alias_type: type as any,
+      active: true
+    });
+  };
+
+  for (const t of teamsList) {
+    add(t.id, t.id, "common");
+    add(t.id, t.abbreviation, "abbreviation");
+    add(t.id, t.name, "full_name");
+    
+    const spaceIdx = t.name.lastIndexOf(' ');
+    if (spaceIdx > 0) {
+      const city = t.name.substring(0, spaceIdx);
+      const nickname = t.name.substring(spaceIdx + 1);
+      add(t.id, city, "city");
+      add(t.id, nickname, "nickname");
+    }
+  }
+
+  for (const v of extraVariants) {
+    add(v.teamId, v.alias, v.type);
+  }
+
+  mockTeamAliases = list;
+}
 export let mockContestTypes: ContestTypeRecord[] = [];
 export let mockSurvivorEntryStrategies: SurvivorEntryStrategy[] = [];
 export let mockSurvivorHolidayReservations: SurvivorHolidayReservation[] = [];
@@ -634,6 +707,7 @@ export function resetMockDatabase(
   lines: TeamWeekLine[]
 ) {
   mockTeams = [...teams];
+  seedMockTeamAliases(mockTeams);
   mockContests = [...contests];
   mockLegs = [...legs];
   mockOwners = [
@@ -3609,6 +3683,58 @@ export class MockContestTypeRepository implements IContestTypeRepository {
 
   async getByCode(code: string): Promise<ContestTypeRecord | null> {
     return mockContestTypes.find(ct => ct.code.toLowerCase() === code.toLowerCase()) || null;
+  }
+}
+
+export class MockTeamAliasRepository implements ITeamAliasRepository {
+  async findByNormalizedAlias(normalizedAlias: string, providerName?: string): Promise<TeamAlias | null> {
+    const activeAliases = mockTeamAliases.filter(a => a.normalized_alias === normalizedAlias && a.active);
+    
+    if (providerName) {
+      const providerSpecific = activeAliases.find(a => a.provider_name === providerName);
+      if (providerSpecific) return providerSpecific;
+    }
+    
+    const globalAlias = activeAliases.find(a => !a.provider_name);
+    return globalAlias || null;
+  }
+
+  async findByTeamId(teamId: string): Promise<TeamAlias[]> {
+    return mockTeamAliases.filter(a => a.team_id === teamId);
+  }
+
+  async listAll(): Promise<TeamAlias[]> {
+    return [...mockTeamAliases];
+  }
+
+  async createAlias(alias: Omit<TeamAlias, "id" | "created_at" | "updated_at">): Promise<TeamAlias> {
+    const newAlias: TeamAlias = {
+      id: `alias-gen-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      team_id: alias.team_id,
+      alias: alias.alias,
+      normalized_alias: alias.normalized_alias,
+      provider_name: alias.provider_name || null,
+      alias_type: alias.alias_type,
+      active: alias.active !== false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    const exists = mockTeamAliases.some(a => a.normalized_alias === newAlias.normalized_alias && a.provider_name === newAlias.provider_name);
+    if (exists) {
+      throw new Error(`Duplicate alias constraint violation: normalized_alias=${newAlias.normalized_alias}`);
+    }
+    
+    mockTeamAliases.push(newAlias);
+    return newAlias;
+  }
+
+  async deactivateAlias(id: string): Promise<boolean> {
+    const idx = mockTeamAliases.findIndex(a => a.id === id);
+    if (idx === -1) return false;
+    mockTeamAliases[idx].active = false;
+    mockTeamAliases[idx].updated_at = new Date().toISOString();
+    return true;
   }
 }
 

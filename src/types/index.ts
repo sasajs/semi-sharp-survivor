@@ -22,6 +22,18 @@ export interface Team {
   secondary_color: string;
 }
 
+export interface TeamAlias {
+  id: string;
+  team_id: string;
+  alias: string;
+  normalized_alias: string;
+  provider_name?: string | null;
+  alias_type: 'common' | 'abbreviation' | 'full_name' | 'nickname' | 'city' | 'historical' | 'provider_specific';
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Game {
   id: string;
   contest_leg_id: string;
@@ -618,6 +630,19 @@ export interface WeeklyReport {
   audit_metadata: WeeklyReportAuditMetadata;
   sections: WeeklyReportSection[];
   created_at: string;
+  contest_type?: string;
+  contest_name?: string;
+  total_contest_legs?: number;
+  holiday_strategy_enabled?: boolean;
+  report_generation_date?: string;
+  roadmap_version?: string;
+  recommendation_version?: number;
+  ContestTypeCode?: string;
+  ContestTypeName?: string;
+  TotalLegs?: number;
+  HolidayStrategyEnabled?: boolean;
+  RoadmapSummary?: string;
+  RecommendationSummary?: string;
 }
 
 export interface WeeklyReportRun {

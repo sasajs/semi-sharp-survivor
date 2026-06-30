@@ -1,5 +1,6 @@
 import { 
   Team, 
+  TeamAlias,
   Contest, 
   ContestLeg, 
   Game, 
@@ -82,6 +83,14 @@ export interface ITeamRepository {
   getAll(): Promise<Team[]>;
   getById(id: string): Promise<Team | null>;
   save(team: Team): Promise<Team>;
+}
+
+export interface ITeamAliasRepository {
+  findByNormalizedAlias(normalizedAlias: string, providerName?: string): Promise<TeamAlias | null>;
+  findByTeamId(teamId: string): Promise<TeamAlias[]>;
+  listAll(): Promise<TeamAlias[]>;
+  createAlias(alias: Omit<TeamAlias, "id" | "created_at" | "updated_at">): Promise<TeamAlias>;
+  deactivateAlias(id: string): Promise<boolean>;
 }
 
 export interface IContestRepository {

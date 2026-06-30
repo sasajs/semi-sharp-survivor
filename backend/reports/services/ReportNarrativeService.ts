@@ -6,10 +6,16 @@ import {
 } from "../models";
 
 export class ReportNarrativeService {
-  static generatePickRationale(pick: Partial<WeeklyReportPickSummary>): string {
+  static generatePickRationale(pick: Partial<WeeklyReportPickSummary>, contestTypeId?: string): string {
+    const isCirca = (contestTypeId || "circa").toLowerCase() !== "standard";
     const probPct = ((pick.win_probability || 0.5) * 100).toFixed(0);
     const popPct = ((pick.pick_popularity || 0) * 100).toFixed(0);
-    return `We recommend ${pick.team_name} in this leg. They boast an impressive match win probability of ${probPct}%, paired with public backing of ${popPct}%. With a future value penalty score of only ${pick.future_value_score}, selecting them preserves key premium options for deep contest splits later in the season.`;
+    
+    const ruleRef = isCirca 
+      ? "Recommendation accounts for Thanksgiving and Christmas preservation."
+      : "Recommendation generated using traditional 18-week Survivor rules.";
+
+    return `We recommend ${pick.team_name} in this leg. They boast an impressive match win probability of ${probPct}%, paired with public backing of ${popPct}%. With a future value penalty score of only ${pick.future_value_score}, selecting them preserves key premium options for deep contest splits. ${ruleRef}`;
   }
 
   static generateRiskNarrative(risk: WeeklyReportRiskSummary): string {
@@ -26,7 +32,8 @@ export class ReportNarrativeService {
     return lines.join(" ");
   }
 
-  static generateInventoryNarrative(inv: WeeklyReportInventorySummary): string {
+  static generateInventoryNarrative(inv: WeeklyReportInventorySummary, contestTypeId?: string): string {
+    const isCirca = (contestTypeId || "circa").toLowerCase() !== "standard";
     const lines = [
       `Your portfolio currently has ${inv.available_teams.length} teams available for selection. We have used ${inv.used_teams.length} teams so far.`,
       `The inventory engine confirms ${inv.remaining_elite_teams.length} tier-1 elite teams remain preserved.`
@@ -34,7 +41,11 @@ export class ReportNarrativeService {
     if (inv.future_value_warning) {
       lines.push(`CRITICAL INVENTORY: ${inv.future_value_warning}`);
     } else {
-      lines.push(`Preservation health is highly stable; no holiday shortages or premature depletion bottlenecks are predicted on immediate paths.`);
+      if (isCirca) {
+        lines.push(`Preservation health is highly stable; no holiday shortages or premature depletion bottlenecks are predicted on immediate paths.`);
+      } else {
+        lines.push(`Preservation health is highly stable; inventory is sufficient for the remaining regular season schedule.`);
+      }
     }
     return lines.join(" ");
   }

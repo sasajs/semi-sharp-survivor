@@ -43,6 +43,7 @@ import { DecisionPolicyService } from "../../services/DecisionPolicyService";
 import { SurvivorDecisionAgentService } from "../../services/SurvivorDecisionAgentService";
 import { adaptiveModelWeightRepo, decisionPolicyRepo, survivorDecisionRepo } from "../../repositories";
 import { MonteCarloSurvivorService } from "../../simulation/services/MonteCarloSurvivorService";
+import { contestRulesService } from "../../services/ContestRulesService";
 
 // Persistent state storage for generated reports and report runs
 const mockReports: WeeklyReport[] = [];
@@ -69,6 +70,8 @@ export class WeeklyReportService {
     }
 
     const firstEntry = activeEntries[0];
+    const contestTypeId = firstEntry?.contest_type_id || "circa";
+    const rules = contestRulesService.getRules(contestTypeId);
 
     // 1. Fetch lines for candidate pick evaluations
     const lines = await lineRepo.getByLegId(legId);
@@ -109,7 +112,7 @@ export class WeeklyReportService {
         confidence_tier: line.win_probability >= 0.75 ? "High" : line.win_probability >= 0.65 ? "Medium" : "Low"
       };
 
-      cand.rationale = ReportNarrativeService.generatePickRationale(cand);
+      cand.rationale = ReportNarrativeService.generatePickRationale(cand, contestTypeId);
       pickSummaries.push(cand as WeeklyReportPickSummary);
     }
 
@@ -155,7 +158,7 @@ export class WeeklyReportService {
       christmas_inventory: christmasTeams,
       future_value_warning: unusedEliteNames.length <= 2 ? "High Alert: premium team inventory is critical. Preserve high-safety elite schedules." : null
     };
-    const invNarrative = ReportNarrativeService.generateInventoryNarrative(inventorySummary);
+    const invNarrative = ReportNarrativeService.generateInventoryNarrative(inventorySummary, contestTypeId);
 
     // 4. Run simulations if required or run lightweight simulations instantly
     let simSummary: WeeklyReportSimulationSummary | null = null;
@@ -217,7 +220,9 @@ export class WeeklyReportService {
 
     sections.push(ReportSectionBuilderService.buildRecommendedPicksSection(pickSummaries));
     sections.push(ReportSectionBuilderService.buildRiskSection(riskSummary, riskNarrative));
-    sections.push(ReportSectionBuilderService.buildInventorySection(inventorySummary, invNarrative));
+    sections.push(ReportSectionBuilderService.buildInventorySection(inventorySummary, invNarrative, contestTypeId));
+    sections.push(ReportSectionBuilderService.buildRoadmapSection(contestTypeId, inventorySummary));
+    sections.push(ReportSectionBuilderService.buildComparisonSection(contestTypeId));
     sections.push(ReportSectionBuilderService.buildSimulationSection(simSummary, simNarrative));
 
     if (simSummary.chalk_upset_scenario) {
@@ -233,6 +238,21 @@ export class WeeklyReportService {
       contest_id: contestId,
       contest_leg_id: legId,
       week_number: leg.nfl_week,
+      contest_type: contestTypeId,
+      contest_name: rules.name,
+      total_contest_legs: rules.totalLegs,
+      holiday_strategy_enabled: rules.usesHolidayReservations,
+      report_generation_date: new Date().toISOString(),
+      roadmap_version: "v0.61",
+      recommendation_version: 1,
+      ContestTypeCode: contestTypeId,
+      ContestTypeName: rules.name,
+      TotalLegs: rules.totalLegs,
+      HolidayStrategyEnabled: rules.usesHolidayReservations,
+      RoadmapSummary: contestTypeId === "standard" ? "18 Weeks" : "20 Legs",
+      RecommendationSummary: contestTypeId === "standard" 
+        ? "Recommendation generated using traditional 18-week Survivor rules." 
+        : "Recommendation accounts for Thanksgiving and Christmas preservation.",
       executive_summary: {
         top_recommended_pick: { team_id: topPick.team_id, team_name: topPick.team_name },
         alternate_picks: alternates.map(a => ({ team_id: a.team_id, team_name: a.team_name })),
