@@ -193,3 +193,13 @@ CREATE TABLE IF NOT EXISTS "ingestion_runs" (
 1. **Data Volatility**: Repository metrics reside inside memory state matrices, resetting to default states upon container warm restarts.
 2. **Decoupled Architecture**: No mock data writes to core tables (`contests`, `teams`), protecting critical calculations and preventing simulation corruptions.
 3. **Dry-Run Default**: Handshake calculations simulate live response mappings, eliminating API pricing charges or unexpected proxy disconnections.
+
+---
+
+## 8. Epic 2 Ingestion Refactoring (Interface Active)
+
+As part of the Epic 2 refactoring, the **Data Operations** console layout has been fully scaffolded. 
+
+- **State & Routing**: The Admin Dashboard is now partitioned into two high-level tabs: *Survivor Operations* and *Data Operations*.
+- **Database Status**: No database changes or live import connections have been implemented yet; the 13 required reference and schedule placeholders display "Coming in Epic 2" layout states to preserve the integrity of existing database structures.
+- **Validation**: All tests and code checks continue to pass securely.

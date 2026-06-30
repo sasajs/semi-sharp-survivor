@@ -23,13 +23,16 @@ import { SurvivorRecommendationsPanel } from "../components/admin/SurvivorRecomm
 import { RecommendationEvolutionPanel } from "../components/RecommendationEvolutionPanel";
 import { AdminErrorBoundary } from "../components/admin/AdminErrorBoundary";
 import { AdminLoginPanel } from "../components/admin/AdminLoginPanel";
+import { DataOperationsDashboard } from "../components/admin/DataOperationsDashboard";
 import { AuthStatus } from "../types/auth";
-import { ShieldCheck, ShieldAlert, LogOut, Loader2 } from "lucide-react";
+import { ShieldCheck, ShieldAlert, LogOut, Loader2, Database } from "lucide-react";
 
 export const AdminDashboard: React.FC = () => {
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState<string | null>(localStorage.getItem("admin_token"));
+  const [activeSection, setActiveSection] = useState<"survivor" | "data">("survivor");
+  const [survivorSubTab, setSurvivorSubTab] = useState<"all" | "infra" | "intelligence" | "ops" | "artifacts">("all");
 
   const fetchAuthStatus = async (chkToken: string | null) => {
     try {
@@ -152,184 +155,317 @@ export const AdminDashboard: React.FC = () => {
           </div>
         )}
 
-      {/* Grid of panels for organized operational visual hierarchy */}
-      <div className="space-y-8">
-        {/* Section 1: System Health */}
-        <section id="admin-section-health" className="space-y-3">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">01. Infrastructure Live Monitor</span>
-          </div>
-          <SystemHealthPanel />
-        </section>
-
-        {/* Section 1.5: Security Gatekeeper Policy & Audit Trails */}
-        <section id="admin-section-security-audits" className="space-y-3 font-sans">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">01.5. Security Gatekeeper Policy & Audit Trails</span>
-          </div>
-          <SecurityStatusPanel />
-        </section>
-
-        {/* Section 1.8: System Memory & Architectural Foundation */}
-        <section id="admin-section-system-memory" className="space-y-3 font-sans">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">01.8. System Memory & Architectural Foundation</span>
-          </div>
-          <SystemMemoryPanel />
-        </section>
-
-        {/* Section 2: Database Status */}
-        <section id="admin-section-database" className="space-y-3">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">02. Persistent Database Metrics</span>
-          </div>
-          <DatabaseStatusPanel />
-        </section>
-
-        {/* Section 2.2: Feature Store Foundation */}
-        <section id="admin-section-feature-store" className="space-y-3">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.2. Feature Store Foundation</span>
-          </div>
-          <FeatureStorePanel />
-        </section>
-
-        {/* Section 2.3: Decision Intelligence & Strategic Entry Strategy Profiles */}
-        <section id="admin-section-entry-strategies" className="space-y-3">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.3. Decision Intelligence & Entry Strategy Profiles</span>
-          </div>
-          <EntryStrategyPanel />
-        </section>
-
-        {/* Section 2.4: Future Team Value Engine (v0.31) */}
-        <section id="admin-section-future-team-value" className="space-y-3">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.4. Future Team Value Engine</span>
-          </div>
-          <FutureTeamValuePanel />
-        </section>
-
-        {/* Section 2.45: Survivor Equity Engine (v0.32) */}
-        <section id="admin-section-survivor-equity" className="space-y-3">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.45. Survivor Equity Engine</span>
-          </div>
-          <SurvivorEquityPanel />
-        </section>
-
-        {/* Section 2.48: Recommendation Candidate Engine (v0.33) */}
-        <section id="admin-section-recommendation-candidates" className="space-y-3">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.48. Recommendation Candidate Engine</span>
-          </div>
-          <RecommendationCandidatesPanel />
-        </section>
-
-        {/* Section 2.49: Survivor Recommendation Engine (v0.35) */}
-        <section id="admin-section-survivor-recommendations" className="space-y-3">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.49. Survivor Recommendation Engine</span>
-          </div>
-          <SurvivorRecommendationsPanel />
-        </section>
-
-        {/* Section 2.50: Recommendation Evolution Storyline Tracking (v0.56) */}
-        <section id="admin-section-recommendation-evolution" className="space-y-3">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.50. Recommendation Evolution Storyline</span>
-          </div>
-          <RecommendationEvolutionPanel />
-        </section>
-
-        {/* Section 2.5: PostgreSQL Cutover Readiness Validation */}
-        <section id="admin-section-postgres-readiness" className="space-y-3 font-sans">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">03. PostgreSQL Cutover Readiness Validation</span>
-          </div>
-          <PostgresReadinessPanel />
-        </section>
-
-        {/* Section 2.7: Preseason Readiness Testing Framework */}
-        <section id="admin-section-preseason-readiness" className="space-y-3 font-sans">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">03.5. Preseason Readiness Testing Framework</span>
-          </div>
-          <PreseasonReadinessPanel />
-        </section>
-
-        {/* Section 2.9: Historical Replay & Strategy Backtesting */}
-        <section id="admin-section-historical-replay" className="space-y-3 font-sans">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">03.7. Historical Replay & Strategy Backtesting</span>
-          </div>
-          <HistoricalReplayPanel />
-        </section>
-
-        {/* Section 2.10: Automated Weekly Research Pipeline */}
-        <section id="admin-section-weekly-pipeline" className="space-y-3 font-sans">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">03.8. Automated Weekly Research Pipeline</span>
-          </div>
-          <WeeklyPipelinePanel />
-        </section>
-
-        {/* Section 3: Manual Workflow Execution */}
-        <section id="admin-section-workflow-exec" className="space-y-3">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">04. Execution Controls</span>
-          </div>
-          <WorkflowExecutionPanel />
-        </section>
-
-        {/* Section 3.5: Scheduled Workflows Engine */}
-        <section id="admin-section-scheduled-workflows" className="space-y-3 font-sans">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">05. Scheduled Automation Blueprints</span>
-          </div>
-          <ScheduledWorkflowsPanel />
-        </section>
-
-        {/* Section 3.8: Data Ingestion Framework */}
-        <section id="admin-section-data-ingestion" className="space-y-3 font-sans">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">06. Data Ingestion Architecture</span>
-          </div>
-          <DataIngestionPanel />
-        </section>
-
-        {/* Section 4: Workflow History */}
-        <section id="admin-section-workflow-history" className="space-y-3">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">07. Event Pipeline Logs</span>
-          </div>
-          <WorkflowHistoryPanel />
-        </section>
-
-        {/* Section 5: Reports */}
-        <section id="admin-section-reports" className="space-y-3">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">08. Evaluation Artifacts</span>
-          </div>
-          <ReportArtifactsPanel />
-        </section>
-
-        {/* Section 6: Exports */}
-        <section id="admin-section-exports" className="space-y-3">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">09. Documents and Audited Studies</span>
-          </div>
-          <ExportArtifactsPanel />
-        </section>
-
-        {/* Section 7: Remote Access & Deployment Encryption Readiness */}
-        <section id="admin-section-remote-access" className="space-y-3 font-sans">
-          <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">10. Secure Remote Access & Port Ingress</span>
-          </div>
-          <RemoteAccessPanel />
-        </section>
+      {/* Navigation Tabs */}
+      <div className="flex border-b border-slate-200">
+        <button
+          onClick={() => setActiveSection("survivor")}
+          className={`py-3.5 px-6 text-sm font-black border-b-2 flex items-center gap-2 cursor-pointer transition ${
+            activeSection === "survivor"
+              ? "border-indigo-600 text-indigo-600"
+              : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+          }`}
+        >
+          <ShieldCheck className="w-4 h-4 text-indigo-600" />
+          Survivor Operations
+        </button>
+        <button
+          onClick={() => setActiveSection("data")}
+          className={`py-3.5 px-6 text-sm font-black border-b-2 flex items-center gap-2 cursor-pointer transition ${
+            activeSection === "data"
+              ? "border-indigo-600 text-indigo-600"
+              : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+          }`}
+        >
+          <Database className="w-4 h-4 text-indigo-600" />
+          Data Operations
+          <span className="ml-1.5 text-[9px] font-black bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">
+            Epic 2
+          </span>
+        </button>
       </div>
+
+      {activeSection === "data" ? (
+        <DataOperationsDashboard />
+      ) : (
+        <div className="space-y-6">
+          {/* Sub-navigation for Survivor Operations to avoid a giant single page */}
+          <div className="flex flex-wrap gap-2 pb-2 border-b border-slate-100">
+            <button
+              onClick={() => setSurvivorSubTab("all")}
+              className={`text-xs font-bold px-3 py-2 rounded-xl border transition cursor-pointer ${
+                survivorSubTab === "all"
+                  ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
+                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              All Panels
+            </button>
+            <button
+              onClick={() => setSurvivorSubTab("infra")}
+              className={`text-xs font-bold px-3 py-2 rounded-xl border transition cursor-pointer ${
+                survivorSubTab === "infra"
+                  ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
+                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              Infrastructure & Security
+            </button>
+            <button
+              onClick={() => setSurvivorSubTab("intelligence")}
+              className={`text-xs font-bold px-3 py-2 rounded-xl border transition cursor-pointer ${
+                survivorSubTab === "intelligence"
+                  ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
+                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              Intelligence & Models
+            </button>
+            <button
+              onClick={() => setSurvivorSubTab("ops")}
+              className={`text-xs font-bold px-3 py-2 rounded-xl border transition cursor-pointer ${
+                survivorSubTab === "ops"
+                  ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
+                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              Workflows & Ingestion
+            </button>
+            <button
+              onClick={() => setSurvivorSubTab("artifacts")}
+              className={`text-xs font-bold px-3 py-2 rounded-xl border transition cursor-pointer ${
+                survivorSubTab === "artifacts"
+                  ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
+                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              Artifacts & Reports
+            </button>
+          </div>
+
+          {/* Grid of panels for organized operational visual hierarchy */}
+          <div className="space-y-8">
+            {/* Section 1: System Health */}
+            {(survivorSubTab === "all" || survivorSubTab === "infra") && (
+              <section id="admin-section-health" className="space-y-3">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">01. Infrastructure Live Monitor</span>
+                </div>
+                <SystemHealthPanel />
+              </section>
+            )}
+
+            {/* Section 1.5: Security Gatekeeper Policy & Audit Trails */}
+            {(survivorSubTab === "all" || survivorSubTab === "infra") && (
+              <section id="admin-section-security-audits" className="space-y-3 font-sans">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">01.5. Security Gatekeeper Policy & Audit Trails</span>
+                </div>
+                <SecurityStatusPanel />
+              </section>
+            )}
+
+            {/* Section 1.8: System Memory & Architectural Foundation */}
+            {(survivorSubTab === "all" || survivorSubTab === "infra") && (
+              <section id="admin-section-system-memory" className="space-y-3 font-sans">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">01.8. System Memory & Architectural Foundation</span>
+                </div>
+                <SystemMemoryPanel />
+              </section>
+            )}
+
+            {/* Section 2: Database Status */}
+            {(survivorSubTab === "all" || survivorSubTab === "infra") && (
+              <section id="admin-section-database" className="space-y-3">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">02. Persistent Database Metrics</span>
+                </div>
+                <DatabaseStatusPanel />
+              </section>
+            )}
+
+            {/* Section 2.2: Feature Store Foundation */}
+            {(survivorSubTab === "all" || survivorSubTab === "intelligence") && (
+              <section id="admin-section-feature-store" className="space-y-3">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.2. Feature Store Foundation</span>
+                </div>
+                <FeatureStorePanel />
+              </section>
+            )}
+
+            {/* Section 2.3: Decision Intelligence & Strategic Entry Strategy Profiles */}
+            {(survivorSubTab === "all" || survivorSubTab === "intelligence") && (
+              <section id="admin-section-entry-strategies" className="space-y-3">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.3. Decision Intelligence & Entry Strategy Profiles</span>
+                </div>
+                <EntryStrategyPanel />
+              </section>
+            )}
+
+            {/* Section 2.4: Future Team Value Engine (v0.31) */}
+            {(survivorSubTab === "all" || survivorSubTab === "intelligence") && (
+              <section id="admin-section-future-team-value" className="space-y-3">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.4. Future Team Value Engine</span>
+                </div>
+                <FutureTeamValuePanel />
+              </section>
+            )}
+
+            {/* Section 2.45: Survivor Equity Engine (v0.32) */}
+            {(survivorSubTab === "all" || survivorSubTab === "intelligence") && (
+              <section id="admin-section-survivor-equity" className="space-y-3">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.45. Survivor Equity Engine</span>
+                </div>
+                <SurvivorEquityPanel />
+              </section>
+            )}
+
+            {/* Section 2.48: Recommendation Candidate Engine (v0.33) */}
+            {(survivorSubTab === "all" || survivorSubTab === "intelligence") && (
+              <section id="admin-section-recommendation-candidates" className="space-y-3">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.48. Recommendation Candidate Engine</span>
+                </div>
+                <RecommendationCandidatesPanel />
+              </section>
+            )}
+
+            {/* Section 2.49: Survivor Recommendation Engine (v0.35) */}
+            {(survivorSubTab === "all" || survivorSubTab === "intelligence") && (
+              <section id="admin-section-survivor-recommendations" className="space-y-3">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.49. Survivor Recommendation Engine</span>
+                </div>
+                <SurvivorRecommendationsPanel />
+              </section>
+            )}
+
+            {/* Section 2.50: Recommendation Evolution Storyline Tracking (v0.56) */}
+            {(survivorSubTab === "all" || survivorSubTab === "intelligence") && (
+              <section id="admin-section-recommendation-evolution" className="space-y-3">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">02.50. Recommendation Evolution Storyline</span>
+                </div>
+                <RecommendationEvolutionPanel />
+              </section>
+            )}
+
+            {/* Section 2.5: PostgreSQL Cutover Readiness Validation */}
+            {(survivorSubTab === "all" || survivorSubTab === "infra") && (
+              <section id="admin-section-postgres-readiness" className="space-y-3 font-sans">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">03. PostgreSQL Cutover Readiness Validation</span>
+                </div>
+                <PostgresReadinessPanel />
+              </section>
+            )}
+
+            {/* Section 2.7: Preseason Readiness Testing Framework */}
+            {(survivorSubTab === "all" || survivorSubTab === "ops") && (
+              <section id="admin-section-preseason-readiness" className="space-y-3 font-sans">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">03.5. Preseason Readiness Testing Framework</span>
+                </div>
+                <PreseasonReadinessPanel />
+              </section>
+            )}
+
+            {/* Section 2.9: Historical Replay & Strategy Backtesting */}
+            {(survivorSubTab === "all" || survivorSubTab === "ops") && (
+              <section id="admin-section-historical-replay" className="space-y-3 font-sans">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">03.7. Historical Replay & Strategy Backtesting</span>
+                </div>
+                <HistoricalReplayPanel />
+              </section>
+            )}
+
+            {/* Section 2.10: Automated Weekly Research Pipeline */}
+            {(survivorSubTab === "all" || survivorSubTab === "ops") && (
+              <section id="admin-section-weekly-pipeline" className="space-y-3 font-sans">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">03.8. Automated Weekly Research Pipeline</span>
+                </div>
+                <WeeklyPipelinePanel />
+              </section>
+            )}
+
+            {/* Section 3: Manual Workflow Execution */}
+            {(survivorSubTab === "all" || survivorSubTab === "ops") && (
+              <section id="admin-section-workflow-exec" className="space-y-3">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">04. Execution Controls</span>
+                </div>
+                <WorkflowExecutionPanel />
+              </section>
+            )}
+
+            {/* Section 3.5: Scheduled Workflows Engine */}
+            {(survivorSubTab === "all" || survivorSubTab === "ops") && (
+              <section id="admin-section-scheduled-workflows" className="space-y-3 font-sans">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">05. Scheduled Automation Blueprints</span>
+                </div>
+                <ScheduledWorkflowsPanel />
+              </section>
+            )}
+
+            {/* Section 3.8: Data Ingestion Framework */}
+            {(survivorSubTab === "all" || survivorSubTab === "ops") && (
+              <section id="admin-section-data-ingestion" className="space-y-3 font-sans">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">06. Data Ingestion Architecture</span>
+                </div>
+                <DataIngestionPanel />
+              </section>
+            )}
+
+            {/* Section 4: Workflow History */}
+            {(survivorSubTab === "all" || survivorSubTab === "ops") && (
+              <section id="admin-section-workflow-history" className="space-y-3">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">07. Event Pipeline Logs</span>
+                </div>
+                <WorkflowHistoryPanel />
+              </section>
+            )}
+
+            {/* Section 5: Reports */}
+            {(survivorSubTab === "all" || survivorSubTab === "artifacts") && (
+              <section id="admin-section-reports" className="space-y-3">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">08. Evaluation Artifacts</span>
+                </div>
+                <ReportArtifactsPanel />
+              </section>
+            )}
+
+            {/* Section 6: Exports */}
+            {(survivorSubTab === "all" || survivorSubTab === "artifacts") && (
+              <section id="admin-section-exports" className="space-y-3">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">09. Documents and Audited Studies</span>
+                </div>
+                <ExportArtifactsPanel />
+              </section>
+            )}
+
+            {/* Section 7: Remote Access & Deployment Encryption Readiness */}
+            {(survivorSubTab === "all" || survivorSubTab === "infra") && (
+              <section id="admin-section-remote-access" className="space-y-3 font-sans">
+                <div className="flex items-center space-x-2 border-b border-slate-205 pb-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">10. Secure Remote Access & Port Ingress</span>
+                </div>
+                <RemoteAccessPanel />
+              </section>
+            )}
+          </div>
+        </div>
+      )}
     </div>
     </AdminErrorBoundary>
   );
