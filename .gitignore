@@ -6,3 +6,5 @@ coverage/
 *.log
 .env*
 !.env.example
+reports/validation/*.log
+reports/validation/*_server.log
