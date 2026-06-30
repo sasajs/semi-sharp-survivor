@@ -167,11 +167,39 @@ export interface ImportJob {
   id: string;
   job_type: string;
   file_name?: string;
-  status: 'pending' | 'completed' | 'failed';
+  status: 'pending' | 'dry_run' | 'completed' | 'failed';
   rows_processed: number;
   error_message?: string;
+  provider?: string;
+  started_at?: string;
+  completed_at?: string;
+  duration?: number;
+  rows_read?: number;
+  rows_inserted?: number;
+  rows_updated?: number;
+  rows_rejected?: number;
+  initiated_by?: string;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface ImportJobFile {
+  id: string;
+  import_job_id: string;
+  filename: string;
+  checksum: string;
+  file_size?: number;
+  created_at?: string;
+}
+
+export interface ImportJobError {
+  id: string;
+  import_job_id: string;
+  row_index?: number;
+  raw_data?: string;
+  error_message: string;
+  severity: 'warning' | 'error';
+  created_at?: string;
 }
 
 export interface EntryInventory {

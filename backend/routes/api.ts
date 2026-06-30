@@ -14,10 +14,13 @@ import {
   operationsEventsRepo,
   contestTypeRepo,
   teamAliasRepo,
+  importJobRepo,
   useMock
 } from "../repositories/index";
 import { buildAndSeedMockState } from "../services/mockSeeder";
 import { teamAliasResolverService } from "../services/TeamAliasResolverService";
+import { scheduleImportService } from "../services/ScheduleImportService";
+import { weeklyPipelineCoordinator } from "../services/WeeklyPipelineCoordinator";
 import { calculateRecommendations, RecommendationService } from "../services/recommendationEngine";
 import { runMigrations } from "../database/migrations/runMigrations";
 import { seedDatabase } from "../database/seed/seedData";
@@ -3952,6 +3955,107 @@ router.delete("/api/admin/data/team-aliases/:id", async (req: Request, res: Resp
   try {
     const success = await teamAliasResolverService.deactivateAlias(req.params.id);
     res.json({ success });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/admin/data/import-jobs - Get all import jobs
+router.get("/admin/data/import-jobs", async (req: Request, res: Response) => {
+  try {
+    const jobs = await importJobRepo.getAll();
+    res.json(jobs);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/admin/data/import-jobs/:id - Get import job by ID with details
+router.get("/admin/data/import-jobs/:id", async (req: Request, res: Response) => {
+  try {
+    const job = await importJobRepo.getById(req.params.id);
+    if (!job) {
+      return res.status(404).json({ error: "Import job not found" });
+    }
+    const files = await importJobRepo.getFilesByJobId(req.params.id);
+    const errors = await importJobRepo.getErrorsByJobId(req.params.id);
+    res.json({
+      ...job,
+      files,
+      errors
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/data/import-jobs/preview - Preview schedule file
+router.post("/api/admin/data/import-jobs/preview", async (req: Request, res: Response) => {
+  try {
+    const { filename, content, provider } = req.body;
+    if (!filename || !content || !provider) {
+      return res.status(400).json({ error: "Missing required fields: filename, content, provider" });
+    }
+    const preview = await scheduleImportService.previewImport(filename, content, provider);
+    res.json(preview);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/data/import-jobs/import - Run import or dry_run pipeline
+router.post("/api/admin/data/import-jobs/import", async (req: Request, res: Response) => {
+  try {
+    const { filename, content, provider, mode, initiated_by } = req.body;
+    if (!filename || !content || !provider || !mode) {
+      return res.status(400).json({ error: "Missing required fields: filename, content, provider, mode" });
+    }
+    
+    if (mode === 'commit') {
+      const summary = await weeklyPipelineCoordinator.runPipeline(filename, content, provider, initiated_by || 'admin');
+      res.json(summary);
+    } else {
+      const summary = await scheduleImportService.runImport(filename, content, provider, 'dry_run', initiated_by || 'admin');
+      res.json(summary);
+    }
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/admin/data/import-errors - Get all import errors
+router.get("/api/admin/data/import-errors", async (req: Request, res: Response) => {
+  try {
+    const errors = await importJobRepo.getAllErrors();
+    res.json(errors);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/admin/data/pipeline-status - Get overall pipeline status summary
+router.get("/api/admin/data/pipeline-status", async (req: Request, res: Response) => {
+  try {
+    const jobs = await importJobRepo.getAll();
+    const errors = await importJobRepo.getAllErrors();
+    const aliases = await teamAliasResolverService.listAliases();
+
+    // Data Quality Summary
+    const unknownAliasesCount = errors.filter(e => e.error_message.toLowerCase().includes("alias") || e.error_message.toLowerCase().includes("unresolved")).length;
+    const duplicateGamesCount = errors.filter(e => e.error_message.toLowerCase().includes("duplicate") || e.error_message.toLowerCase().includes("exists")).length;
+    
+    res.json({
+      recent_jobs: jobs.slice(0, 10),
+      recent_errors: errors.slice(0, 20),
+      total_aliases: aliases.length,
+      data_quality_metrics: {
+        total_errors: errors.length,
+        unknown_aliases: unknownAliasesCount,
+        duplicate_games: duplicateGamesCount,
+        warnings_count: errors.filter(e => e.severity === 'warning').length,
+        errors_count: errors.filter(e => e.severity === 'error').length
+      }
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

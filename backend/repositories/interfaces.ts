@@ -14,6 +14,8 @@ import {
   TeamFeature,
   GameFeature,
   ImportJob,
+  ImportJobFile,
+  ImportJobError,
   EntryInventory,
   ReservedTeam,
   HolidayReservation,
@@ -186,6 +188,11 @@ export interface IImportJobRepository {
   getById(id: string): Promise<ImportJob | null>;
   create(job: Omit<ImportJob, "id" | "created_at" | "updated_at">): Promise<ImportJob>;
   update(id: string, updates: Partial<ImportJob>): Promise<ImportJob | null>;
+  createFile(file: Omit<ImportJobFile, "id" | "created_at">): Promise<ImportJobFile>;
+  getFilesByJobId(jobId: string): Promise<ImportJobFile[]>;
+  createError(err: Omit<ImportJobError, "id" | "created_at">): Promise<ImportJobError>;
+  getErrorsByJobId(jobId: string): Promise<ImportJobError[]>;
+  getAllErrors(): Promise<ImportJobError[]>;
 }
 
 export interface IInventoryRepository {

@@ -191,5 +191,10 @@ export const migrationRegistry: Migration[] = [
     version: "V062",
     description: "Team Alias Resolution canonical layer.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "V062__TeamAliasResolution.sql")
+  },
+  {
+    version: "V063",
+    description: "Schedule Import Pipeline and Data Quality tables.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "V063__ScheduleImportPipeline.sql")
   }
 ];

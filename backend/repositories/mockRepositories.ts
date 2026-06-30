@@ -13,6 +13,8 @@ import {
   TeamFeature,
   GameFeature,
   ImportJob,
+  ImportJobFile,
+  ImportJobError,
   EntryInventory,
   ReservedTeam,
   HolidayReservation,
@@ -242,6 +244,8 @@ export let mockWeeklyInputs: WeeklyInput[] = [];
 export let mockTeamFeatures: TeamFeature[] = [];
 export let mockGameFeatures: GameFeature[] = [];
 export let mockImportJobs: ImportJob[] = [];
+export let mockImportJobFiles: ImportJobFile[] = [];
+export let mockImportJobErrors: ImportJobError[] = [];
 export let mockInventories: EntryInventory[] = [];
 export let mockReservedTeams: ReservedTeam[] = [];
 export let mockHolidayReservations: HolidayReservation[] = [];
@@ -1408,6 +1412,38 @@ export class MockImportJobRepository implements IImportJobRepository {
       updated_at: new Date().toISOString()
     };
     return mockImportJobs[idx];
+  }
+
+  async createFile(file: Omit<ImportJobFile, "id" | "created_at">): Promise<ImportJobFile> {
+    const newFile: ImportJobFile = {
+      ...file,
+      id: `file-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      created_at: new Date().toISOString()
+    };
+    mockImportJobFiles.push(newFile);
+    return newFile;
+  }
+
+  async getFilesByJobId(jobId: string): Promise<ImportJobFile[]> {
+    return mockImportJobFiles.filter(f => f.import_job_id === jobId);
+  }
+
+  async createError(err: Omit<ImportJobError, "id" | "created_at">): Promise<ImportJobError> {
+    const newErr: ImportJobError = {
+      ...err,
+      id: `err-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      created_at: new Date().toISOString()
+    };
+    mockImportJobErrors.push(newErr);
+    return newErr;
+  }
+
+  async getErrorsByJobId(jobId: string): Promise<ImportJobError[]> {
+    return mockImportJobErrors.filter(e => e.import_job_id === jobId);
+  }
+
+  async getAllErrors(): Promise<ImportJobError[]> {
+    return [...mockImportJobErrors];
   }
 }
 

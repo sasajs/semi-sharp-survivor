@@ -10,7 +10,9 @@ import {
   WeeklyInput,
   TeamFeature,
   GameFeature,
-  ImportJob
+  ImportJob,
+  ImportJobFile,
+  ImportJobError
 } from "../../../src/types";
 import { query } from "../../database/connection";
 import { toUuid } from "../../database/seed/seedData";
@@ -225,9 +227,18 @@ function mapImportJob(row: any): ImportJob {
     id: fromUuid(row.id),
     job_type: row.job_type,
     file_name: row.file_name,
-    status: row.status as 'pending' | 'completed' | 'failed',
+    status: row.status as 'pending' | 'dry_run' | 'completed' | 'failed',
     rows_processed: Number(row.rows_processed || 0),
     error_message: row.error_message || undefined,
+    provider: row.provider || undefined,
+    started_at: row.started_at,
+    completed_at: row.completed_at,
+    duration: row.duration !== null && row.duration !== undefined ? Number(row.duration) : undefined,
+    rows_read: row.rows_read !== null && row.rows_read !== undefined ? Number(row.rows_read) : undefined,
+    rows_inserted: row.rows_inserted !== null && row.rows_inserted !== undefined ? Number(row.rows_inserted) : undefined,
+    rows_updated: row.rows_updated !== null && row.rows_updated !== undefined ? Number(row.rows_updated) : undefined,
+    rows_rejected: row.rows_rejected !== null && row.rows_rejected !== undefined ? Number(row.rows_rejected) : undefined,
+    initiated_by: row.initiated_by || undefined,
     created_at: row.created_at,
     updated_at: row.updated_at
   };
@@ -852,10 +863,30 @@ export class PostgresImportJobRepository implements IImportJobRepository {
   async create(job: Omit<ImportJob, "id" | "created_at" | "updated_at">): Promise<ImportJob> {
     const dbId = toUuid(`job-${Date.now()}-${Math.random().toString().substring(2,6)}`, "pick");
     const rows = await query(
-      `INSERT INTO import_jobs (id, job_type, file_name, status, rows_processed, error_message)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO import_jobs (
+         id, job_type, file_name, status, rows_processed, error_message,
+         provider, started_at, completed_at, duration, rows_read,
+         rows_inserted, rows_updated, rows_rejected, initiated_by
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
        RETURNING *`,
-      [dbId, job.job_type, job.file_name ?? null, job.status, job.rows_processed, job.error_message ?? null]
+      [
+        dbId,
+        job.job_type,
+        job.file_name ?? null,
+        job.status,
+        job.rows_processed,
+        job.error_message ?? null,
+        job.provider ?? null,
+        job.started_at ? new Date(job.started_at) : null,
+        job.completed_at ? new Date(job.completed_at) : null,
+        job.duration ?? 0,
+        job.rows_read ?? 0,
+        job.rows_inserted ?? 0,
+        job.rows_updated ?? 0,
+        job.rows_rejected ?? 0,
+        job.initiated_by ?? 'admin'
+      ]
     );
     return mapImportJob(rows[0]);
   }
@@ -874,12 +905,116 @@ export class PostgresImportJobRepository implements IImportJobRepository {
          status = $4,
          rows_processed = $5,
          error_message = $6,
+         provider = $7,
+         started_at = $8,
+         completed_at = $9,
+         duration = $10,
+         rows_read = $11,
+         rows_inserted = $12,
+         rows_updated = $13,
+         rows_rejected = $14,
+         initiated_by = $15,
          updated_at = CURRENT_TIMESTAMP
        WHERE id = $1
        RETURNING *`,
-      [dbId, merged.job_type, merged.file_name ?? null, merged.status, merged.rows_processed, merged.error_message ?? null]
+      [
+        dbId,
+        merged.job_type,
+        merged.file_name ?? null,
+        merged.status,
+        merged.rows_processed,
+        merged.error_message ?? null,
+        merged.provider ?? null,
+        merged.started_at ? new Date(merged.started_at) : null,
+        merged.completed_at ? new Date(merged.completed_at) : null,
+        merged.duration ?? 0,
+        merged.rows_read ?? 0,
+        merged.rows_inserted ?? 0,
+        merged.rows_updated ?? 0,
+        merged.rows_rejected ?? 0,
+        merged.initiated_by ?? 'admin'
+      ]
     );
     return mapImportJob(rows[0]);
+  }
+
+  async createFile(file: Omit<ImportJobFile, "id" | "created_at">): Promise<ImportJobFile> {
+    const dbId = toUuid(`file-${Date.now()}-${Math.random().toString().substring(2,6)}`, "pick");
+    const jobId = toUuid(file.import_job_id, "pick");
+    const rows = await query(
+      `INSERT INTO import_job_files (id, import_job_id, filename, checksum, file_size)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
+      [dbId, jobId, file.filename, file.checksum, file.file_size ?? null]
+    );
+    return {
+      id: fromUuid(rows[0].id),
+      import_job_id: fromUuid(rows[0].import_job_id),
+      filename: rows[0].filename,
+      checksum: rows[0].checksum,
+      file_size: rows[0].file_size !== null && rows[0].file_size !== undefined ? Number(rows[0].file_size) : undefined,
+      created_at: rows[0].created_at
+    };
+  }
+
+  async getFilesByJobId(jobId: string): Promise<ImportJobFile[]> {
+    const dbId = toUuid(jobId, "pick");
+    const rows = await query("SELECT * FROM import_job_files WHERE import_job_id = $1 ORDER BY created_at ASC", [dbId]);
+    return rows.map(r => ({
+      id: fromUuid(r.id),
+      import_job_id: fromUuid(r.import_job_id),
+      filename: r.filename,
+      checksum: r.checksum,
+      file_size: r.file_size !== null && r.file_size !== undefined ? Number(r.file_size) : undefined,
+      created_at: r.created_at
+    }));
+  }
+
+  async createError(err: Omit<ImportJobError, "id" | "created_at">): Promise<ImportJobError> {
+    const dbId = toUuid(`err-${Date.now()}-${Math.random().toString().substring(2,6)}`, "pick");
+    const jobId = toUuid(err.import_job_id, "pick");
+    const rows = await query(
+      `INSERT INTO import_job_errors (id, import_job_id, row_index, raw_data, error_message, severity)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [dbId, jobId, err.row_index ?? null, err.raw_data ?? null, err.error_message, err.severity]
+    );
+    return {
+      id: fromUuid(rows[0].id),
+      import_job_id: fromUuid(rows[0].import_job_id),
+      row_index: rows[0].row_index !== null && rows[0].row_index !== undefined ? Number(rows[0].row_index) : undefined,
+      raw_data: rows[0].raw_data || undefined,
+      error_message: rows[0].error_message,
+      severity: rows[0].severity as 'warning' | 'error',
+      created_at: rows[0].created_at
+    };
+  }
+
+  async getErrorsByJobId(jobId: string): Promise<ImportJobError[]> {
+    const dbId = toUuid(jobId, "pick");
+    const rows = await query("SELECT * FROM import_job_errors WHERE import_job_id = $1 ORDER BY row_index ASC, created_at ASC", [dbId]);
+    return rows.map(r => ({
+      id: fromUuid(r.id),
+      import_job_id: fromUuid(r.import_job_id),
+      row_index: r.row_index !== null && r.row_index !== undefined ? Number(r.row_index) : undefined,
+      raw_data: r.raw_data || undefined,
+      error_message: r.error_message,
+      severity: r.severity as 'warning' | 'error',
+      created_at: r.created_at
+    }));
+  }
+
+  async getAllErrors(): Promise<ImportJobError[]> {
+    const rows = await query("SELECT * FROM import_job_errors ORDER BY created_at DESC LIMIT 200");
+    return rows.map(r => ({
+      id: fromUuid(r.id),
+      import_job_id: fromUuid(r.import_job_id),
+      row_index: r.row_index !== null && r.row_index !== undefined ? Number(r.row_index) : undefined,
+      raw_data: r.raw_data || undefined,
+      error_message: r.error_message,
+      severity: r.severity as 'warning' | 'error',
+      created_at: r.created_at
+    }));
   }
 }
 
