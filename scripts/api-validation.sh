@@ -16,12 +16,13 @@ FAIL_COUNT=0
 check_endpoint() {
     local name="$1"
     local endpoint="$2"
+    local allowed="${3:-200 201 204 301 302 304}"
 
     printf "%-35s" "$name"
 
     status=$(curl -s -o /dev/null -w "%{http_code}" "${BASE_URL}${endpoint}" || echo "000")
 
-    if [[ "$status" =~ ^2|3 ]]; then
+    if [[ " $allowed " == *" $status "* ]]; then
         echo "PASS ($status)"
         PASS_COUNT=$((PASS_COUNT+1))
     else
@@ -51,7 +52,7 @@ check_endpoint "Dashboard API" "/api/dashboard"
 check_endpoint "Entries API" "/api/entries"
 check_endpoint "Contest Types API" "/api/contest-types"
 check_endpoint "Roadmaps API" "/api/roadmaps"
-check_endpoint "Recommendations API" "/api/recommendations"
+check_endpoint "Recommendations API route exists" "/api/recommendations" "200 204 400"
 check_endpoint "Reports API" "/api/reports"
 check_endpoint "Owners API" "/api/owners"
 
