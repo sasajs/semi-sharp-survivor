@@ -17,6 +17,7 @@ export class RecommendationExplanationService {
     confidenceTier: ConfidenceTier;
     isThanksgivingReserved: boolean;
     isChristmasReserved: boolean;
+    contestTypeId?: string;
   }): RecommendationRationale {
     const {
       teamName,
@@ -29,7 +30,8 @@ export class RecommendationExplanationService {
       upsetProbability,
       confidenceTier,
       isThanksgivingReserved,
-      isChristmasReserved
+      isChristmasReserved,
+      contestTypeId
     } = inputs;
 
     // 1. Survival Floor Case
@@ -76,11 +78,19 @@ export class RecommendationExplanationService {
     }
 
     // 5. Holiday Inventory Impact
-    let holiday_inventory_impact = `No holiday conflicts detected for ${teamName}.`;
-    if (isThanksgivingReserved) {
-      holiday_inventory_impact = `CRITICAL: ${teamName} is actively designated for Thanksgiving protection. Selecting them now breaks holiday safety schemas.`;
-    } else if (isChristmasReserved) {
-      holiday_inventory_impact = `CRITICAL: ${teamName} is actively designated for Christmas protection. Selecting them now breaks holiday safety schemas.`;
+    const isCirca = (contestTypeId || "circa").toLowerCase() !== "standard";
+    let holiday_inventory_impact = "";
+    if (isCirca) {
+      holiday_inventory_impact = "This recommendation accounts for Circa's 20-leg format, including Thanksgiving and Christmas holiday legs.";
+      if (isThanksgivingReserved) {
+        holiday_inventory_impact += ` CRITICAL: ${teamName} is actively designated for Thanksgiving protection. Selecting them now breaks holiday safety schemas.`;
+      } else if (isChristmasReserved) {
+        holiday_inventory_impact += ` CRITICAL: ${teamName} is actively designated for Christmas protection. Selecting them now breaks holiday safety schemas.`;
+      } else {
+        holiday_inventory_impact += ` No holiday conflicts detected for ${teamName}.`;
+      }
+    } else {
+      holiday_inventory_impact = "This recommendation uses the standard 18-week Survivor format. Holiday reservation logic is not applied.";
     }
 
     return {

@@ -511,13 +511,21 @@ router.get("/recommendations", async (req: Request, res: Response) => {
         };
       });
 
+    const contestTypeId = entry.contest_type_id || "circa";
+    const rules = contestRulesService.getRules(contestTypeId);
+
     res.json({
       entry,
       leg: currentLeg,
       used_teams: snap.used_teams,
       recommendations: formattedRecs,
       holiday_protection_score: snap.holiday_protection_score,
-      inventory_depth_score: snap.inventory_depth
+      inventory_depth_score: snap.inventory_depth,
+      contest_type: contestTypeId,
+      contest_name: rules.name,
+      total_legs: rules.totalLegs,
+      holiday_strategy_enabled: rules.usesHolidayReservations,
+      recommendation_format: contestTypeId === "standard" ? "Standard" : "Circa Format"
     });
   } catch (err: any) {
     console.error("Error in GET /recommendations:", err);

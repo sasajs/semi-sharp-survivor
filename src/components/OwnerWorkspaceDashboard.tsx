@@ -159,6 +159,7 @@ export const OwnerWorkspaceDashboard: React.FC<OwnerWorkspaceDashboardProps> = (
               const { entry, strategy, holidayReservations, roadmap, currentRecommendation } = entryDash;
               const isEditing = editingEntryId === entry.id;
               const isUpdating = updatingEntryId === entry.id;
+              const isCirca = entry.contest_type_id?.toLowerCase() !== "standard";
 
               return (
                 <div 
@@ -291,43 +292,45 @@ export const OwnerWorkspaceDashboard: React.FC<OwnerWorkspaceDashboardProps> = (
                     </div>
 
                     {/* Holiday Preservation Reserves */}
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Thanksgiving */}
-                      <div className="border border-slate-100 p-3.5 rounded-2xl space-y-1">
-                        <span className="text-[8px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1">
-                          <Sparkles className="w-3 h-3 text-amber-500" />
-                          Thanksgiving Shield
-                        </span>
-                        <div className="text-xs font-black text-slate-800 leading-tight truncate">
-                          {holidayReservations?.thanksgiving?.team_id 
-                            ? getTeamDisplayName(holidayReservations.thanksgiving.team_id)
-                            : "TBD"}
-                        </div>
-                        {holidayReservations?.thanksgiving && (
-                          <div className="text-[9px] text-slate-500 font-medium">
-                            Confidence: {formatPercent(holidayReservations.thanksgiving.confidence)}
+                    {isCirca && (
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Thanksgiving */}
+                        <div className="border border-slate-100 p-3.5 rounded-2xl space-y-1">
+                          <span className="text-[8px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1">
+                            <Sparkles className="w-3 h-3 text-amber-500" />
+                            Thanksgiving Shield
+                          </span>
+                          <div className="text-xs font-black text-slate-800 leading-tight truncate">
+                            {holidayReservations?.thanksgiving?.team_id 
+                              ? getTeamDisplayName(holidayReservations.thanksgiving.team_id)
+                              : "TBD"}
                           </div>
-                        )}
-                      </div>
+                          {holidayReservations?.thanksgiving && (
+                            <div className="text-[9px] text-slate-500 font-medium">
+                              Confidence: {formatPercent(holidayReservations.thanksgiving.confidence)}
+                            </div>
+                          )}
+                        </div>
 
-                      {/* Christmas */}
-                      <div className="border border-slate-100 p-3.5 rounded-2xl space-y-1">
-                        <span className="text-[8px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-red-500" />
-                          Christmas Day Preservation
-                        </span>
-                        <div className="text-xs font-black text-slate-800 leading-tight truncate">
-                          {holidayReservations?.christmas?.team_id 
-                            ? getTeamDisplayName(holidayReservations.christmas.team_id)
-                            : "TBD"}
-                        </div>
-                        {holidayReservations?.christmas && (
-                          <div className="text-[9px] text-slate-500 font-medium">
-                            Confidence: {formatPercent(holidayReservations.christmas.confidence)}
+                        {/* Christmas */}
+                        <div className="border border-slate-100 p-3.5 rounded-2xl space-y-1">
+                          <span className="text-[8px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-red-500" />
+                            Christmas Day Preservation
+                          </span>
+                          <div className="text-xs font-black text-slate-800 leading-tight truncate">
+                            {holidayReservations?.christmas?.team_id 
+                              ? getTeamDisplayName(holidayReservations.christmas.team_id)
+                              : "TBD"}
                           </div>
-                        )}
+                          {holidayReservations?.christmas && (
+                            <div className="text-[9px] text-slate-500 font-medium">
+                              Confidence: {formatPercent(holidayReservations.christmas.confidence)}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   {/* Footer Actions */}

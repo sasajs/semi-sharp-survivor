@@ -13,6 +13,8 @@ export const DashboardCards: React.FC<DashboardCardsProps> = ({
   activeLegObj,
   games
 }) => {
+  const isCirca = activeEntryObj?.contest_type_id?.toLowerCase() !== "standard";
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       
@@ -48,24 +50,30 @@ export const DashboardCards: React.FC<DashboardCardsProps> = ({
         </div>
         <div className="text-2xl font-black text-slate-900">Highly Conserved</div>
         <div className="text-[10px] text-slate-500 mt-1">
-          KC, SF, BAL available for Christmas
+          {isCirca ? "KC, SF, BAL available for Christmas" : "Premium assets conserved for late weeks"}
         </div>
       </div>
 
-      {/* Card 3: Thanksgiving Slate */}
+      {/* Card 3: Thanksgiving Slate / Standard Rules */}
       <div id="card-thanksgiving-shield" className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow transition-shadow relative">
         <div className="flex items-center gap-1.5 mb-1 group-tooltip">
-          <span className="text-[10px] text-slate-500 font-bold uppercase">Thanksgiving Slate</span>
+          <span className="text-[10px] text-slate-500 font-bold uppercase">
+            {isCirca ? "Thanksgiving Slate" : "Standard Rules"}
+          </span>
           <div className="relative group cursor-help shrink-0">
             <Info className="w-3.5 h-3.5 text-slate-400 hover:text-indigo-600 transition" />
             <div className="absolute z-50 left-1/2 -translate-x-1/2 bottom-5 hidden group-hover:block bg-slate-900 text-white text-[10px] p-2.5 rounded-lg shadow-lg w-56 font-normal normal-case leading-normal text-slate-200 border border-slate-700">
-              The Thanksgiving holiday. A three-game special slate requiring precise, dedicated team selections. A key milestone for mid-season survival profiles.
+              {isCirca 
+                ? "The Thanksgiving holiday. A three-game special slate requiring precise, dedicated team selections. A key milestone for mid-season survival profiles."
+                : "Standard NFL schedule layout with 18 distinct weeks. No holiday sub-slates or double-pick requirements."}
             </div>
           </div>
         </div>
-        <div className="text-2xl font-black text-amber-600">Shield Active</div>
+        <div className="text-2xl font-black text-amber-600">
+          {isCirca ? "Shield Active" : "No Holidays"}
+        </div>
         <div className="text-[10px] text-slate-500 mt-1">
-          DET or DAL mapped for Thanksgiving (Leg 13)
+          {isCirca ? "DET or DAL mapped for Thanksgiving (Leg 13)" : "Holiday reservation logic is not applied"}
         </div>
       </div>
 

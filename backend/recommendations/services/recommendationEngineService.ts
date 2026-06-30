@@ -15,6 +15,7 @@ import {
   recommendationRepo,
   recommendationSnapshotRepo
 } from "../../repositories";
+import { contestRulesService } from "../../services/ContestRulesService";
 import { InventoryService } from "../../inventory/services/inventoryService";
 import { RiskEngineService } from "../../risk/services/riskEngineService";
 import { LeverageService } from "./leverageService";
@@ -30,6 +31,11 @@ export class RecommendationEngineService {
     // 1. Fetch Inventory Snapshot
     const snap = await InventoryService.compileInventorySnapshot(entryId, legId);
     
+    // Fetch Entry and determine contest type rules
+    const entryObj = await entryRepo.getById(entryId);
+    const contestTypeId = entryObj?.contest_type_id || "circa";
+    const rules = contestRulesService.getRules(contestTypeId);
+
     // 2. Fetch all Teams and Games on this leg
     const teams = await teamRepo.getAll();
     const games = await gameRepo.getByLegId(legId);
@@ -70,11 +76,11 @@ export class RecommendationEngineService {
       const is_available = snap.available_teams.includes(team.id);
 
       // Check Thanksgiving and Christmas specific reservations
-      const is_thanksgiving_reserved = tgLeg 
+      const is_thanksgiving_reserved = rules.usesHolidayReservations && tgLeg 
         ? snap.holiday_reservations.some(r => r.team_id === team.id && r.contest_leg_id === tgLeg.id)
         : false;
 
-      const is_christmas_reserved = xmasLeg 
+      const is_christmas_reserved = rules.usesHolidayReservations && xmasLeg 
         ? snap.holiday_reservations.some(r => r.team_id === team.id && r.contest_leg_id === xmasLeg.id)
         : false;
 
@@ -118,7 +124,8 @@ export class RecommendationEngineService {
         upsetProbability: upset_probability,
         confidenceTier: confidence_tier,
         isThanksgivingReserved: is_thanksgiving_reserved,
-        isChristmasReserved: is_christmas_reserved
+        isChristmasReserved: is_christmas_reserved,
+        contestTypeId: contestTypeId
       });
 
       candidates.push({
@@ -179,6 +186,11 @@ export class RecommendationEngineService {
     const existing = await recommendationRepo.getByEntryAndLeg(entryId, legId);
     const nextVersion = existing ? existing.recommendation_version + 1 : 1;
 
+    // Fetch Entry and determine contest type rules
+    const entryObj = await entryRepo.getById(entryId);
+    const contestTypeId = entryObj?.contest_type_id || "circa";
+    const rules = contestRulesService.getRules(contestTypeId);
+
     const recommendation: EntryRecommendation = {
       id: existing?.id || `rec-${legId}-${entryId}`,
       entry_id: entryId,
@@ -191,6 +203,11 @@ export class RecommendationEngineService {
       inventory_version: snap.inventory_version,
       risk_version: primaryCandidate.risk_score ? Math.floor(primaryCandidate.risk_score / 10) : 1,
       policy_version: 1,
+      contest_type: contestTypeId,
+      contest_name: rules.name,
+      total_legs: rules.totalLegs,
+      holiday_strategy_enabled: rules.usesHolidayReservations,
+      recommendation_format: contestTypeId === "standard" ? "Standard" : "Circa Format",
       created_at: existing?.created_at || new Date().toISOString()
     };
 

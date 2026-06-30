@@ -322,6 +322,11 @@ export interface EntryRecommendation {
   inventory_version: number;
   risk_version: number;
   policy_version: number;
+  contest_type?: string;
+  contest_name?: string;
+  total_legs?: number;
+  holiday_strategy_enabled?: boolean;
+  recommendation_format?: string;
   created_at: string;
 }
 

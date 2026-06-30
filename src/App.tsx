@@ -1379,6 +1379,28 @@ export default function App() {
                         </p>
                       </div>
 
+                      {/* Contest-Aware Context Card */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 border border-slate-150 p-4 rounded-2xl">
+                        <div className="space-y-0.5">
+                          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Contest Name</span>
+                          <div className="text-sm font-black text-slate-800">
+                            {recReport.contest_type?.toLowerCase() === "standard" ? "Standard Survivor" : "Circa Survivor"}
+                          </div>
+                        </div>
+                        <div className="space-y-0.5">
+                          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Format</span>
+                          <div className="text-sm font-black text-slate-800">
+                            {recReport.contest_type?.toLowerCase() === "standard" ? "18 Weeks" : "20 Legs"}
+                          </div>
+                        </div>
+                        <div className="space-y-0.5">
+                          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Holiday Strategy</span>
+                          <div className="text-sm font-black text-slate-800">
+                            {recReport.contest_type?.toLowerCase() === "standard" ? "Not Applicable" : "Enabled"}
+                          </div>
+                        </div>
+                      </div>
+
                       {/* Top Recommended List with bars */}
                       <RecommendationTable 
                         recommendations={recReport.recommendations || []}
