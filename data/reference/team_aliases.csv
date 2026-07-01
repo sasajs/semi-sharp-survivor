@@ -1,0 +1,1334 @@
+team_id,alias,normalized_alias,provider_name,alias_type,priority,active,notes
+ari,ari,ari,internal,canonical_id,100,true,
+ari,Arizona Cardinals,arizonacardinals,internal,official_name,100,true,
+ari,Arizona,arizona,internal,city,90,true,
+ari,Cardinals,cardinals,internal,nickname,90,true,
+ari,ARI Cardinals,aricardinals,internal,common_variant,85,true,
+ari,Cardinals Football,cardinalsfootball,internal,common_variant,60,true,
+ari,Arizona Football,arizonafootball,internal,common_variant,60,true,
+ari,Arizona Cardinals Football,arizonacardinalsfootball,internal,common_variant,55,true,
+ari,AZ,az,internal,common_or_historical_variant,70,true,
+ari,Arizona Cards,arizonacards,internal,common_or_historical_variant,70,true,
+ari,Cards,cards,internal,common_or_historical_variant,70,true,
+ari,Phoenix Cardinals,phoenixcardinals,internal,common_or_historical_variant,70,true,
+ari,St. Louis Cardinals,stlouiscardinals,internal,common_or_historical_variant,70,true,
+ari,ARI,ari,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+ari,Arizona Cardinals,arizonacardinals,nflverse,provider_full_name,80,true,nflverse full name
+ari,Arizona,arizona,nflverse,provider_city,65,true,nflverse city
+ari,Cardinals,cardinals,nflverse,provider_nickname,65,true,nflverse nickname
+ari,ARI,ari,espn,provider_abbreviation,85,true,espn abbreviation
+ari,Arizona Cardinals,arizonacardinals,espn,provider_full_name,80,true,espn full name
+ari,Arizona,arizona,espn,provider_city,65,true,espn city
+ari,Cardinals,cardinals,espn,provider_nickname,65,true,espn nickname
+ari,ARI,ari,pfr,provider_abbreviation,85,true,pfr abbreviation
+ari,Arizona Cardinals,arizonacardinals,pfr,provider_full_name,80,true,pfr full name
+ari,Arizona,arizona,pfr,provider_city,65,true,pfr city
+ari,Cardinals,cardinals,pfr,provider_nickname,65,true,pfr nickname
+ari,ARI,ari,covers,provider_abbreviation,85,true,covers abbreviation
+ari,Arizona Cardinals,arizonacardinals,covers,provider_full_name,80,true,covers full name
+ari,Arizona,arizona,covers,provider_city,65,true,covers city
+ari,Cardinals,cardinals,covers,provider_nickname,65,true,covers nickname
+ari,ARI,ari,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+ari,Arizona Cardinals,arizonacardinals,odds_api,provider_full_name,80,true,odds_api full name
+ari,Arizona,arizona,odds_api,provider_city,65,true,odds_api city
+ari,Cardinals,cardinals,odds_api,provider_nickname,65,true,odds_api nickname
+ari,ARI,ari,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+ari,Arizona Cardinals,arizonacardinals,draftkings,provider_full_name,80,true,draftkings full name
+ari,Arizona,arizona,draftkings,provider_city,65,true,draftkings city
+ari,Cardinals,cardinals,draftkings,provider_nickname,65,true,draftkings nickname
+ari,ARI,ari,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+ari,Arizona Cardinals,arizonacardinals,fanduel,provider_full_name,80,true,fanduel full name
+ari,Arizona,arizona,fanduel,provider_city,65,true,fanduel city
+ari,Cardinals,cardinals,fanduel,provider_nickname,65,true,fanduel nickname
+ari,ARI,ari,circa,provider_abbreviation,85,true,circa abbreviation
+ari,Arizona Cardinals,arizonacardinals,circa,provider_full_name,80,true,circa full name
+ari,Arizona,arizona,circa,provider_city,65,true,circa city
+ari,Cardinals,cardinals,circa,provider_nickname,65,true,circa nickname
+atl,atl,atl,internal,canonical_id,100,true,
+atl,Atlanta Falcons,atlantafalcons,internal,official_name,100,true,
+atl,Atlanta,atlanta,internal,city,90,true,
+atl,Falcons,falcons,internal,nickname,90,true,
+atl,ATL Falcons,atlfalcons,internal,common_variant,85,true,
+atl,Falcons Football,falconsfootball,internal,common_variant,60,true,
+atl,Atlanta Football,atlantafootball,internal,common_variant,60,true,
+atl,Atlanta Falcons Football,atlantafalconsfootball,internal,common_variant,55,true,
+atl,ATL,atl,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+atl,Atlanta Falcons,atlantafalcons,nflverse,provider_full_name,80,true,nflverse full name
+atl,Atlanta,atlanta,nflverse,provider_city,65,true,nflverse city
+atl,Falcons,falcons,nflverse,provider_nickname,65,true,nflverse nickname
+atl,ATL,atl,espn,provider_abbreviation,85,true,espn abbreviation
+atl,Atlanta Falcons,atlantafalcons,espn,provider_full_name,80,true,espn full name
+atl,Atlanta,atlanta,espn,provider_city,65,true,espn city
+atl,Falcons,falcons,espn,provider_nickname,65,true,espn nickname
+atl,ATL,atl,pfr,provider_abbreviation,85,true,pfr abbreviation
+atl,Atlanta Falcons,atlantafalcons,pfr,provider_full_name,80,true,pfr full name
+atl,Atlanta,atlanta,pfr,provider_city,65,true,pfr city
+atl,Falcons,falcons,pfr,provider_nickname,65,true,pfr nickname
+atl,ATL,atl,covers,provider_abbreviation,85,true,covers abbreviation
+atl,Atlanta Falcons,atlantafalcons,covers,provider_full_name,80,true,covers full name
+atl,Atlanta,atlanta,covers,provider_city,65,true,covers city
+atl,Falcons,falcons,covers,provider_nickname,65,true,covers nickname
+atl,ATL,atl,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+atl,Atlanta Falcons,atlantafalcons,odds_api,provider_full_name,80,true,odds_api full name
+atl,Atlanta,atlanta,odds_api,provider_city,65,true,odds_api city
+atl,Falcons,falcons,odds_api,provider_nickname,65,true,odds_api nickname
+atl,ATL,atl,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+atl,Atlanta Falcons,atlantafalcons,draftkings,provider_full_name,80,true,draftkings full name
+atl,Atlanta,atlanta,draftkings,provider_city,65,true,draftkings city
+atl,Falcons,falcons,draftkings,provider_nickname,65,true,draftkings nickname
+atl,ATL,atl,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+atl,Atlanta Falcons,atlantafalcons,fanduel,provider_full_name,80,true,fanduel full name
+atl,Atlanta,atlanta,fanduel,provider_city,65,true,fanduel city
+atl,Falcons,falcons,fanduel,provider_nickname,65,true,fanduel nickname
+atl,ATL,atl,circa,provider_abbreviation,85,true,circa abbreviation
+atl,Atlanta Falcons,atlantafalcons,circa,provider_full_name,80,true,circa full name
+atl,Atlanta,atlanta,circa,provider_city,65,true,circa city
+atl,Falcons,falcons,circa,provider_nickname,65,true,circa nickname
+bal,bal,bal,internal,canonical_id,100,true,
+bal,Baltimore Ravens,baltimoreravens,internal,official_name,100,true,
+bal,Baltimore,baltimore,internal,city,90,true,
+bal,Ravens,ravens,internal,nickname,90,true,
+bal,BAL Ravens,balravens,internal,common_variant,85,true,
+bal,Ravens Football,ravensfootball,internal,common_variant,60,true,
+bal,Baltimore Football,baltimorefootball,internal,common_variant,60,true,
+bal,Baltimore Ravens Football,baltimoreravensfootball,internal,common_variant,55,true,
+bal,Balt Ravens,baltravens,internal,common_or_historical_variant,70,true,
+bal,Bmore Ravens,bmoreravens,internal,common_or_historical_variant,70,true,
+bal,BAL,bal,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+bal,Baltimore Ravens,baltimoreravens,nflverse,provider_full_name,80,true,nflverse full name
+bal,Baltimore,baltimore,nflverse,provider_city,65,true,nflverse city
+bal,Ravens,ravens,nflverse,provider_nickname,65,true,nflverse nickname
+bal,BAL,bal,espn,provider_abbreviation,85,true,espn abbreviation
+bal,Baltimore Ravens,baltimoreravens,espn,provider_full_name,80,true,espn full name
+bal,Baltimore,baltimore,espn,provider_city,65,true,espn city
+bal,Ravens,ravens,espn,provider_nickname,65,true,espn nickname
+bal,BAL,bal,pfr,provider_abbreviation,85,true,pfr abbreviation
+bal,Baltimore Ravens,baltimoreravens,pfr,provider_full_name,80,true,pfr full name
+bal,Baltimore,baltimore,pfr,provider_city,65,true,pfr city
+bal,Ravens,ravens,pfr,provider_nickname,65,true,pfr nickname
+bal,BAL,bal,covers,provider_abbreviation,85,true,covers abbreviation
+bal,Baltimore Ravens,baltimoreravens,covers,provider_full_name,80,true,covers full name
+bal,Baltimore,baltimore,covers,provider_city,65,true,covers city
+bal,Ravens,ravens,covers,provider_nickname,65,true,covers nickname
+bal,BAL,bal,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+bal,Baltimore Ravens,baltimoreravens,odds_api,provider_full_name,80,true,odds_api full name
+bal,Baltimore,baltimore,odds_api,provider_city,65,true,odds_api city
+bal,Ravens,ravens,odds_api,provider_nickname,65,true,odds_api nickname
+bal,BAL,bal,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+bal,Baltimore Ravens,baltimoreravens,draftkings,provider_full_name,80,true,draftkings full name
+bal,Baltimore,baltimore,draftkings,provider_city,65,true,draftkings city
+bal,Ravens,ravens,draftkings,provider_nickname,65,true,draftkings nickname
+bal,BAL,bal,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+bal,Baltimore Ravens,baltimoreravens,fanduel,provider_full_name,80,true,fanduel full name
+bal,Baltimore,baltimore,fanduel,provider_city,65,true,fanduel city
+bal,Ravens,ravens,fanduel,provider_nickname,65,true,fanduel nickname
+bal,BAL,bal,circa,provider_abbreviation,85,true,circa abbreviation
+bal,Baltimore Ravens,baltimoreravens,circa,provider_full_name,80,true,circa full name
+bal,Baltimore,baltimore,circa,provider_city,65,true,circa city
+bal,Ravens,ravens,circa,provider_nickname,65,true,circa nickname
+buf,buf,buf,internal,canonical_id,100,true,
+buf,Buffalo Bills,buffalobills,internal,official_name,100,true,
+buf,Buffalo,buffalo,internal,city,90,true,
+buf,Bills,bills,internal,nickname,90,true,
+buf,BUF Bills,bufbills,internal,common_variant,85,true,
+buf,Bills Football,billsfootball,internal,common_variant,60,true,
+buf,Buffalo Football,buffalofootball,internal,common_variant,60,true,
+buf,Buffalo Bills Football,buffalobillsfootball,internal,common_variant,55,true,
+buf,Buff Bills,buffbills,internal,common_or_historical_variant,70,true,
+buf,BUF,buf,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+buf,Buffalo Bills,buffalobills,nflverse,provider_full_name,80,true,nflverse full name
+buf,Buffalo,buffalo,nflverse,provider_city,65,true,nflverse city
+buf,Bills,bills,nflverse,provider_nickname,65,true,nflverse nickname
+buf,BUF,buf,espn,provider_abbreviation,85,true,espn abbreviation
+buf,Buffalo Bills,buffalobills,espn,provider_full_name,80,true,espn full name
+buf,Buffalo,buffalo,espn,provider_city,65,true,espn city
+buf,Bills,bills,espn,provider_nickname,65,true,espn nickname
+buf,BUF,buf,pfr,provider_abbreviation,85,true,pfr abbreviation
+buf,Buffalo Bills,buffalobills,pfr,provider_full_name,80,true,pfr full name
+buf,Buffalo,buffalo,pfr,provider_city,65,true,pfr city
+buf,Bills,bills,pfr,provider_nickname,65,true,pfr nickname
+buf,BUF,buf,covers,provider_abbreviation,85,true,covers abbreviation
+buf,Buffalo Bills,buffalobills,covers,provider_full_name,80,true,covers full name
+buf,Buffalo,buffalo,covers,provider_city,65,true,covers city
+buf,Bills,bills,covers,provider_nickname,65,true,covers nickname
+buf,BUF,buf,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+buf,Buffalo Bills,buffalobills,odds_api,provider_full_name,80,true,odds_api full name
+buf,Buffalo,buffalo,odds_api,provider_city,65,true,odds_api city
+buf,Bills,bills,odds_api,provider_nickname,65,true,odds_api nickname
+buf,BUF,buf,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+buf,Buffalo Bills,buffalobills,draftkings,provider_full_name,80,true,draftkings full name
+buf,Buffalo,buffalo,draftkings,provider_city,65,true,draftkings city
+buf,Bills,bills,draftkings,provider_nickname,65,true,draftkings nickname
+buf,BUF,buf,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+buf,Buffalo Bills,buffalobills,fanduel,provider_full_name,80,true,fanduel full name
+buf,Buffalo,buffalo,fanduel,provider_city,65,true,fanduel city
+buf,Bills,bills,fanduel,provider_nickname,65,true,fanduel nickname
+buf,BUF,buf,circa,provider_abbreviation,85,true,circa abbreviation
+buf,Buffalo Bills,buffalobills,circa,provider_full_name,80,true,circa full name
+buf,Buffalo,buffalo,circa,provider_city,65,true,circa city
+buf,Bills,bills,circa,provider_nickname,65,true,circa nickname
+car,car,car,internal,canonical_id,100,true,
+car,Carolina Panthers,carolinapanthers,internal,official_name,100,true,
+car,Carolina,carolina,internal,city,90,true,
+car,Panthers,panthers,internal,nickname,90,true,
+car,CAR Panthers,carpanthers,internal,common_variant,85,true,
+car,Panthers Football,panthersfootball,internal,common_variant,60,true,
+car,Carolina Football,carolinafootball,internal,common_variant,60,true,
+car,Carolina Panthers Football,carolinapanthersfootball,internal,common_variant,55,true,
+car,CAR,car,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+car,Carolina Panthers,carolinapanthers,nflverse,provider_full_name,80,true,nflverse full name
+car,Carolina,carolina,nflverse,provider_city,65,true,nflverse city
+car,Panthers,panthers,nflverse,provider_nickname,65,true,nflverse nickname
+car,CAR,car,espn,provider_abbreviation,85,true,espn abbreviation
+car,Carolina Panthers,carolinapanthers,espn,provider_full_name,80,true,espn full name
+car,Carolina,carolina,espn,provider_city,65,true,espn city
+car,Panthers,panthers,espn,provider_nickname,65,true,espn nickname
+car,CAR,car,pfr,provider_abbreviation,85,true,pfr abbreviation
+car,Carolina Panthers,carolinapanthers,pfr,provider_full_name,80,true,pfr full name
+car,Carolina,carolina,pfr,provider_city,65,true,pfr city
+car,Panthers,panthers,pfr,provider_nickname,65,true,pfr nickname
+car,CAR,car,covers,provider_abbreviation,85,true,covers abbreviation
+car,Carolina Panthers,carolinapanthers,covers,provider_full_name,80,true,covers full name
+car,Carolina,carolina,covers,provider_city,65,true,covers city
+car,Panthers,panthers,covers,provider_nickname,65,true,covers nickname
+car,CAR,car,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+car,Carolina Panthers,carolinapanthers,odds_api,provider_full_name,80,true,odds_api full name
+car,Carolina,carolina,odds_api,provider_city,65,true,odds_api city
+car,Panthers,panthers,odds_api,provider_nickname,65,true,odds_api nickname
+car,CAR,car,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+car,Carolina Panthers,carolinapanthers,draftkings,provider_full_name,80,true,draftkings full name
+car,Carolina,carolina,draftkings,provider_city,65,true,draftkings city
+car,Panthers,panthers,draftkings,provider_nickname,65,true,draftkings nickname
+car,CAR,car,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+car,Carolina Panthers,carolinapanthers,fanduel,provider_full_name,80,true,fanduel full name
+car,Carolina,carolina,fanduel,provider_city,65,true,fanduel city
+car,Panthers,panthers,fanduel,provider_nickname,65,true,fanduel nickname
+car,CAR,car,circa,provider_abbreviation,85,true,circa abbreviation
+car,Carolina Panthers,carolinapanthers,circa,provider_full_name,80,true,circa full name
+car,Carolina,carolina,circa,provider_city,65,true,circa city
+car,Panthers,panthers,circa,provider_nickname,65,true,circa nickname
+chi,chi,chi,internal,canonical_id,100,true,
+chi,Chicago Bears,chicagobears,internal,official_name,100,true,
+chi,Chicago,chicago,internal,city,90,true,
+chi,Bears,bears,internal,nickname,90,true,
+chi,CHI Bears,chibears,internal,common_variant,85,true,
+chi,Bears Football,bearsfootball,internal,common_variant,60,true,
+chi,Chicago Football,chicagofootball,internal,common_variant,60,true,
+chi,Chicago Bears Football,chicagobearsfootball,internal,common_variant,55,true,
+chi,CHI,chi,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+chi,Chicago Bears,chicagobears,nflverse,provider_full_name,80,true,nflverse full name
+chi,Chicago,chicago,nflverse,provider_city,65,true,nflverse city
+chi,Bears,bears,nflverse,provider_nickname,65,true,nflverse nickname
+chi,CHI,chi,espn,provider_abbreviation,85,true,espn abbreviation
+chi,Chicago Bears,chicagobears,espn,provider_full_name,80,true,espn full name
+chi,Chicago,chicago,espn,provider_city,65,true,espn city
+chi,Bears,bears,espn,provider_nickname,65,true,espn nickname
+chi,CHI,chi,pfr,provider_abbreviation,85,true,pfr abbreviation
+chi,Chicago Bears,chicagobears,pfr,provider_full_name,80,true,pfr full name
+chi,Chicago,chicago,pfr,provider_city,65,true,pfr city
+chi,Bears,bears,pfr,provider_nickname,65,true,pfr nickname
+chi,CHI,chi,covers,provider_abbreviation,85,true,covers abbreviation
+chi,Chicago Bears,chicagobears,covers,provider_full_name,80,true,covers full name
+chi,Chicago,chicago,covers,provider_city,65,true,covers city
+chi,Bears,bears,covers,provider_nickname,65,true,covers nickname
+chi,CHI,chi,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+chi,Chicago Bears,chicagobears,odds_api,provider_full_name,80,true,odds_api full name
+chi,Chicago,chicago,odds_api,provider_city,65,true,odds_api city
+chi,Bears,bears,odds_api,provider_nickname,65,true,odds_api nickname
+chi,CHI,chi,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+chi,Chicago Bears,chicagobears,draftkings,provider_full_name,80,true,draftkings full name
+chi,Chicago,chicago,draftkings,provider_city,65,true,draftkings city
+chi,Bears,bears,draftkings,provider_nickname,65,true,draftkings nickname
+chi,CHI,chi,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+chi,Chicago Bears,chicagobears,fanduel,provider_full_name,80,true,fanduel full name
+chi,Chicago,chicago,fanduel,provider_city,65,true,fanduel city
+chi,Bears,bears,fanduel,provider_nickname,65,true,fanduel nickname
+chi,CHI,chi,circa,provider_abbreviation,85,true,circa abbreviation
+chi,Chicago Bears,chicagobears,circa,provider_full_name,80,true,circa full name
+chi,Chicago,chicago,circa,provider_city,65,true,circa city
+chi,Bears,bears,circa,provider_nickname,65,true,circa nickname
+cin,cin,cin,internal,canonical_id,100,true,
+cin,Cincinnati Bengals,cincinnatibengals,internal,official_name,100,true,
+cin,Cincinnati,cincinnati,internal,city,90,true,
+cin,Bengals,bengals,internal,nickname,90,true,
+cin,CIN Bengals,cinbengals,internal,common_variant,85,true,
+cin,Bengals Football,bengalsfootball,internal,common_variant,60,true,
+cin,Cincinnati Football,cincinnatifootball,internal,common_variant,60,true,
+cin,Cincinnati Bengals Football,cincinnatibengalsfootball,internal,common_variant,55,true,
+cin,CIN,cin,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+cin,Cincinnati Bengals,cincinnatibengals,nflverse,provider_full_name,80,true,nflverse full name
+cin,Cincinnati,cincinnati,nflverse,provider_city,65,true,nflverse city
+cin,Bengals,bengals,nflverse,provider_nickname,65,true,nflverse nickname
+cin,CIN,cin,espn,provider_abbreviation,85,true,espn abbreviation
+cin,Cincinnati Bengals,cincinnatibengals,espn,provider_full_name,80,true,espn full name
+cin,Cincinnati,cincinnati,espn,provider_city,65,true,espn city
+cin,Bengals,bengals,espn,provider_nickname,65,true,espn nickname
+cin,CIN,cin,pfr,provider_abbreviation,85,true,pfr abbreviation
+cin,Cincinnati Bengals,cincinnatibengals,pfr,provider_full_name,80,true,pfr full name
+cin,Cincinnati,cincinnati,pfr,provider_city,65,true,pfr city
+cin,Bengals,bengals,pfr,provider_nickname,65,true,pfr nickname
+cin,CIN,cin,covers,provider_abbreviation,85,true,covers abbreviation
+cin,Cincinnati Bengals,cincinnatibengals,covers,provider_full_name,80,true,covers full name
+cin,Cincinnati,cincinnati,covers,provider_city,65,true,covers city
+cin,Bengals,bengals,covers,provider_nickname,65,true,covers nickname
+cin,CIN,cin,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+cin,Cincinnati Bengals,cincinnatibengals,odds_api,provider_full_name,80,true,odds_api full name
+cin,Cincinnati,cincinnati,odds_api,provider_city,65,true,odds_api city
+cin,Bengals,bengals,odds_api,provider_nickname,65,true,odds_api nickname
+cin,CIN,cin,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+cin,Cincinnati Bengals,cincinnatibengals,draftkings,provider_full_name,80,true,draftkings full name
+cin,Cincinnati,cincinnati,draftkings,provider_city,65,true,draftkings city
+cin,Bengals,bengals,draftkings,provider_nickname,65,true,draftkings nickname
+cin,CIN,cin,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+cin,Cincinnati Bengals,cincinnatibengals,fanduel,provider_full_name,80,true,fanduel full name
+cin,Cincinnati,cincinnati,fanduel,provider_city,65,true,fanduel city
+cin,Bengals,bengals,fanduel,provider_nickname,65,true,fanduel nickname
+cin,CIN,cin,circa,provider_abbreviation,85,true,circa abbreviation
+cin,Cincinnati Bengals,cincinnatibengals,circa,provider_full_name,80,true,circa full name
+cin,Cincinnati,cincinnati,circa,provider_city,65,true,circa city
+cin,Bengals,bengals,circa,provider_nickname,65,true,circa nickname
+cle,cle,cle,internal,canonical_id,100,true,
+cle,Cleveland Browns,clevelandbrowns,internal,official_name,100,true,
+cle,Cleveland,cleveland,internal,city,90,true,
+cle,Browns,browns,internal,nickname,90,true,
+cle,CLE Browns,clebrowns,internal,common_variant,85,true,
+cle,Browns Football,brownsfootball,internal,common_variant,60,true,
+cle,Cleveland Football,clevelandfootball,internal,common_variant,60,true,
+cle,Cleveland Browns Football,clevelandbrownsfootball,internal,common_variant,55,true,
+cle,CLE,cle,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+cle,Cleveland Browns,clevelandbrowns,nflverse,provider_full_name,80,true,nflverse full name
+cle,Cleveland,cleveland,nflverse,provider_city,65,true,nflverse city
+cle,Browns,browns,nflverse,provider_nickname,65,true,nflverse nickname
+cle,CLE,cle,espn,provider_abbreviation,85,true,espn abbreviation
+cle,Cleveland Browns,clevelandbrowns,espn,provider_full_name,80,true,espn full name
+cle,Cleveland,cleveland,espn,provider_city,65,true,espn city
+cle,Browns,browns,espn,provider_nickname,65,true,espn nickname
+cle,CLE,cle,pfr,provider_abbreviation,85,true,pfr abbreviation
+cle,Cleveland Browns,clevelandbrowns,pfr,provider_full_name,80,true,pfr full name
+cle,Cleveland,cleveland,pfr,provider_city,65,true,pfr city
+cle,Browns,browns,pfr,provider_nickname,65,true,pfr nickname
+cle,CLE,cle,covers,provider_abbreviation,85,true,covers abbreviation
+cle,Cleveland Browns,clevelandbrowns,covers,provider_full_name,80,true,covers full name
+cle,Cleveland,cleveland,covers,provider_city,65,true,covers city
+cle,Browns,browns,covers,provider_nickname,65,true,covers nickname
+cle,CLE,cle,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+cle,Cleveland Browns,clevelandbrowns,odds_api,provider_full_name,80,true,odds_api full name
+cle,Cleveland,cleveland,odds_api,provider_city,65,true,odds_api city
+cle,Browns,browns,odds_api,provider_nickname,65,true,odds_api nickname
+cle,CLE,cle,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+cle,Cleveland Browns,clevelandbrowns,draftkings,provider_full_name,80,true,draftkings full name
+cle,Cleveland,cleveland,draftkings,provider_city,65,true,draftkings city
+cle,Browns,browns,draftkings,provider_nickname,65,true,draftkings nickname
+cle,CLE,cle,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+cle,Cleveland Browns,clevelandbrowns,fanduel,provider_full_name,80,true,fanduel full name
+cle,Cleveland,cleveland,fanduel,provider_city,65,true,fanduel city
+cle,Browns,browns,fanduel,provider_nickname,65,true,fanduel nickname
+cle,CLE,cle,circa,provider_abbreviation,85,true,circa abbreviation
+cle,Cleveland Browns,clevelandbrowns,circa,provider_full_name,80,true,circa full name
+cle,Cleveland,cleveland,circa,provider_city,65,true,circa city
+cle,Browns,browns,circa,provider_nickname,65,true,circa nickname
+dal,dal,dal,internal,canonical_id,100,true,
+dal,Dallas Cowboys,dallascowboys,internal,official_name,100,true,
+dal,Dallas,dallas,internal,city,90,true,
+dal,Cowboys,cowboys,internal,nickname,90,true,
+dal,DAL Cowboys,dalcowboys,internal,common_variant,85,true,
+dal,Cowboys Football,cowboysfootball,internal,common_variant,60,true,
+dal,Dallas Football,dallasfootball,internal,common_variant,60,true,
+dal,Dallas Cowboys Football,dallascowboysfootball,internal,common_variant,55,true,
+dal,DAL,dal,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+dal,Dallas Cowboys,dallascowboys,nflverse,provider_full_name,80,true,nflverse full name
+dal,Dallas,dallas,nflverse,provider_city,65,true,nflverse city
+dal,Cowboys,cowboys,nflverse,provider_nickname,65,true,nflverse nickname
+dal,DAL,dal,espn,provider_abbreviation,85,true,espn abbreviation
+dal,Dallas Cowboys,dallascowboys,espn,provider_full_name,80,true,espn full name
+dal,Dallas,dallas,espn,provider_city,65,true,espn city
+dal,Cowboys,cowboys,espn,provider_nickname,65,true,espn nickname
+dal,DAL,dal,pfr,provider_abbreviation,85,true,pfr abbreviation
+dal,Dallas Cowboys,dallascowboys,pfr,provider_full_name,80,true,pfr full name
+dal,Dallas,dallas,pfr,provider_city,65,true,pfr city
+dal,Cowboys,cowboys,pfr,provider_nickname,65,true,pfr nickname
+dal,DAL,dal,covers,provider_abbreviation,85,true,covers abbreviation
+dal,Dallas Cowboys,dallascowboys,covers,provider_full_name,80,true,covers full name
+dal,Dallas,dallas,covers,provider_city,65,true,covers city
+dal,Cowboys,cowboys,covers,provider_nickname,65,true,covers nickname
+dal,DAL,dal,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+dal,Dallas Cowboys,dallascowboys,odds_api,provider_full_name,80,true,odds_api full name
+dal,Dallas,dallas,odds_api,provider_city,65,true,odds_api city
+dal,Cowboys,cowboys,odds_api,provider_nickname,65,true,odds_api nickname
+dal,DAL,dal,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+dal,Dallas Cowboys,dallascowboys,draftkings,provider_full_name,80,true,draftkings full name
+dal,Dallas,dallas,draftkings,provider_city,65,true,draftkings city
+dal,Cowboys,cowboys,draftkings,provider_nickname,65,true,draftkings nickname
+dal,DAL,dal,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+dal,Dallas Cowboys,dallascowboys,fanduel,provider_full_name,80,true,fanduel full name
+dal,Dallas,dallas,fanduel,provider_city,65,true,fanduel city
+dal,Cowboys,cowboys,fanduel,provider_nickname,65,true,fanduel nickname
+dal,DAL,dal,circa,provider_abbreviation,85,true,circa abbreviation
+dal,Dallas Cowboys,dallascowboys,circa,provider_full_name,80,true,circa full name
+dal,Dallas,dallas,circa,provider_city,65,true,circa city
+dal,Cowboys,cowboys,circa,provider_nickname,65,true,circa nickname
+den,den,den,internal,canonical_id,100,true,
+den,Denver Broncos,denverbroncos,internal,official_name,100,true,
+den,Denver,denver,internal,city,90,true,
+den,Broncos,broncos,internal,nickname,90,true,
+den,DEN Broncos,denbroncos,internal,common_variant,85,true,
+den,Broncos Football,broncosfootball,internal,common_variant,60,true,
+den,Denver Football,denverfootball,internal,common_variant,60,true,
+den,Denver Broncos Football,denverbroncosfootball,internal,common_variant,55,true,
+den,DEN,den,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+den,Denver Broncos,denverbroncos,nflverse,provider_full_name,80,true,nflverse full name
+den,Denver,denver,nflverse,provider_city,65,true,nflverse city
+den,Broncos,broncos,nflverse,provider_nickname,65,true,nflverse nickname
+den,DEN,den,espn,provider_abbreviation,85,true,espn abbreviation
+den,Denver Broncos,denverbroncos,espn,provider_full_name,80,true,espn full name
+den,Denver,denver,espn,provider_city,65,true,espn city
+den,Broncos,broncos,espn,provider_nickname,65,true,espn nickname
+den,DEN,den,pfr,provider_abbreviation,85,true,pfr abbreviation
+den,Denver Broncos,denverbroncos,pfr,provider_full_name,80,true,pfr full name
+den,Denver,denver,pfr,provider_city,65,true,pfr city
+den,Broncos,broncos,pfr,provider_nickname,65,true,pfr nickname
+den,DEN,den,covers,provider_abbreviation,85,true,covers abbreviation
+den,Denver Broncos,denverbroncos,covers,provider_full_name,80,true,covers full name
+den,Denver,denver,covers,provider_city,65,true,covers city
+den,Broncos,broncos,covers,provider_nickname,65,true,covers nickname
+den,DEN,den,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+den,Denver Broncos,denverbroncos,odds_api,provider_full_name,80,true,odds_api full name
+den,Denver,denver,odds_api,provider_city,65,true,odds_api city
+den,Broncos,broncos,odds_api,provider_nickname,65,true,odds_api nickname
+den,DEN,den,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+den,Denver Broncos,denverbroncos,draftkings,provider_full_name,80,true,draftkings full name
+den,Denver,denver,draftkings,provider_city,65,true,draftkings city
+den,Broncos,broncos,draftkings,provider_nickname,65,true,draftkings nickname
+den,DEN,den,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+den,Denver Broncos,denverbroncos,fanduel,provider_full_name,80,true,fanduel full name
+den,Denver,denver,fanduel,provider_city,65,true,fanduel city
+den,Broncos,broncos,fanduel,provider_nickname,65,true,fanduel nickname
+den,DEN,den,circa,provider_abbreviation,85,true,circa abbreviation
+den,Denver Broncos,denverbroncos,circa,provider_full_name,80,true,circa full name
+den,Denver,denver,circa,provider_city,65,true,circa city
+den,Broncos,broncos,circa,provider_nickname,65,true,circa nickname
+det,det,det,internal,canonical_id,100,true,
+det,Detroit Lions,detroitlions,internal,official_name,100,true,
+det,Detroit,detroit,internal,city,90,true,
+det,Lions,lions,internal,nickname,90,true,
+det,DET Lions,detlions,internal,common_variant,85,true,
+det,Lions Football,lionsfootball,internal,common_variant,60,true,
+det,Detroit Football,detroitfootball,internal,common_variant,60,true,
+det,Detroit Lions Football,detroitlionsfootball,internal,common_variant,55,true,
+det,DET,det,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+det,Detroit Lions,detroitlions,nflverse,provider_full_name,80,true,nflverse full name
+det,Detroit,detroit,nflverse,provider_city,65,true,nflverse city
+det,Lions,lions,nflverse,provider_nickname,65,true,nflverse nickname
+det,DET,det,espn,provider_abbreviation,85,true,espn abbreviation
+det,Detroit Lions,detroitlions,espn,provider_full_name,80,true,espn full name
+det,Detroit,detroit,espn,provider_city,65,true,espn city
+det,Lions,lions,espn,provider_nickname,65,true,espn nickname
+det,DET,det,pfr,provider_abbreviation,85,true,pfr abbreviation
+det,Detroit Lions,detroitlions,pfr,provider_full_name,80,true,pfr full name
+det,Detroit,detroit,pfr,provider_city,65,true,pfr city
+det,Lions,lions,pfr,provider_nickname,65,true,pfr nickname
+det,DET,det,covers,provider_abbreviation,85,true,covers abbreviation
+det,Detroit Lions,detroitlions,covers,provider_full_name,80,true,covers full name
+det,Detroit,detroit,covers,provider_city,65,true,covers city
+det,Lions,lions,covers,provider_nickname,65,true,covers nickname
+det,DET,det,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+det,Detroit Lions,detroitlions,odds_api,provider_full_name,80,true,odds_api full name
+det,Detroit,detroit,odds_api,provider_city,65,true,odds_api city
+det,Lions,lions,odds_api,provider_nickname,65,true,odds_api nickname
+det,DET,det,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+det,Detroit Lions,detroitlions,draftkings,provider_full_name,80,true,draftkings full name
+det,Detroit,detroit,draftkings,provider_city,65,true,draftkings city
+det,Lions,lions,draftkings,provider_nickname,65,true,draftkings nickname
+det,DET,det,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+det,Detroit Lions,detroitlions,fanduel,provider_full_name,80,true,fanduel full name
+det,Detroit,detroit,fanduel,provider_city,65,true,fanduel city
+det,Lions,lions,fanduel,provider_nickname,65,true,fanduel nickname
+det,DET,det,circa,provider_abbreviation,85,true,circa abbreviation
+det,Detroit Lions,detroitlions,circa,provider_full_name,80,true,circa full name
+det,Detroit,detroit,circa,provider_city,65,true,circa city
+det,Lions,lions,circa,provider_nickname,65,true,circa nickname
+gb,gb,gb,internal,canonical_id,100,true,
+gb,Green Bay Packers,greenbaypackers,internal,official_name,100,true,
+gb,Green Bay,greenbay,internal,city,90,true,
+gb,Packers,packers,internal,nickname,90,true,
+gb,GB Packers,gbpackers,internal,common_variant,85,true,
+gb,Packers Football,packersfootball,internal,common_variant,60,true,
+gb,Green Bay Football,greenbayfootball,internal,common_variant,60,true,
+gb,Green Bay Packers Football,greenbaypackersfootball,internal,common_variant,55,true,
+gb,GNB,gnb,internal,common_or_historical_variant,70,true,
+gb,GB,gb,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+gb,Green Bay Packers,greenbaypackers,nflverse,provider_full_name,80,true,nflverse full name
+gb,Green Bay,greenbay,nflverse,provider_city,65,true,nflverse city
+gb,Packers,packers,nflverse,provider_nickname,65,true,nflverse nickname
+gb,GB,gb,espn,provider_abbreviation,85,true,espn abbreviation
+gb,Green Bay Packers,greenbaypackers,espn,provider_full_name,80,true,espn full name
+gb,Green Bay,greenbay,espn,provider_city,65,true,espn city
+gb,Packers,packers,espn,provider_nickname,65,true,espn nickname
+gb,GB,gb,pfr,provider_abbreviation,85,true,pfr abbreviation
+gb,Green Bay Packers,greenbaypackers,pfr,provider_full_name,80,true,pfr full name
+gb,Green Bay,greenbay,pfr,provider_city,65,true,pfr city
+gb,Packers,packers,pfr,provider_nickname,65,true,pfr nickname
+gb,GB,gb,covers,provider_abbreviation,85,true,covers abbreviation
+gb,Green Bay Packers,greenbaypackers,covers,provider_full_name,80,true,covers full name
+gb,Green Bay,greenbay,covers,provider_city,65,true,covers city
+gb,Packers,packers,covers,provider_nickname,65,true,covers nickname
+gb,GB,gb,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+gb,Green Bay Packers,greenbaypackers,odds_api,provider_full_name,80,true,odds_api full name
+gb,Green Bay,greenbay,odds_api,provider_city,65,true,odds_api city
+gb,Packers,packers,odds_api,provider_nickname,65,true,odds_api nickname
+gb,GB,gb,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+gb,Green Bay Packers,greenbaypackers,draftkings,provider_full_name,80,true,draftkings full name
+gb,Green Bay,greenbay,draftkings,provider_city,65,true,draftkings city
+gb,Packers,packers,draftkings,provider_nickname,65,true,draftkings nickname
+gb,GB,gb,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+gb,Green Bay Packers,greenbaypackers,fanduel,provider_full_name,80,true,fanduel full name
+gb,Green Bay,greenbay,fanduel,provider_city,65,true,fanduel city
+gb,Packers,packers,fanduel,provider_nickname,65,true,fanduel nickname
+gb,GB,gb,circa,provider_abbreviation,85,true,circa abbreviation
+gb,Green Bay Packers,greenbaypackers,circa,provider_full_name,80,true,circa full name
+gb,Green Bay,greenbay,circa,provider_city,65,true,circa city
+gb,Packers,packers,circa,provider_nickname,65,true,circa nickname
+hou,hou,hou,internal,canonical_id,100,true,
+hou,Houston Texans,houstontexans,internal,official_name,100,true,
+hou,Houston,houston,internal,city,90,true,
+hou,Texans,texans,internal,nickname,90,true,
+hou,HOU Texans,houtexans,internal,common_variant,85,true,
+hou,Texans Football,texansfootball,internal,common_variant,60,true,
+hou,Houston Football,houstonfootball,internal,common_variant,60,true,
+hou,Houston Texans Football,houstontexansfootball,internal,common_variant,55,true,
+hou,HST,hst,internal,common_or_historical_variant,70,true,
+hou,HOU,hou,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+hou,Houston Texans,houstontexans,nflverse,provider_full_name,80,true,nflverse full name
+hou,Houston,houston,nflverse,provider_city,65,true,nflverse city
+hou,Texans,texans,nflverse,provider_nickname,65,true,nflverse nickname
+hou,HOU,hou,espn,provider_abbreviation,85,true,espn abbreviation
+hou,Houston Texans,houstontexans,espn,provider_full_name,80,true,espn full name
+hou,Houston,houston,espn,provider_city,65,true,espn city
+hou,Texans,texans,espn,provider_nickname,65,true,espn nickname
+hou,HOU,hou,pfr,provider_abbreviation,85,true,pfr abbreviation
+hou,Houston Texans,houstontexans,pfr,provider_full_name,80,true,pfr full name
+hou,Houston,houston,pfr,provider_city,65,true,pfr city
+hou,Texans,texans,pfr,provider_nickname,65,true,pfr nickname
+hou,HOU,hou,covers,provider_abbreviation,85,true,covers abbreviation
+hou,Houston Texans,houstontexans,covers,provider_full_name,80,true,covers full name
+hou,Houston,houston,covers,provider_city,65,true,covers city
+hou,Texans,texans,covers,provider_nickname,65,true,covers nickname
+hou,HOU,hou,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+hou,Houston Texans,houstontexans,odds_api,provider_full_name,80,true,odds_api full name
+hou,Houston,houston,odds_api,provider_city,65,true,odds_api city
+hou,Texans,texans,odds_api,provider_nickname,65,true,odds_api nickname
+hou,HOU,hou,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+hou,Houston Texans,houstontexans,draftkings,provider_full_name,80,true,draftkings full name
+hou,Houston,houston,draftkings,provider_city,65,true,draftkings city
+hou,Texans,texans,draftkings,provider_nickname,65,true,draftkings nickname
+hou,HOU,hou,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+hou,Houston Texans,houstontexans,fanduel,provider_full_name,80,true,fanduel full name
+hou,Houston,houston,fanduel,provider_city,65,true,fanduel city
+hou,Texans,texans,fanduel,provider_nickname,65,true,fanduel nickname
+hou,HOU,hou,circa,provider_abbreviation,85,true,circa abbreviation
+hou,Houston Texans,houstontexans,circa,provider_full_name,80,true,circa full name
+hou,Houston,houston,circa,provider_city,65,true,circa city
+hou,Texans,texans,circa,provider_nickname,65,true,circa nickname
+ind,ind,ind,internal,canonical_id,100,true,
+ind,Indianapolis Colts,indianapoliscolts,internal,official_name,100,true,
+ind,Indianapolis,indianapolis,internal,city,90,true,
+ind,Colts,colts,internal,nickname,90,true,
+ind,IND Colts,indcolts,internal,common_variant,85,true,
+ind,Colts Football,coltsfootball,internal,common_variant,60,true,
+ind,Indianapolis Football,indianapolisfootball,internal,common_variant,60,true,
+ind,Indianapolis Colts Football,indianapoliscoltsfootball,internal,common_variant,55,true,
+ind,IND,ind,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+ind,Indianapolis Colts,indianapoliscolts,nflverse,provider_full_name,80,true,nflverse full name
+ind,Indianapolis,indianapolis,nflverse,provider_city,65,true,nflverse city
+ind,Colts,colts,nflverse,provider_nickname,65,true,nflverse nickname
+ind,IND,ind,espn,provider_abbreviation,85,true,espn abbreviation
+ind,Indianapolis Colts,indianapoliscolts,espn,provider_full_name,80,true,espn full name
+ind,Indianapolis,indianapolis,espn,provider_city,65,true,espn city
+ind,Colts,colts,espn,provider_nickname,65,true,espn nickname
+ind,IND,ind,pfr,provider_abbreviation,85,true,pfr abbreviation
+ind,Indianapolis Colts,indianapoliscolts,pfr,provider_full_name,80,true,pfr full name
+ind,Indianapolis,indianapolis,pfr,provider_city,65,true,pfr city
+ind,Colts,colts,pfr,provider_nickname,65,true,pfr nickname
+ind,IND,ind,covers,provider_abbreviation,85,true,covers abbreviation
+ind,Indianapolis Colts,indianapoliscolts,covers,provider_full_name,80,true,covers full name
+ind,Indianapolis,indianapolis,covers,provider_city,65,true,covers city
+ind,Colts,colts,covers,provider_nickname,65,true,covers nickname
+ind,IND,ind,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+ind,Indianapolis Colts,indianapoliscolts,odds_api,provider_full_name,80,true,odds_api full name
+ind,Indianapolis,indianapolis,odds_api,provider_city,65,true,odds_api city
+ind,Colts,colts,odds_api,provider_nickname,65,true,odds_api nickname
+ind,IND,ind,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+ind,Indianapolis Colts,indianapoliscolts,draftkings,provider_full_name,80,true,draftkings full name
+ind,Indianapolis,indianapolis,draftkings,provider_city,65,true,draftkings city
+ind,Colts,colts,draftkings,provider_nickname,65,true,draftkings nickname
+ind,IND,ind,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+ind,Indianapolis Colts,indianapoliscolts,fanduel,provider_full_name,80,true,fanduel full name
+ind,Indianapolis,indianapolis,fanduel,provider_city,65,true,fanduel city
+ind,Colts,colts,fanduel,provider_nickname,65,true,fanduel nickname
+ind,IND,ind,circa,provider_abbreviation,85,true,circa abbreviation
+ind,Indianapolis Colts,indianapoliscolts,circa,provider_full_name,80,true,circa full name
+ind,Indianapolis,indianapolis,circa,provider_city,65,true,circa city
+ind,Colts,colts,circa,provider_nickname,65,true,circa nickname
+jax,jax,jax,internal,canonical_id,100,true,
+jax,Jacksonville Jaguars,jacksonvillejaguars,internal,official_name,100,true,
+jax,Jacksonville,jacksonville,internal,city,90,true,
+jax,Jaguars,jaguars,internal,nickname,90,true,
+jax,JAX Jaguars,jaxjaguars,internal,common_variant,85,true,
+jax,Jaguars Football,jaguarsfootball,internal,common_variant,60,true,
+jax,Jacksonville Football,jacksonvillefootball,internal,common_variant,60,true,
+jax,Jacksonville Jaguars Football,jacksonvillejaguarsfootball,internal,common_variant,55,true,
+jax,JAC,jac,internal,common_or_historical_variant,70,true,
+jax,Jags,jags,internal,common_or_historical_variant,70,true,
+jax,Jacksonville Jags,jacksonvillejags,internal,common_or_historical_variant,70,true,
+jax,JAX,jax,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+jax,Jacksonville Jaguars,jacksonvillejaguars,nflverse,provider_full_name,80,true,nflverse full name
+jax,Jacksonville,jacksonville,nflverse,provider_city,65,true,nflverse city
+jax,Jaguars,jaguars,nflverse,provider_nickname,65,true,nflverse nickname
+jax,JAX,jax,espn,provider_abbreviation,85,true,espn abbreviation
+jax,Jacksonville Jaguars,jacksonvillejaguars,espn,provider_full_name,80,true,espn full name
+jax,Jacksonville,jacksonville,espn,provider_city,65,true,espn city
+jax,Jaguars,jaguars,espn,provider_nickname,65,true,espn nickname
+jax,JAX,jax,pfr,provider_abbreviation,85,true,pfr abbreviation
+jax,Jacksonville Jaguars,jacksonvillejaguars,pfr,provider_full_name,80,true,pfr full name
+jax,Jacksonville,jacksonville,pfr,provider_city,65,true,pfr city
+jax,Jaguars,jaguars,pfr,provider_nickname,65,true,pfr nickname
+jax,JAX,jax,covers,provider_abbreviation,85,true,covers abbreviation
+jax,Jacksonville Jaguars,jacksonvillejaguars,covers,provider_full_name,80,true,covers full name
+jax,Jacksonville,jacksonville,covers,provider_city,65,true,covers city
+jax,Jaguars,jaguars,covers,provider_nickname,65,true,covers nickname
+jax,JAX,jax,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+jax,Jacksonville Jaguars,jacksonvillejaguars,odds_api,provider_full_name,80,true,odds_api full name
+jax,Jacksonville,jacksonville,odds_api,provider_city,65,true,odds_api city
+jax,Jaguars,jaguars,odds_api,provider_nickname,65,true,odds_api nickname
+jax,JAX,jax,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+jax,Jacksonville Jaguars,jacksonvillejaguars,draftkings,provider_full_name,80,true,draftkings full name
+jax,Jacksonville,jacksonville,draftkings,provider_city,65,true,draftkings city
+jax,Jaguars,jaguars,draftkings,provider_nickname,65,true,draftkings nickname
+jax,JAX,jax,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+jax,Jacksonville Jaguars,jacksonvillejaguars,fanduel,provider_full_name,80,true,fanduel full name
+jax,Jacksonville,jacksonville,fanduel,provider_city,65,true,fanduel city
+jax,Jaguars,jaguars,fanduel,provider_nickname,65,true,fanduel nickname
+jax,JAX,jax,circa,provider_abbreviation,85,true,circa abbreviation
+jax,Jacksonville Jaguars,jacksonvillejaguars,circa,provider_full_name,80,true,circa full name
+jax,Jacksonville,jacksonville,circa,provider_city,65,true,circa city
+jax,Jaguars,jaguars,circa,provider_nickname,65,true,circa nickname
+kc,kc,kc,internal,canonical_id,100,true,
+kc,Kansas City Chiefs,kansascitychiefs,internal,official_name,100,true,
+kc,Kansas City,kansascity,internal,city,90,true,
+kc,Chiefs,chiefs,internal,nickname,90,true,
+kc,KC Chiefs,kcchiefs,internal,common_variant,85,true,
+kc,Chiefs Football,chiefsfootball,internal,common_variant,60,true,
+kc,Kansas City Football,kansascityfootball,internal,common_variant,60,true,
+kc,Kansas City Chiefs Football,kansascitychiefsfootball,internal,common_variant,55,true,
+kc,Kansas City C,kansascityc,internal,common_or_historical_variant,70,true,
+kc,Chiefs Kingdom,chiefskingdom,internal,common_or_historical_variant,70,true,
+kc,KC,kc,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+kc,Kansas City Chiefs,kansascitychiefs,nflverse,provider_full_name,80,true,nflverse full name
+kc,Kansas City,kansascity,nflverse,provider_city,65,true,nflverse city
+kc,Chiefs,chiefs,nflverse,provider_nickname,65,true,nflverse nickname
+kc,KC,kc,espn,provider_abbreviation,85,true,espn abbreviation
+kc,Kansas City Chiefs,kansascitychiefs,espn,provider_full_name,80,true,espn full name
+kc,Kansas City,kansascity,espn,provider_city,65,true,espn city
+kc,Chiefs,chiefs,espn,provider_nickname,65,true,espn nickname
+kc,KC,kc,pfr,provider_abbreviation,85,true,pfr abbreviation
+kc,Kansas City Chiefs,kansascitychiefs,pfr,provider_full_name,80,true,pfr full name
+kc,Kansas City,kansascity,pfr,provider_city,65,true,pfr city
+kc,Chiefs,chiefs,pfr,provider_nickname,65,true,pfr nickname
+kc,KC,kc,covers,provider_abbreviation,85,true,covers abbreviation
+kc,Kansas City Chiefs,kansascitychiefs,covers,provider_full_name,80,true,covers full name
+kc,Kansas City,kansascity,covers,provider_city,65,true,covers city
+kc,Chiefs,chiefs,covers,provider_nickname,65,true,covers nickname
+kc,KC,kc,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+kc,Kansas City Chiefs,kansascitychiefs,odds_api,provider_full_name,80,true,odds_api full name
+kc,Kansas City,kansascity,odds_api,provider_city,65,true,odds_api city
+kc,Chiefs,chiefs,odds_api,provider_nickname,65,true,odds_api nickname
+kc,KC,kc,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+kc,Kansas City Chiefs,kansascitychiefs,draftkings,provider_full_name,80,true,draftkings full name
+kc,Kansas City,kansascity,draftkings,provider_city,65,true,draftkings city
+kc,Chiefs,chiefs,draftkings,provider_nickname,65,true,draftkings nickname
+kc,KC,kc,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+kc,Kansas City Chiefs,kansascitychiefs,fanduel,provider_full_name,80,true,fanduel full name
+kc,Kansas City,kansascity,fanduel,provider_city,65,true,fanduel city
+kc,Chiefs,chiefs,fanduel,provider_nickname,65,true,fanduel nickname
+kc,KC,kc,circa,provider_abbreviation,85,true,circa abbreviation
+kc,Kansas City Chiefs,kansascitychiefs,circa,provider_full_name,80,true,circa full name
+kc,Kansas City,kansascity,circa,provider_city,65,true,circa city
+kc,Chiefs,chiefs,circa,provider_nickname,65,true,circa nickname
+lv,lv,lv,internal,canonical_id,100,true,
+lv,Las Vegas Raiders,lasvegasraiders,internal,official_name,100,true,
+lv,Las Vegas,lasvegas,internal,city,90,true,
+lv,Raiders,raiders,internal,nickname,90,true,
+lv,LV Raiders,lvraiders,internal,common_variant,85,true,
+lv,Raiders Football,raidersfootball,internal,common_variant,60,true,
+lv,Las Vegas Football,lasvegasfootball,internal,common_variant,60,true,
+lv,Las Vegas Raiders Football,lasvegasraidersfootball,internal,common_variant,55,true,
+lv,Oakland Raiders,oaklandraiders,internal,common_or_historical_variant,70,true,
+lv,OAK,oak,internal,common_or_historical_variant,70,true,
+lv,Los Angeles Raiders,losangelesraiders,internal,common_or_historical_variant,70,true,
+lv,LV,lv,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+lv,Las Vegas Raiders,lasvegasraiders,nflverse,provider_full_name,80,true,nflverse full name
+lv,Las Vegas,lasvegas,nflverse,provider_city,65,true,nflverse city
+lv,Raiders,raiders,nflverse,provider_nickname,65,true,nflverse nickname
+lv,LV,lv,espn,provider_abbreviation,85,true,espn abbreviation
+lv,Las Vegas Raiders,lasvegasraiders,espn,provider_full_name,80,true,espn full name
+lv,Las Vegas,lasvegas,espn,provider_city,65,true,espn city
+lv,Raiders,raiders,espn,provider_nickname,65,true,espn nickname
+lv,LV,lv,pfr,provider_abbreviation,85,true,pfr abbreviation
+lv,Las Vegas Raiders,lasvegasraiders,pfr,provider_full_name,80,true,pfr full name
+lv,Las Vegas,lasvegas,pfr,provider_city,65,true,pfr city
+lv,Raiders,raiders,pfr,provider_nickname,65,true,pfr nickname
+lv,LV,lv,covers,provider_abbreviation,85,true,covers abbreviation
+lv,Las Vegas Raiders,lasvegasraiders,covers,provider_full_name,80,true,covers full name
+lv,Las Vegas,lasvegas,covers,provider_city,65,true,covers city
+lv,Raiders,raiders,covers,provider_nickname,65,true,covers nickname
+lv,LV,lv,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+lv,Las Vegas Raiders,lasvegasraiders,odds_api,provider_full_name,80,true,odds_api full name
+lv,Las Vegas,lasvegas,odds_api,provider_city,65,true,odds_api city
+lv,Raiders,raiders,odds_api,provider_nickname,65,true,odds_api nickname
+lv,LV,lv,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+lv,Las Vegas Raiders,lasvegasraiders,draftkings,provider_full_name,80,true,draftkings full name
+lv,Las Vegas,lasvegas,draftkings,provider_city,65,true,draftkings city
+lv,Raiders,raiders,draftkings,provider_nickname,65,true,draftkings nickname
+lv,LV,lv,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+lv,Las Vegas Raiders,lasvegasraiders,fanduel,provider_full_name,80,true,fanduel full name
+lv,Las Vegas,lasvegas,fanduel,provider_city,65,true,fanduel city
+lv,Raiders,raiders,fanduel,provider_nickname,65,true,fanduel nickname
+lv,LV,lv,circa,provider_abbreviation,85,true,circa abbreviation
+lv,Las Vegas Raiders,lasvegasraiders,circa,provider_full_name,80,true,circa full name
+lv,Las Vegas,lasvegas,circa,provider_city,65,true,circa city
+lv,Raiders,raiders,circa,provider_nickname,65,true,circa nickname
+lac,lac,lac,internal,canonical_id,100,true,
+lac,Los Angeles Chargers,losangeleschargers,internal,official_name,100,true,
+lac,Los Angeles,losangeles,internal,city,90,true,
+lac,Chargers,chargers,internal,nickname,90,true,
+lac,LAC Chargers,lacchargers,internal,common_variant,85,true,
+lac,Chargers Football,chargersfootball,internal,common_variant,60,true,
+lac,Los Angeles Football,losangelesfootball,internal,common_variant,60,true,
+lac,Los Angeles Chargers Football,losangeleschargersfootball,internal,common_variant,55,true,
+lac,LA Chargers,lachargers,internal,common_or_historical_variant,70,true,
+lac,San Diego Chargers,sandiegochargers,internal,common_or_historical_variant,70,true,
+lac,SD,sd,internal,common_or_historical_variant,70,true,
+lac,SD Chargers,sdchargers,internal,common_or_historical_variant,70,true,
+lac,LAC,lac,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+lac,Los Angeles Chargers,losangeleschargers,nflverse,provider_full_name,80,true,nflverse full name
+lac,Los Angeles,losangeles,nflverse,provider_city,65,true,nflverse city
+lac,Chargers,chargers,nflverse,provider_nickname,65,true,nflverse nickname
+lac,LAC,lac,espn,provider_abbreviation,85,true,espn abbreviation
+lac,Los Angeles Chargers,losangeleschargers,espn,provider_full_name,80,true,espn full name
+lac,Los Angeles,losangeles,espn,provider_city,65,true,espn city
+lac,Chargers,chargers,espn,provider_nickname,65,true,espn nickname
+lac,LAC,lac,pfr,provider_abbreviation,85,true,pfr abbreviation
+lac,Los Angeles Chargers,losangeleschargers,pfr,provider_full_name,80,true,pfr full name
+lac,Los Angeles,losangeles,pfr,provider_city,65,true,pfr city
+lac,Chargers,chargers,pfr,provider_nickname,65,true,pfr nickname
+lac,LAC,lac,covers,provider_abbreviation,85,true,covers abbreviation
+lac,Los Angeles Chargers,losangeleschargers,covers,provider_full_name,80,true,covers full name
+lac,Los Angeles,losangeles,covers,provider_city,65,true,covers city
+lac,Chargers,chargers,covers,provider_nickname,65,true,covers nickname
+lac,LAC,lac,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+lac,Los Angeles Chargers,losangeleschargers,odds_api,provider_full_name,80,true,odds_api full name
+lac,Los Angeles,losangeles,odds_api,provider_city,65,true,odds_api city
+lac,Chargers,chargers,odds_api,provider_nickname,65,true,odds_api nickname
+lac,LAC,lac,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+lac,Los Angeles Chargers,losangeleschargers,draftkings,provider_full_name,80,true,draftkings full name
+lac,Los Angeles,losangeles,draftkings,provider_city,65,true,draftkings city
+lac,Chargers,chargers,draftkings,provider_nickname,65,true,draftkings nickname
+lac,LAC,lac,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+lac,Los Angeles Chargers,losangeleschargers,fanduel,provider_full_name,80,true,fanduel full name
+lac,Los Angeles,losangeles,fanduel,provider_city,65,true,fanduel city
+lac,Chargers,chargers,fanduel,provider_nickname,65,true,fanduel nickname
+lac,LAC,lac,circa,provider_abbreviation,85,true,circa abbreviation
+lac,Los Angeles Chargers,losangeleschargers,circa,provider_full_name,80,true,circa full name
+lac,Los Angeles,losangeles,circa,provider_city,65,true,circa city
+lac,Chargers,chargers,circa,provider_nickname,65,true,circa nickname
+lar,lar,lar,internal,canonical_id,100,true,
+lar,Los Angeles Rams,losangelesrams,internal,official_name,100,true,
+lar,Los Angeles,losangeles,internal,city,90,true,
+lar,Rams,rams,internal,nickname,90,true,
+lar,LAR Rams,larrams,internal,common_variant,85,true,
+lar,Rams Football,ramsfootball,internal,common_variant,60,true,
+lar,Los Angeles Football,losangelesfootball,internal,common_variant,60,true,
+lar,Los Angeles Rams Football,losangelesramsfootball,internal,common_variant,55,true,
+lar,LA Rams,larams,internal,common_or_historical_variant,70,true,
+lar,St. Louis Rams,stlouisrams,internal,common_or_historical_variant,70,true,
+lar,STL,stl,internal,common_or_historical_variant,70,true,
+lar,STL Rams,stlrams,internal,common_or_historical_variant,70,true,
+lar,LAR,lar,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+lar,Los Angeles Rams,losangelesrams,nflverse,provider_full_name,80,true,nflverse full name
+lar,Los Angeles,losangeles,nflverse,provider_city,65,true,nflverse city
+lar,Rams,rams,nflverse,provider_nickname,65,true,nflverse nickname
+lar,LAR,lar,espn,provider_abbreviation,85,true,espn abbreviation
+lar,Los Angeles Rams,losangelesrams,espn,provider_full_name,80,true,espn full name
+lar,Los Angeles,losangeles,espn,provider_city,65,true,espn city
+lar,Rams,rams,espn,provider_nickname,65,true,espn nickname
+lar,LAR,lar,pfr,provider_abbreviation,85,true,pfr abbreviation
+lar,Los Angeles Rams,losangelesrams,pfr,provider_full_name,80,true,pfr full name
+lar,Los Angeles,losangeles,pfr,provider_city,65,true,pfr city
+lar,Rams,rams,pfr,provider_nickname,65,true,pfr nickname
+lar,LAR,lar,covers,provider_abbreviation,85,true,covers abbreviation
+lar,Los Angeles Rams,losangelesrams,covers,provider_full_name,80,true,covers full name
+lar,Los Angeles,losangeles,covers,provider_city,65,true,covers city
+lar,Rams,rams,covers,provider_nickname,65,true,covers nickname
+lar,LAR,lar,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+lar,Los Angeles Rams,losangelesrams,odds_api,provider_full_name,80,true,odds_api full name
+lar,Los Angeles,losangeles,odds_api,provider_city,65,true,odds_api city
+lar,Rams,rams,odds_api,provider_nickname,65,true,odds_api nickname
+lar,LAR,lar,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+lar,Los Angeles Rams,losangelesrams,draftkings,provider_full_name,80,true,draftkings full name
+lar,Los Angeles,losangeles,draftkings,provider_city,65,true,draftkings city
+lar,Rams,rams,draftkings,provider_nickname,65,true,draftkings nickname
+lar,LAR,lar,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+lar,Los Angeles Rams,losangelesrams,fanduel,provider_full_name,80,true,fanduel full name
+lar,Los Angeles,losangeles,fanduel,provider_city,65,true,fanduel city
+lar,Rams,rams,fanduel,provider_nickname,65,true,fanduel nickname
+lar,LAR,lar,circa,provider_abbreviation,85,true,circa abbreviation
+lar,Los Angeles Rams,losangelesrams,circa,provider_full_name,80,true,circa full name
+lar,Los Angeles,losangeles,circa,provider_city,65,true,circa city
+lar,Rams,rams,circa,provider_nickname,65,true,circa nickname
+mia,mia,mia,internal,canonical_id,100,true,
+mia,Miami Dolphins,miamidolphins,internal,official_name,100,true,
+mia,Miami,miami,internal,city,90,true,
+mia,Dolphins,dolphins,internal,nickname,90,true,
+mia,MIA Dolphins,miadolphins,internal,common_variant,85,true,
+mia,Dolphins Football,dolphinsfootball,internal,common_variant,60,true,
+mia,Miami Football,miamifootball,internal,common_variant,60,true,
+mia,Miami Dolphins Football,miamidolphinsfootball,internal,common_variant,55,true,
+mia,MIA,mia,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+mia,Miami Dolphins,miamidolphins,nflverse,provider_full_name,80,true,nflverse full name
+mia,Miami,miami,nflverse,provider_city,65,true,nflverse city
+mia,Dolphins,dolphins,nflverse,provider_nickname,65,true,nflverse nickname
+mia,MIA,mia,espn,provider_abbreviation,85,true,espn abbreviation
+mia,Miami Dolphins,miamidolphins,espn,provider_full_name,80,true,espn full name
+mia,Miami,miami,espn,provider_city,65,true,espn city
+mia,Dolphins,dolphins,espn,provider_nickname,65,true,espn nickname
+mia,MIA,mia,pfr,provider_abbreviation,85,true,pfr abbreviation
+mia,Miami Dolphins,miamidolphins,pfr,provider_full_name,80,true,pfr full name
+mia,Miami,miami,pfr,provider_city,65,true,pfr city
+mia,Dolphins,dolphins,pfr,provider_nickname,65,true,pfr nickname
+mia,MIA,mia,covers,provider_abbreviation,85,true,covers abbreviation
+mia,Miami Dolphins,miamidolphins,covers,provider_full_name,80,true,covers full name
+mia,Miami,miami,covers,provider_city,65,true,covers city
+mia,Dolphins,dolphins,covers,provider_nickname,65,true,covers nickname
+mia,MIA,mia,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+mia,Miami Dolphins,miamidolphins,odds_api,provider_full_name,80,true,odds_api full name
+mia,Miami,miami,odds_api,provider_city,65,true,odds_api city
+mia,Dolphins,dolphins,odds_api,provider_nickname,65,true,odds_api nickname
+mia,MIA,mia,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+mia,Miami Dolphins,miamidolphins,draftkings,provider_full_name,80,true,draftkings full name
+mia,Miami,miami,draftkings,provider_city,65,true,draftkings city
+mia,Dolphins,dolphins,draftkings,provider_nickname,65,true,draftkings nickname
+mia,MIA,mia,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+mia,Miami Dolphins,miamidolphins,fanduel,provider_full_name,80,true,fanduel full name
+mia,Miami,miami,fanduel,provider_city,65,true,fanduel city
+mia,Dolphins,dolphins,fanduel,provider_nickname,65,true,fanduel nickname
+mia,MIA,mia,circa,provider_abbreviation,85,true,circa abbreviation
+mia,Miami Dolphins,miamidolphins,circa,provider_full_name,80,true,circa full name
+mia,Miami,miami,circa,provider_city,65,true,circa city
+mia,Dolphins,dolphins,circa,provider_nickname,65,true,circa nickname
+min,min,min,internal,canonical_id,100,true,
+min,Minnesota Vikings,minnesotavikings,internal,official_name,100,true,
+min,Minnesota,minnesota,internal,city,90,true,
+min,Vikings,vikings,internal,nickname,90,true,
+min,MIN Vikings,minvikings,internal,common_variant,85,true,
+min,Vikings Football,vikingsfootball,internal,common_variant,60,true,
+min,Minnesota Football,minnesotafootball,internal,common_variant,60,true,
+min,Minnesota Vikings Football,minnesotavikingsfootball,internal,common_variant,55,true,
+min,MIN,min,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+min,Minnesota Vikings,minnesotavikings,nflverse,provider_full_name,80,true,nflverse full name
+min,Minnesota,minnesota,nflverse,provider_city,65,true,nflverse city
+min,Vikings,vikings,nflverse,provider_nickname,65,true,nflverse nickname
+min,MIN,min,espn,provider_abbreviation,85,true,espn abbreviation
+min,Minnesota Vikings,minnesotavikings,espn,provider_full_name,80,true,espn full name
+min,Minnesota,minnesota,espn,provider_city,65,true,espn city
+min,Vikings,vikings,espn,provider_nickname,65,true,espn nickname
+min,MIN,min,pfr,provider_abbreviation,85,true,pfr abbreviation
+min,Minnesota Vikings,minnesotavikings,pfr,provider_full_name,80,true,pfr full name
+min,Minnesota,minnesota,pfr,provider_city,65,true,pfr city
+min,Vikings,vikings,pfr,provider_nickname,65,true,pfr nickname
+min,MIN,min,covers,provider_abbreviation,85,true,covers abbreviation
+min,Minnesota Vikings,minnesotavikings,covers,provider_full_name,80,true,covers full name
+min,Minnesota,minnesota,covers,provider_city,65,true,covers city
+min,Vikings,vikings,covers,provider_nickname,65,true,covers nickname
+min,MIN,min,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+min,Minnesota Vikings,minnesotavikings,odds_api,provider_full_name,80,true,odds_api full name
+min,Minnesota,minnesota,odds_api,provider_city,65,true,odds_api city
+min,Vikings,vikings,odds_api,provider_nickname,65,true,odds_api nickname
+min,MIN,min,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+min,Minnesota Vikings,minnesotavikings,draftkings,provider_full_name,80,true,draftkings full name
+min,Minnesota,minnesota,draftkings,provider_city,65,true,draftkings city
+min,Vikings,vikings,draftkings,provider_nickname,65,true,draftkings nickname
+min,MIN,min,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+min,Minnesota Vikings,minnesotavikings,fanduel,provider_full_name,80,true,fanduel full name
+min,Minnesota,minnesota,fanduel,provider_city,65,true,fanduel city
+min,Vikings,vikings,fanduel,provider_nickname,65,true,fanduel nickname
+min,MIN,min,circa,provider_abbreviation,85,true,circa abbreviation
+min,Minnesota Vikings,minnesotavikings,circa,provider_full_name,80,true,circa full name
+min,Minnesota,minnesota,circa,provider_city,65,true,circa city
+min,Vikings,vikings,circa,provider_nickname,65,true,circa nickname
+ne,ne,ne,internal,canonical_id,100,true,
+ne,New England Patriots,newenglandpatriots,internal,official_name,100,true,
+ne,New England,newengland,internal,city,90,true,
+ne,Patriots,patriots,internal,nickname,90,true,
+ne,NE Patriots,nepatriots,internal,common_variant,85,true,
+ne,Patriots Football,patriotsfootball,internal,common_variant,60,true,
+ne,New England Football,newenglandfootball,internal,common_variant,60,true,
+ne,New England Patriots Football,newenglandpatriotsfootball,internal,common_variant,55,true,
+ne,NWE,nwe,internal,common_or_historical_variant,70,true,
+ne,New Eng,neweng,internal,common_or_historical_variant,70,true,
+ne,NE,ne,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+ne,New England Patriots,newenglandpatriots,nflverse,provider_full_name,80,true,nflverse full name
+ne,New England,newengland,nflverse,provider_city,65,true,nflverse city
+ne,Patriots,patriots,nflverse,provider_nickname,65,true,nflverse nickname
+ne,NE,ne,espn,provider_abbreviation,85,true,espn abbreviation
+ne,New England Patriots,newenglandpatriots,espn,provider_full_name,80,true,espn full name
+ne,New England,newengland,espn,provider_city,65,true,espn city
+ne,Patriots,patriots,espn,provider_nickname,65,true,espn nickname
+ne,NE,ne,pfr,provider_abbreviation,85,true,pfr abbreviation
+ne,New England Patriots,newenglandpatriots,pfr,provider_full_name,80,true,pfr full name
+ne,New England,newengland,pfr,provider_city,65,true,pfr city
+ne,Patriots,patriots,pfr,provider_nickname,65,true,pfr nickname
+ne,NE,ne,covers,provider_abbreviation,85,true,covers abbreviation
+ne,New England Patriots,newenglandpatriots,covers,provider_full_name,80,true,covers full name
+ne,New England,newengland,covers,provider_city,65,true,covers city
+ne,Patriots,patriots,covers,provider_nickname,65,true,covers nickname
+ne,NE,ne,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+ne,New England Patriots,newenglandpatriots,odds_api,provider_full_name,80,true,odds_api full name
+ne,New England,newengland,odds_api,provider_city,65,true,odds_api city
+ne,Patriots,patriots,odds_api,provider_nickname,65,true,odds_api nickname
+ne,NE,ne,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+ne,New England Patriots,newenglandpatriots,draftkings,provider_full_name,80,true,draftkings full name
+ne,New England,newengland,draftkings,provider_city,65,true,draftkings city
+ne,Patriots,patriots,draftkings,provider_nickname,65,true,draftkings nickname
+ne,NE,ne,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+ne,New England Patriots,newenglandpatriots,fanduel,provider_full_name,80,true,fanduel full name
+ne,New England,newengland,fanduel,provider_city,65,true,fanduel city
+ne,Patriots,patriots,fanduel,provider_nickname,65,true,fanduel nickname
+ne,NE,ne,circa,provider_abbreviation,85,true,circa abbreviation
+ne,New England Patriots,newenglandpatriots,circa,provider_full_name,80,true,circa full name
+ne,New England,newengland,circa,provider_city,65,true,circa city
+ne,Patriots,patriots,circa,provider_nickname,65,true,circa nickname
+no,no,no,internal,canonical_id,100,true,
+no,New Orleans Saints,neworleanssaints,internal,official_name,100,true,
+no,New Orleans,neworleans,internal,city,90,true,
+no,Saints,saints,internal,nickname,90,true,
+no,NO Saints,nosaints,internal,common_variant,85,true,
+no,Saints Football,saintsfootball,internal,common_variant,60,true,
+no,New Orleans Football,neworleansfootball,internal,common_variant,60,true,
+no,New Orleans Saints Football,neworleanssaintsfootball,internal,common_variant,55,true,
+no,NOS,nos,internal,common_or_historical_variant,70,true,
+no,NOLA,nola,internal,common_or_historical_variant,70,true,
+no,NOLA Saints,nolasaints,internal,common_or_historical_variant,70,true,
+no,NO,no,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+no,New Orleans Saints,neworleanssaints,nflverse,provider_full_name,80,true,nflverse full name
+no,New Orleans,neworleans,nflverse,provider_city,65,true,nflverse city
+no,Saints,saints,nflverse,provider_nickname,65,true,nflverse nickname
+no,NO,no,espn,provider_abbreviation,85,true,espn abbreviation
+no,New Orleans Saints,neworleanssaints,espn,provider_full_name,80,true,espn full name
+no,New Orleans,neworleans,espn,provider_city,65,true,espn city
+no,Saints,saints,espn,provider_nickname,65,true,espn nickname
+no,NO,no,pfr,provider_abbreviation,85,true,pfr abbreviation
+no,New Orleans Saints,neworleanssaints,pfr,provider_full_name,80,true,pfr full name
+no,New Orleans,neworleans,pfr,provider_city,65,true,pfr city
+no,Saints,saints,pfr,provider_nickname,65,true,pfr nickname
+no,NO,no,covers,provider_abbreviation,85,true,covers abbreviation
+no,New Orleans Saints,neworleanssaints,covers,provider_full_name,80,true,covers full name
+no,New Orleans,neworleans,covers,provider_city,65,true,covers city
+no,Saints,saints,covers,provider_nickname,65,true,covers nickname
+no,NO,no,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+no,New Orleans Saints,neworleanssaints,odds_api,provider_full_name,80,true,odds_api full name
+no,New Orleans,neworleans,odds_api,provider_city,65,true,odds_api city
+no,Saints,saints,odds_api,provider_nickname,65,true,odds_api nickname
+no,NO,no,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+no,New Orleans Saints,neworleanssaints,draftkings,provider_full_name,80,true,draftkings full name
+no,New Orleans,neworleans,draftkings,provider_city,65,true,draftkings city
+no,Saints,saints,draftkings,provider_nickname,65,true,draftkings nickname
+no,NO,no,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+no,New Orleans Saints,neworleanssaints,fanduel,provider_full_name,80,true,fanduel full name
+no,New Orleans,neworleans,fanduel,provider_city,65,true,fanduel city
+no,Saints,saints,fanduel,provider_nickname,65,true,fanduel nickname
+no,NO,no,circa,provider_abbreviation,85,true,circa abbreviation
+no,New Orleans Saints,neworleanssaints,circa,provider_full_name,80,true,circa full name
+no,New Orleans,neworleans,circa,provider_city,65,true,circa city
+no,Saints,saints,circa,provider_nickname,65,true,circa nickname
+nyg,nyg,nyg,internal,canonical_id,100,true,
+nyg,New York Giants,newyorkgiants,internal,official_name,100,true,
+nyg,New York,newyork,internal,city,90,true,
+nyg,Giants,giants,internal,nickname,90,true,
+nyg,NYG Giants,nyggiants,internal,common_variant,85,true,
+nyg,Giants Football,giantsfootball,internal,common_variant,60,true,
+nyg,New York Football,newyorkfootball,internal,common_variant,60,true,
+nyg,New York Giants Football,newyorkgiantsfootball,internal,common_variant,55,true,
+nyg,NY Giants,nygiants,internal,common_or_historical_variant,70,true,
+nyg,New York G,newyorkg,internal,common_or_historical_variant,70,true,
+nyg,Giants NY,giantsny,internal,common_or_historical_variant,70,true,
+nyg,NYG,nyg,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+nyg,New York Giants,newyorkgiants,nflverse,provider_full_name,80,true,nflverse full name
+nyg,New York,newyork,nflverse,provider_city,65,true,nflverse city
+nyg,Giants,giants,nflverse,provider_nickname,65,true,nflverse nickname
+nyg,NYG,nyg,espn,provider_abbreviation,85,true,espn abbreviation
+nyg,New York Giants,newyorkgiants,espn,provider_full_name,80,true,espn full name
+nyg,New York,newyork,espn,provider_city,65,true,espn city
+nyg,Giants,giants,espn,provider_nickname,65,true,espn nickname
+nyg,NYG,nyg,pfr,provider_abbreviation,85,true,pfr abbreviation
+nyg,New York Giants,newyorkgiants,pfr,provider_full_name,80,true,pfr full name
+nyg,New York,newyork,pfr,provider_city,65,true,pfr city
+nyg,Giants,giants,pfr,provider_nickname,65,true,pfr nickname
+nyg,NYG,nyg,covers,provider_abbreviation,85,true,covers abbreviation
+nyg,New York Giants,newyorkgiants,covers,provider_full_name,80,true,covers full name
+nyg,New York,newyork,covers,provider_city,65,true,covers city
+nyg,Giants,giants,covers,provider_nickname,65,true,covers nickname
+nyg,NYG,nyg,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+nyg,New York Giants,newyorkgiants,odds_api,provider_full_name,80,true,odds_api full name
+nyg,New York,newyork,odds_api,provider_city,65,true,odds_api city
+nyg,Giants,giants,odds_api,provider_nickname,65,true,odds_api nickname
+nyg,NYG,nyg,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+nyg,New York Giants,newyorkgiants,draftkings,provider_full_name,80,true,draftkings full name
+nyg,New York,newyork,draftkings,provider_city,65,true,draftkings city
+nyg,Giants,giants,draftkings,provider_nickname,65,true,draftkings nickname
+nyg,NYG,nyg,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+nyg,New York Giants,newyorkgiants,fanduel,provider_full_name,80,true,fanduel full name
+nyg,New York,newyork,fanduel,provider_city,65,true,fanduel city
+nyg,Giants,giants,fanduel,provider_nickname,65,true,fanduel nickname
+nyg,NYG,nyg,circa,provider_abbreviation,85,true,circa abbreviation
+nyg,New York Giants,newyorkgiants,circa,provider_full_name,80,true,circa full name
+nyg,New York,newyork,circa,provider_city,65,true,circa city
+nyg,Giants,giants,circa,provider_nickname,65,true,circa nickname
+nyj,nyj,nyj,internal,canonical_id,100,true,
+nyj,New York Jets,newyorkjets,internal,official_name,100,true,
+nyj,New York,newyork,internal,city,90,true,
+nyj,Jets,jets,internal,nickname,90,true,
+nyj,NYJ Jets,nyjjets,internal,common_variant,85,true,
+nyj,Jets Football,jetsfootball,internal,common_variant,60,true,
+nyj,New York Football,newyorkfootball,internal,common_variant,60,true,
+nyj,New York Jets Football,newyorkjetsfootball,internal,common_variant,55,true,
+nyj,NY Jets,nyjets,internal,common_or_historical_variant,70,true,
+nyj,New York J,newyorkj,internal,common_or_historical_variant,70,true,
+nyj,Jets NY,jetsny,internal,common_or_historical_variant,70,true,
+nyj,NYJ,nyj,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+nyj,New York Jets,newyorkjets,nflverse,provider_full_name,80,true,nflverse full name
+nyj,New York,newyork,nflverse,provider_city,65,true,nflverse city
+nyj,Jets,jets,nflverse,provider_nickname,65,true,nflverse nickname
+nyj,NYJ,nyj,espn,provider_abbreviation,85,true,espn abbreviation
+nyj,New York Jets,newyorkjets,espn,provider_full_name,80,true,espn full name
+nyj,New York,newyork,espn,provider_city,65,true,espn city
+nyj,Jets,jets,espn,provider_nickname,65,true,espn nickname
+nyj,NYJ,nyj,pfr,provider_abbreviation,85,true,pfr abbreviation
+nyj,New York Jets,newyorkjets,pfr,provider_full_name,80,true,pfr full name
+nyj,New York,newyork,pfr,provider_city,65,true,pfr city
+nyj,Jets,jets,pfr,provider_nickname,65,true,pfr nickname
+nyj,NYJ,nyj,covers,provider_abbreviation,85,true,covers abbreviation
+nyj,New York Jets,newyorkjets,covers,provider_full_name,80,true,covers full name
+nyj,New York,newyork,covers,provider_city,65,true,covers city
+nyj,Jets,jets,covers,provider_nickname,65,true,covers nickname
+nyj,NYJ,nyj,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+nyj,New York Jets,newyorkjets,odds_api,provider_full_name,80,true,odds_api full name
+nyj,New York,newyork,odds_api,provider_city,65,true,odds_api city
+nyj,Jets,jets,odds_api,provider_nickname,65,true,odds_api nickname
+nyj,NYJ,nyj,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+nyj,New York Jets,newyorkjets,draftkings,provider_full_name,80,true,draftkings full name
+nyj,New York,newyork,draftkings,provider_city,65,true,draftkings city
+nyj,Jets,jets,draftkings,provider_nickname,65,true,draftkings nickname
+nyj,NYJ,nyj,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+nyj,New York Jets,newyorkjets,fanduel,provider_full_name,80,true,fanduel full name
+nyj,New York,newyork,fanduel,provider_city,65,true,fanduel city
+nyj,Jets,jets,fanduel,provider_nickname,65,true,fanduel nickname
+nyj,NYJ,nyj,circa,provider_abbreviation,85,true,circa abbreviation
+nyj,New York Jets,newyorkjets,circa,provider_full_name,80,true,circa full name
+nyj,New York,newyork,circa,provider_city,65,true,circa city
+nyj,Jets,jets,circa,provider_nickname,65,true,circa nickname
+phi,phi,phi,internal,canonical_id,100,true,
+phi,Philadelphia Eagles,philadelphiaeagles,internal,official_name,100,true,
+phi,Philadelphia,philadelphia,internal,city,90,true,
+phi,Eagles,eagles,internal,nickname,90,true,
+phi,PHI Eagles,phieagles,internal,common_variant,85,true,
+phi,Eagles Football,eaglesfootball,internal,common_variant,60,true,
+phi,Philadelphia Football,philadelphiafootball,internal,common_variant,60,true,
+phi,Philadelphia Eagles Football,philadelphiaeaglesfootball,internal,common_variant,55,true,
+phi,PHI,phi,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+phi,Philadelphia Eagles,philadelphiaeagles,nflverse,provider_full_name,80,true,nflverse full name
+phi,Philadelphia,philadelphia,nflverse,provider_city,65,true,nflverse city
+phi,Eagles,eagles,nflverse,provider_nickname,65,true,nflverse nickname
+phi,PHI,phi,espn,provider_abbreviation,85,true,espn abbreviation
+phi,Philadelphia Eagles,philadelphiaeagles,espn,provider_full_name,80,true,espn full name
+phi,Philadelphia,philadelphia,espn,provider_city,65,true,espn city
+phi,Eagles,eagles,espn,provider_nickname,65,true,espn nickname
+phi,PHI,phi,pfr,provider_abbreviation,85,true,pfr abbreviation
+phi,Philadelphia Eagles,philadelphiaeagles,pfr,provider_full_name,80,true,pfr full name
+phi,Philadelphia,philadelphia,pfr,provider_city,65,true,pfr city
+phi,Eagles,eagles,pfr,provider_nickname,65,true,pfr nickname
+phi,PHI,phi,covers,provider_abbreviation,85,true,covers abbreviation
+phi,Philadelphia Eagles,philadelphiaeagles,covers,provider_full_name,80,true,covers full name
+phi,Philadelphia,philadelphia,covers,provider_city,65,true,covers city
+phi,Eagles,eagles,covers,provider_nickname,65,true,covers nickname
+phi,PHI,phi,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+phi,Philadelphia Eagles,philadelphiaeagles,odds_api,provider_full_name,80,true,odds_api full name
+phi,Philadelphia,philadelphia,odds_api,provider_city,65,true,odds_api city
+phi,Eagles,eagles,odds_api,provider_nickname,65,true,odds_api nickname
+phi,PHI,phi,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+phi,Philadelphia Eagles,philadelphiaeagles,draftkings,provider_full_name,80,true,draftkings full name
+phi,Philadelphia,philadelphia,draftkings,provider_city,65,true,draftkings city
+phi,Eagles,eagles,draftkings,provider_nickname,65,true,draftkings nickname
+phi,PHI,phi,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+phi,Philadelphia Eagles,philadelphiaeagles,fanduel,provider_full_name,80,true,fanduel full name
+phi,Philadelphia,philadelphia,fanduel,provider_city,65,true,fanduel city
+phi,Eagles,eagles,fanduel,provider_nickname,65,true,fanduel nickname
+phi,PHI,phi,circa,provider_abbreviation,85,true,circa abbreviation
+phi,Philadelphia Eagles,philadelphiaeagles,circa,provider_full_name,80,true,circa full name
+phi,Philadelphia,philadelphia,circa,provider_city,65,true,circa city
+phi,Eagles,eagles,circa,provider_nickname,65,true,circa nickname
+pit,pit,pit,internal,canonical_id,100,true,
+pit,Pittsburgh Steelers,pittsburghsteelers,internal,official_name,100,true,
+pit,Pittsburgh,pittsburgh,internal,city,90,true,
+pit,Steelers,steelers,internal,nickname,90,true,
+pit,PIT Steelers,pitsteelers,internal,common_variant,85,true,
+pit,Steelers Football,steelersfootball,internal,common_variant,60,true,
+pit,Pittsburgh Football,pittsburghfootball,internal,common_variant,60,true,
+pit,Pittsburgh Steelers Football,pittsburghsteelersfootball,internal,common_variant,55,true,
+pit,PIT,pit,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+pit,Pittsburgh Steelers,pittsburghsteelers,nflverse,provider_full_name,80,true,nflverse full name
+pit,Pittsburgh,pittsburgh,nflverse,provider_city,65,true,nflverse city
+pit,Steelers,steelers,nflverse,provider_nickname,65,true,nflverse nickname
+pit,PIT,pit,espn,provider_abbreviation,85,true,espn abbreviation
+pit,Pittsburgh Steelers,pittsburghsteelers,espn,provider_full_name,80,true,espn full name
+pit,Pittsburgh,pittsburgh,espn,provider_city,65,true,espn city
+pit,Steelers,steelers,espn,provider_nickname,65,true,espn nickname
+pit,PIT,pit,pfr,provider_abbreviation,85,true,pfr abbreviation
+pit,Pittsburgh Steelers,pittsburghsteelers,pfr,provider_full_name,80,true,pfr full name
+pit,Pittsburgh,pittsburgh,pfr,provider_city,65,true,pfr city
+pit,Steelers,steelers,pfr,provider_nickname,65,true,pfr nickname
+pit,PIT,pit,covers,provider_abbreviation,85,true,covers abbreviation
+pit,Pittsburgh Steelers,pittsburghsteelers,covers,provider_full_name,80,true,covers full name
+pit,Pittsburgh,pittsburgh,covers,provider_city,65,true,covers city
+pit,Steelers,steelers,covers,provider_nickname,65,true,covers nickname
+pit,PIT,pit,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+pit,Pittsburgh Steelers,pittsburghsteelers,odds_api,provider_full_name,80,true,odds_api full name
+pit,Pittsburgh,pittsburgh,odds_api,provider_city,65,true,odds_api city
+pit,Steelers,steelers,odds_api,provider_nickname,65,true,odds_api nickname
+pit,PIT,pit,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+pit,Pittsburgh Steelers,pittsburghsteelers,draftkings,provider_full_name,80,true,draftkings full name
+pit,Pittsburgh,pittsburgh,draftkings,provider_city,65,true,draftkings city
+pit,Steelers,steelers,draftkings,provider_nickname,65,true,draftkings nickname
+pit,PIT,pit,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+pit,Pittsburgh Steelers,pittsburghsteelers,fanduel,provider_full_name,80,true,fanduel full name
+pit,Pittsburgh,pittsburgh,fanduel,provider_city,65,true,fanduel city
+pit,Steelers,steelers,fanduel,provider_nickname,65,true,fanduel nickname
+pit,PIT,pit,circa,provider_abbreviation,85,true,circa abbreviation
+pit,Pittsburgh Steelers,pittsburghsteelers,circa,provider_full_name,80,true,circa full name
+pit,Pittsburgh,pittsburgh,circa,provider_city,65,true,circa city
+pit,Steelers,steelers,circa,provider_nickname,65,true,circa nickname
+sea,sea,sea,internal,canonical_id,100,true,
+sea,Seattle Seahawks,seattleseahawks,internal,official_name,100,true,
+sea,Seattle,seattle,internal,city,90,true,
+sea,Seahawks,seahawks,internal,nickname,90,true,
+sea,SEA Seahawks,seaseahawks,internal,common_variant,85,true,
+sea,Seahawks Football,seahawksfootball,internal,common_variant,60,true,
+sea,Seattle Football,seattlefootball,internal,common_variant,60,true,
+sea,Seattle Seahawks Football,seattleseahawksfootball,internal,common_variant,55,true,
+sea,SEA,sea,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+sea,Seattle Seahawks,seattleseahawks,nflverse,provider_full_name,80,true,nflverse full name
+sea,Seattle,seattle,nflverse,provider_city,65,true,nflverse city
+sea,Seahawks,seahawks,nflverse,provider_nickname,65,true,nflverse nickname
+sea,SEA,sea,espn,provider_abbreviation,85,true,espn abbreviation
+sea,Seattle Seahawks,seattleseahawks,espn,provider_full_name,80,true,espn full name
+sea,Seattle,seattle,espn,provider_city,65,true,espn city
+sea,Seahawks,seahawks,espn,provider_nickname,65,true,espn nickname
+sea,SEA,sea,pfr,provider_abbreviation,85,true,pfr abbreviation
+sea,Seattle Seahawks,seattleseahawks,pfr,provider_full_name,80,true,pfr full name
+sea,Seattle,seattle,pfr,provider_city,65,true,pfr city
+sea,Seahawks,seahawks,pfr,provider_nickname,65,true,pfr nickname
+sea,SEA,sea,covers,provider_abbreviation,85,true,covers abbreviation
+sea,Seattle Seahawks,seattleseahawks,covers,provider_full_name,80,true,covers full name
+sea,Seattle,seattle,covers,provider_city,65,true,covers city
+sea,Seahawks,seahawks,covers,provider_nickname,65,true,covers nickname
+sea,SEA,sea,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+sea,Seattle Seahawks,seattleseahawks,odds_api,provider_full_name,80,true,odds_api full name
+sea,Seattle,seattle,odds_api,provider_city,65,true,odds_api city
+sea,Seahawks,seahawks,odds_api,provider_nickname,65,true,odds_api nickname
+sea,SEA,sea,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+sea,Seattle Seahawks,seattleseahawks,draftkings,provider_full_name,80,true,draftkings full name
+sea,Seattle,seattle,draftkings,provider_city,65,true,draftkings city
+sea,Seahawks,seahawks,draftkings,provider_nickname,65,true,draftkings nickname
+sea,SEA,sea,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+sea,Seattle Seahawks,seattleseahawks,fanduel,provider_full_name,80,true,fanduel full name
+sea,Seattle,seattle,fanduel,provider_city,65,true,fanduel city
+sea,Seahawks,seahawks,fanduel,provider_nickname,65,true,fanduel nickname
+sea,SEA,sea,circa,provider_abbreviation,85,true,circa abbreviation
+sea,Seattle Seahawks,seattleseahawks,circa,provider_full_name,80,true,circa full name
+sea,Seattle,seattle,circa,provider_city,65,true,circa city
+sea,Seahawks,seahawks,circa,provider_nickname,65,true,circa nickname
+sf,sf,sf,internal,canonical_id,100,true,
+sf,San Francisco 49ers,sanfrancisco49ers,internal,official_name,100,true,
+sf,San Francisco,sanfrancisco,internal,city,90,true,
+sf,49ers,49ers,internal,nickname,90,true,
+sf,SF 49ers,sf49ers,internal,common_variant,85,true,
+sf,49ers Football,49ersfootball,internal,common_variant,60,true,
+sf,San Francisco Football,sanfranciscofootball,internal,common_variant,60,true,
+sf,San Francisco 49ers Football,sanfrancisco49ersfootball,internal,common_variant,55,true,
+sf,San Fran,sanfran,internal,common_or_historical_variant,70,true,
+sf,Niners,niners,internal,common_or_historical_variant,70,true,
+sf,49rs,49rs,internal,common_or_historical_variant,70,true,
+sf,Forty Niners,fortyniners,internal,common_or_historical_variant,70,true,
+sf,SF,sf,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+sf,San Francisco 49ers,sanfrancisco49ers,nflverse,provider_full_name,80,true,nflverse full name
+sf,San Francisco,sanfrancisco,nflverse,provider_city,65,true,nflverse city
+sf,49ers,49ers,nflverse,provider_nickname,65,true,nflverse nickname
+sf,SF,sf,espn,provider_abbreviation,85,true,espn abbreviation
+sf,San Francisco 49ers,sanfrancisco49ers,espn,provider_full_name,80,true,espn full name
+sf,San Francisco,sanfrancisco,espn,provider_city,65,true,espn city
+sf,49ers,49ers,espn,provider_nickname,65,true,espn nickname
+sf,SF,sf,pfr,provider_abbreviation,85,true,pfr abbreviation
+sf,San Francisco 49ers,sanfrancisco49ers,pfr,provider_full_name,80,true,pfr full name
+sf,San Francisco,sanfrancisco,pfr,provider_city,65,true,pfr city
+sf,49ers,49ers,pfr,provider_nickname,65,true,pfr nickname
+sf,SF,sf,covers,provider_abbreviation,85,true,covers abbreviation
+sf,San Francisco 49ers,sanfrancisco49ers,covers,provider_full_name,80,true,covers full name
+sf,San Francisco,sanfrancisco,covers,provider_city,65,true,covers city
+sf,49ers,49ers,covers,provider_nickname,65,true,covers nickname
+sf,SF,sf,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+sf,San Francisco 49ers,sanfrancisco49ers,odds_api,provider_full_name,80,true,odds_api full name
+sf,San Francisco,sanfrancisco,odds_api,provider_city,65,true,odds_api city
+sf,49ers,49ers,odds_api,provider_nickname,65,true,odds_api nickname
+sf,SF,sf,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+sf,San Francisco 49ers,sanfrancisco49ers,draftkings,provider_full_name,80,true,draftkings full name
+sf,San Francisco,sanfrancisco,draftkings,provider_city,65,true,draftkings city
+sf,49ers,49ers,draftkings,provider_nickname,65,true,draftkings nickname
+sf,SF,sf,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+sf,San Francisco 49ers,sanfrancisco49ers,fanduel,provider_full_name,80,true,fanduel full name
+sf,San Francisco,sanfrancisco,fanduel,provider_city,65,true,fanduel city
+sf,49ers,49ers,fanduel,provider_nickname,65,true,fanduel nickname
+sf,SF,sf,circa,provider_abbreviation,85,true,circa abbreviation
+sf,San Francisco 49ers,sanfrancisco49ers,circa,provider_full_name,80,true,circa full name
+sf,San Francisco,sanfrancisco,circa,provider_city,65,true,circa city
+sf,49ers,49ers,circa,provider_nickname,65,true,circa nickname
+tb,tb,tb,internal,canonical_id,100,true,
+tb,Tampa Bay Buccaneers,tampabaybuccaneers,internal,official_name,100,true,
+tb,Tampa Bay,tampabay,internal,city,90,true,
+tb,Buccaneers,buccaneers,internal,nickname,90,true,
+tb,TB Buccaneers,tbbuccaneers,internal,common_variant,85,true,
+tb,Buccaneers Football,buccaneersfootball,internal,common_variant,60,true,
+tb,Tampa Bay Football,tampabayfootball,internal,common_variant,60,true,
+tb,Tampa Bay Buccaneers Football,tampabaybuccaneersfootball,internal,common_variant,55,true,
+tb,Tampa,tampa,internal,common_or_historical_variant,70,true,
+tb,Bucs,bucs,internal,common_or_historical_variant,70,true,
+tb,TB Bucs,tbbucs,internal,common_or_historical_variant,70,true,
+tb,Tampa Bucs,tampabucs,internal,common_or_historical_variant,70,true,
+tb,TB,tb,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+tb,Tampa Bay Buccaneers,tampabaybuccaneers,nflverse,provider_full_name,80,true,nflverse full name
+tb,Tampa Bay,tampabay,nflverse,provider_city,65,true,nflverse city
+tb,Buccaneers,buccaneers,nflverse,provider_nickname,65,true,nflverse nickname
+tb,TB,tb,espn,provider_abbreviation,85,true,espn abbreviation
+tb,Tampa Bay Buccaneers,tampabaybuccaneers,espn,provider_full_name,80,true,espn full name
+tb,Tampa Bay,tampabay,espn,provider_city,65,true,espn city
+tb,Buccaneers,buccaneers,espn,provider_nickname,65,true,espn nickname
+tb,TB,tb,pfr,provider_abbreviation,85,true,pfr abbreviation
+tb,Tampa Bay Buccaneers,tampabaybuccaneers,pfr,provider_full_name,80,true,pfr full name
+tb,Tampa Bay,tampabay,pfr,provider_city,65,true,pfr city
+tb,Buccaneers,buccaneers,pfr,provider_nickname,65,true,pfr nickname
+tb,TB,tb,covers,provider_abbreviation,85,true,covers abbreviation
+tb,Tampa Bay Buccaneers,tampabaybuccaneers,covers,provider_full_name,80,true,covers full name
+tb,Tampa Bay,tampabay,covers,provider_city,65,true,covers city
+tb,Buccaneers,buccaneers,covers,provider_nickname,65,true,covers nickname
+tb,TB,tb,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+tb,Tampa Bay Buccaneers,tampabaybuccaneers,odds_api,provider_full_name,80,true,odds_api full name
+tb,Tampa Bay,tampabay,odds_api,provider_city,65,true,odds_api city
+tb,Buccaneers,buccaneers,odds_api,provider_nickname,65,true,odds_api nickname
+tb,TB,tb,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+tb,Tampa Bay Buccaneers,tampabaybuccaneers,draftkings,provider_full_name,80,true,draftkings full name
+tb,Tampa Bay,tampabay,draftkings,provider_city,65,true,draftkings city
+tb,Buccaneers,buccaneers,draftkings,provider_nickname,65,true,draftkings nickname
+tb,TB,tb,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+tb,Tampa Bay Buccaneers,tampabaybuccaneers,fanduel,provider_full_name,80,true,fanduel full name
+tb,Tampa Bay,tampabay,fanduel,provider_city,65,true,fanduel city
+tb,Buccaneers,buccaneers,fanduel,provider_nickname,65,true,fanduel nickname
+tb,TB,tb,circa,provider_abbreviation,85,true,circa abbreviation
+tb,Tampa Bay Buccaneers,tampabaybuccaneers,circa,provider_full_name,80,true,circa full name
+tb,Tampa Bay,tampabay,circa,provider_city,65,true,circa city
+tb,Buccaneers,buccaneers,circa,provider_nickname,65,true,circa nickname
+ten,ten,ten,internal,canonical_id,100,true,
+ten,Tennessee Titans,tennesseetitans,internal,official_name,100,true,
+ten,Tennessee,tennessee,internal,city,90,true,
+ten,Titans,titans,internal,nickname,90,true,
+ten,TEN Titans,tentitans,internal,common_variant,85,true,
+ten,Titans Football,titansfootball,internal,common_variant,60,true,
+ten,Tennessee Football,tennesseefootball,internal,common_variant,60,true,
+ten,Tennessee Titans Football,tennesseetitansfootball,internal,common_variant,55,true,
+ten,Tenn,tenn,internal,common_or_historical_variant,70,true,
+ten,Houston Oilers,houstonoilers,internal,common_or_historical_variant,70,true,
+ten,Oilers,oilers,internal,common_or_historical_variant,70,true,
+ten,TEN,ten,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+ten,Tennessee Titans,tennesseetitans,nflverse,provider_full_name,80,true,nflverse full name
+ten,Tennessee,tennessee,nflverse,provider_city,65,true,nflverse city
+ten,Titans,titans,nflverse,provider_nickname,65,true,nflverse nickname
+ten,TEN,ten,espn,provider_abbreviation,85,true,espn abbreviation
+ten,Tennessee Titans,tennesseetitans,espn,provider_full_name,80,true,espn full name
+ten,Tennessee,tennessee,espn,provider_city,65,true,espn city
+ten,Titans,titans,espn,provider_nickname,65,true,espn nickname
+ten,TEN,ten,pfr,provider_abbreviation,85,true,pfr abbreviation
+ten,Tennessee Titans,tennesseetitans,pfr,provider_full_name,80,true,pfr full name
+ten,Tennessee,tennessee,pfr,provider_city,65,true,pfr city
+ten,Titans,titans,pfr,provider_nickname,65,true,pfr nickname
+ten,TEN,ten,covers,provider_abbreviation,85,true,covers abbreviation
+ten,Tennessee Titans,tennesseetitans,covers,provider_full_name,80,true,covers full name
+ten,Tennessee,tennessee,covers,provider_city,65,true,covers city
+ten,Titans,titans,covers,provider_nickname,65,true,covers nickname
+ten,TEN,ten,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+ten,Tennessee Titans,tennesseetitans,odds_api,provider_full_name,80,true,odds_api full name
+ten,Tennessee,tennessee,odds_api,provider_city,65,true,odds_api city
+ten,Titans,titans,odds_api,provider_nickname,65,true,odds_api nickname
+ten,TEN,ten,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+ten,Tennessee Titans,tennesseetitans,draftkings,provider_full_name,80,true,draftkings full name
+ten,Tennessee,tennessee,draftkings,provider_city,65,true,draftkings city
+ten,Titans,titans,draftkings,provider_nickname,65,true,draftkings nickname
+ten,TEN,ten,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+ten,Tennessee Titans,tennesseetitans,fanduel,provider_full_name,80,true,fanduel full name
+ten,Tennessee,tennessee,fanduel,provider_city,65,true,fanduel city
+ten,Titans,titans,fanduel,provider_nickname,65,true,fanduel nickname
+ten,TEN,ten,circa,provider_abbreviation,85,true,circa abbreviation
+ten,Tennessee Titans,tennesseetitans,circa,provider_full_name,80,true,circa full name
+ten,Tennessee,tennessee,circa,provider_city,65,true,circa city
+ten,Titans,titans,circa,provider_nickname,65,true,circa nickname
+was,was,was,internal,canonical_id,100,true,
+was,Washington Commanders,washingtoncommanders,internal,official_name,100,true,
+was,Washington,washington,internal,city,90,true,
+was,Commanders,commanders,internal,nickname,90,true,
+was,WAS Commanders,wascommanders,internal,common_variant,85,true,
+was,Commanders Football,commandersfootball,internal,common_variant,60,true,
+was,Washington Football,washingtonfootball,internal,common_variant,60,true,
+was,Washington Commanders Football,washingtoncommandersfootball,internal,common_variant,55,true,
+was,WSH,wsh,internal,common_or_historical_variant,70,true,
+was,Washington Football Team,washingtonfootballteam,internal,common_or_historical_variant,70,true,
+was,WFT,wft,internal,common_or_historical_variant,70,true,
+was,Washington Redskins,washingtonredskins,internal,common_or_historical_variant,70,true,
+was,Skins,skins,internal,common_or_historical_variant,70,true,
+was,WAS,was,nflverse,provider_abbreviation,85,true,nflverse abbreviation
+was,Washington Commanders,washingtoncommanders,nflverse,provider_full_name,80,true,nflverse full name
+was,Washington,washington,nflverse,provider_city,65,true,nflverse city
+was,Commanders,commanders,nflverse,provider_nickname,65,true,nflverse nickname
+was,WAS,was,espn,provider_abbreviation,85,true,espn abbreviation
+was,Washington Commanders,washingtoncommanders,espn,provider_full_name,80,true,espn full name
+was,Washington,washington,espn,provider_city,65,true,espn city
+was,Commanders,commanders,espn,provider_nickname,65,true,espn nickname
+was,WAS,was,pfr,provider_abbreviation,85,true,pfr abbreviation
+was,Washington Commanders,washingtoncommanders,pfr,provider_full_name,80,true,pfr full name
+was,Washington,washington,pfr,provider_city,65,true,pfr city
+was,Commanders,commanders,pfr,provider_nickname,65,true,pfr nickname
+was,WAS,was,covers,provider_abbreviation,85,true,covers abbreviation
+was,Washington Commanders,washingtoncommanders,covers,provider_full_name,80,true,covers full name
+was,Washington,washington,covers,provider_city,65,true,covers city
+was,Commanders,commanders,covers,provider_nickname,65,true,covers nickname
+was,WAS,was,odds_api,provider_abbreviation,85,true,odds_api abbreviation
+was,Washington Commanders,washingtoncommanders,odds_api,provider_full_name,80,true,odds_api full name
+was,Washington,washington,odds_api,provider_city,65,true,odds_api city
+was,Commanders,commanders,odds_api,provider_nickname,65,true,odds_api nickname
+was,WAS,was,draftkings,provider_abbreviation,85,true,draftkings abbreviation
+was,Washington Commanders,washingtoncommanders,draftkings,provider_full_name,80,true,draftkings full name
+was,Washington,washington,draftkings,provider_city,65,true,draftkings city
+was,Commanders,commanders,draftkings,provider_nickname,65,true,draftkings nickname
+was,WAS,was,fanduel,provider_abbreviation,85,true,fanduel abbreviation
+was,Washington Commanders,washingtoncommanders,fanduel,provider_full_name,80,true,fanduel full name
+was,Washington,washington,fanduel,provider_city,65,true,fanduel city
+was,Commanders,commanders,fanduel,provider_nickname,65,true,fanduel nickname
+was,WAS,was,circa,provider_abbreviation,85,true,circa abbreviation
+was,Washington Commanders,washingtoncommanders,circa,provider_full_name,80,true,circa full name
+was,Washington,washington,circa,provider_city,65,true,circa city
+was,Commanders,commanders,circa,provider_nickname,65,true,circa nickname
