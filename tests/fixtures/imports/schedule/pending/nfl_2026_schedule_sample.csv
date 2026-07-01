@@ -1,0 +1,7 @@
+week,game_time,home_team,away_team,home_score,away_score,status
+1,2026-09-10T20:20:00Z,Kansas City Chiefs,Detroit Lions,20,21,final
+1,2026-09-13T13:00:00Z,Arizona Cardinals,Washington Commanders,,,scheduled
+1,2026-09-13T13:00:00Z,bal,hou,25,9,final
+2,2026-09-17T20:15:00Z,Philadelphia Eagles,Minnesota Vikings,,,scheduled
+19,2026-09-20T13:00:00Z,nyg,dal,,,scheduled
+2,2026-09-14T20:00:00Z,Invalid Team,buf,,,scheduled

@@ -61,6 +61,17 @@ export class TeamAliasResolverService {
   }
 
   /**
+   * Upserts a team alias.
+   */
+  async upsertAlias(alias: Omit<TeamAlias, "id" | "normalized_alias" | "created_at" | "updated_at">): Promise<TeamAlias> {
+    const normalized = this.normalizeTeamAlias(alias.alias);
+    return await teamAliasRepo.upsertAlias({
+      ...alias,
+      normalized_alias: normalized
+    });
+  }
+
+  /**
    * Deactivates a team alias.
    */
   async deactivateAlias(id: string): Promise<boolean> {

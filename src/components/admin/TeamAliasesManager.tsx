@@ -41,6 +41,61 @@ export const TeamAliasesManager: React.FC = () => {
   const [testResult, setTestResult] = useState<any | null>(null);
   const [testing, setTesting] = useState(false);
 
+  // CSV Import State
+  const [csvPreview, setCsvPreview] = useState<any | null>(null);
+  const [csvLoading, setCsvLoading] = useState(false);
+  const [csvMessage, setCsvMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+
+  const handleLoadCsv = async () => {
+    try {
+      setCsvLoading(true);
+      setCsvMessage(null);
+      const res = await apiService.loadTeamAliasesCsv();
+      setCsvMessage({ type: 'success', text: `Successfully read CSV. Found ${res.count} rows. Use 'Preview Alias Import' or 'Import / Refresh' to apply.` });
+    } catch (err: any) {
+      setCsvMessage({ type: 'error', text: err.message || "Failed to load CSV file" });
+    } finally {
+      setCsvLoading(false);
+    }
+  };
+
+  const handlePreviewCsv = async () => {
+    try {
+      setCsvLoading(true);
+      setCsvMessage(null);
+      const res = await apiService.previewTeamAliasesCsv();
+      setCsvPreview(res);
+      setShowPreviewModal(true);
+    } catch (err: any) {
+      setCsvMessage({ type: 'error', text: err.message || "Failed to preview CSV" });
+    } finally {
+      setCsvLoading(false);
+    }
+  };
+
+  const handleImportCsv = async () => {
+    if (!window.confirm("Are you sure you want to import/refresh the Team Alias table from data/reference/team_aliases.csv? This will upsert all aliases.")) {
+      return;
+    }
+    try {
+      setCsvLoading(true);
+      setCsvMessage(null);
+      const res = await apiService.importTeamAliasesCsv();
+      if (res.success) {
+        setCsvMessage({
+          type: 'success',
+          text: `CSV Import Completed! Read: ${res.rowsRead}, Inserted: ${res.inserted}, Updated: ${res.updated}, Skipped: ${res.skipped}, Errors: ${res.errors}`
+        });
+        loadData(); // Reload alias list
+      }
+    } catch (err: any) {
+      setCsvMessage({ type: 'error', text: err.message || "Failed to run import" });
+    } finally {
+      setCsvLoading(false);
+    }
+  };
+
   // Load Data
   const loadData = async () => {
     try {
@@ -143,6 +198,209 @@ export const TeamAliasesManager: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* CSV Operations Block */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-amber-50 text-amber-600 rounded-xl">
+              <Database className="w-4 h-4" />
+            </div>
+            <div>
+              <h4 className="text-sm font-black text-slate-900">Reference CSV Team Alias Operations</h4>
+              <p className="text-[11px] text-slate-400">Load and refresh canonical synonym mapping from reference files</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={handleLoadCsv}
+              disabled={csvLoading}
+              className="bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-50 font-bold text-xs py-2 px-3.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${csvLoading ? "animate-spin" : ""}`} />
+              Load Reference CSV
+            </button>
+            <button
+              onClick={handlePreviewCsv}
+              disabled={csvLoading}
+              className="bg-slate-900 hover:bg-slate-800 text-white disabled:opacity-50 font-bold text-xs py-2 px-3.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              Preview Alias Import
+            </button>
+            <button
+              onClick={handleImportCsv}
+              disabled={csvLoading}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50 font-bold text-xs py-2 px-3.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <CheckCircle className="w-3.5 h-3.5" />
+              Import / Refresh Alias Table
+            </button>
+          </div>
+        </div>
+
+        {csvMessage && (
+          <div className={`p-3.5 rounded-xl text-xs border flex items-start gap-2 ${
+            csvMessage.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'
+          }`}>
+            {csvMessage.type === 'success' ? <CheckCircle className="w-4 h-4 mt-0.5 shrink-0" /> : <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />}
+            <span className="font-semibold">{csvMessage.text}</span>
+          </div>
+        )}
+
+        {aliases.filter(a => a.active).length <= 100 && !loading && (
+          <div className="p-3.5 rounded-xl text-xs border bg-amber-50 border-amber-200 text-amber-800 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-amber-600" />
+            <div>
+              <span className="font-bold block text-sm mb-1">Operational Warning: Limited Alias Coverage</span>
+              <span className="font-medium leading-relaxed">
+                Only {aliases.filter(a => a.active).length} active team aliases are currently loaded. To ensure the schedule ingestion resolves raw provider-specific name variants accurately (e.g. "KAN", "GNB", "Oakland Raiders"), please run <strong>Load Reference CSV</strong> and <strong>Import / Refresh Alias Table</strong> to seed the database with the complete canonical 100+ team alias dataset.
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {showPreviewModal && csvPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div>
+                <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                  <Database className="w-4.5 h-4.5 text-amber-600" />
+                  Alias Import Preview & Validation
+                </h4>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  Reviewing file contents from data/reference/team_aliases.csv before committing to DB
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowPreviewModal(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-xs p-1 px-2.5 bg-white border border-slate-200 rounded-lg shadow-2xs hover:shadow-sm cursor-pointer"
+              >
+                Close Preview
+              </button>
+            </div>
+
+            <div className="p-5 bg-slate-100/50 border-b border-slate-100 grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
+              <div className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-2xs">
+                <p className="text-[10px] font-bold text-slate-400 uppercase">Total Rows</p>
+                <p className="text-lg font-black text-slate-800">{csvPreview.summary.total}</p>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-2xs">
+                <p className="text-[10px] font-bold text-emerald-500 uppercase">Valid Rows</p>
+                <p className="text-lg font-black text-emerald-600">{csvPreview.summary.valid}</p>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-2xs">
+                <p className="text-[10px] font-bold text-rose-500 uppercase">Invalid Rows</p>
+                <p className="text-lg font-black text-rose-600">{csvPreview.summary.invalid}</p>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-2xs">
+                <p className="text-[10px] font-bold text-amber-500 uppercase">Warnings</p>
+                <p className="text-lg font-black text-amber-600">{csvPreview.summary.warnings}</p>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-2xs col-span-2 sm:col-span-1">
+                <p className="text-[10px] font-bold text-slate-400 uppercase">Errors</p>
+                <p className="text-lg font-black text-rose-600">{csvPreview.summary.errors}</p>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-5">
+              <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 text-slate-400 font-extrabold uppercase tracking-wider text-[9px] border-b border-slate-200">
+                      <th className="px-4 py-2.5">Line</th>
+                      <th className="px-4 py-2.5">Team ID</th>
+                      <th className="px-4 py-2.5">Alias</th>
+                      <th className="px-4 py-2.5">Normalized</th>
+                      <th className="px-4 py-2.5">Provider</th>
+                      <th className="px-4 py-2.5">Type</th>
+                      <th className="px-4 py-2.5">Status / Issues</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                    {csvPreview.rows.slice(0, 150).map((row: any, idx: number) => (
+                      <tr key={idx} className={row.isValid ? "hover:bg-slate-50/50" : "bg-rose-50/40 hover:bg-rose-50"}>
+                        <td className="px-4 py-2 text-slate-400 font-mono text-[10px]">{row.lineNo}</td>
+                        <td className="px-4 py-2">
+                          <span className="font-mono text-[10px] uppercase text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded-md font-black">
+                            {row.data.team_id || "MISSING"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-slate-900 font-bold">{row.data.alias || "MISSING"}</td>
+                        <td className="px-4 py-2 font-mono text-[10px] text-slate-500">{row.data.normalized_alias || "MISSING"}</td>
+                        <td className="px-4 py-2 text-[10px]">
+                          {row.data.provider_name ? (
+                            <span className="text-amber-700 bg-amber-50 border border-amber-200/50 px-1.5 py-0.5 rounded-md uppercase font-black">
+                              {row.data.provider_name}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 font-medium">Global</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-2 text-[10px] text-slate-500 capitalize">{row.data.alias_type || "MISSING"}</td>
+                        <td className="px-4 py-2 space-y-1">
+                          {row.isValid ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
+                              <CheckCircle className="w-3 h-3" /> Valid Row
+                            </span>
+                          ) : (
+                            <div className="space-y-0.5">
+                              {row.errors.map((e: string, eIdx: number) => (
+                                <span key={eIdx} className="block text-[10px] text-rose-700 bg-rose-100/60 px-1.5 py-0.5 rounded-md font-mono">
+                                  ❌ {e}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {row.warnings.length > 0 && (
+                            <div className="space-y-0.5">
+                              {row.warnings.map((w: string, wIdx: number) => (
+                                <span key={wIdx} className="block text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md font-mono">
+                                  ⚠️ {w}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {csvPreview.rows.length > 150 && (
+                <p className="text-[10px] text-slate-400 text-center font-medium mt-3">
+                  Showing first 150 rows. There are {csvPreview.rows.length - 150} more rows.
+                </p>
+              )}
+            </div>
+
+            <div className="p-5 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+              <span className="text-[11px] text-slate-400 font-medium">
+                Validation complete. Use "Import / Refresh" to write changes.
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowPreviewModal(false)}
+                  className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs py-2 px-4 rounded-xl cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    setShowPreviewModal(false);
+                    handleImportCsv();
+                  }}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-4 rounded-xl shadow-xs cursor-pointer"
+                >
+                  Proceed with Import
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Upper Grid: Creation & Testing */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         

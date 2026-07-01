@@ -92,6 +92,7 @@ export interface ITeamAliasRepository {
   findByTeamId(teamId: string): Promise<TeamAlias[]>;
   listAll(): Promise<TeamAlias[]>;
   createAlias(alias: Omit<TeamAlias, "id" | "created_at" | "updated_at">): Promise<TeamAlias>;
+  upsertAlias(alias: Omit<TeamAlias, "id" | "created_at" | "updated_at">): Promise<TeamAlias>;
   deactivateAlias(id: string): Promise<boolean>;
 }
 

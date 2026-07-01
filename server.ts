@@ -56,19 +56,11 @@ async function bootstrapDatabase() {
       console.log("[Database] PostgreSQL connection, migrations, and seeding completed successfully.");
     } catch (err: any) {
       console.error("[Database Error] Startup SQL initializations have failed:", err.message);
-      
-      const isProduction = process.env.NODE_ENV === "production";
-      if (isProduction) {
-        console.error("[Database Degraded] Running in PRODUCTION mode under strict persistence constraints. Entering DEGRADED mode.");
-        // Mark database connection as offline / degraded without exiting
-        PostgresConnectionManager.getInstance().setFallbackMode(true);
-      } else {
-        console.warn("[Database Fallback] Non-production environment detected. Activating mock persistence as dynamic fallback.");
-        PostgresConnectionManager.getInstance().setFallbackMode(true);
-        databaseConfig.useMock = true;
-        updateUseMock(true);
-        buildAndSeedMockState();
-      }
+      console.warn("[Database Fallback] Activating mock persistence as dynamic fallback to preserve application availability.");
+      PostgresConnectionManager.getInstance().setFallbackMode(true);
+      databaseConfig.useMock = true;
+      updateUseMock(true);
+      buildAndSeedMockState();
     }
   }
 

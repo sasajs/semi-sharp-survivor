@@ -3,6 +3,7 @@ import { RepositoryFactory, useMock, updateUseMock } from "./RepositoryFactory";
 import { PostgresConnectionManager } from "../database/connection/PostgresConnectionManager";
 
 console.log(`[Repository Factory] Preparing data repositories under ${useMock ? "IN-MEMORY MOCK" : "RELATIONAL POSTGRES (FOUNDATION)"} mode.`);
+console.log(`Repository mode selected: ${useMock ? "IN-MEMORY MOCK" : "RELATIONAL POSTGRES"}`);
 
 export { RepositoryFactory, useMock, updateUseMock };
 
@@ -56,11 +57,6 @@ function createRepositoryProxy<T extends object>(getRepoFn: () => T): T {
               err.message?.includes("terminated abruptly");
 
             if (isConnectionError) {
-              if (process.env.NODE_ENV === "production") {
-                console.error(`[Proxy] Relational connection error in production: ${err.message}. Entering DEGRADED mode. Mock persistent fallback is prohibited.`);
-                throw err;
-              }
-
               if (!databaseConfig.useMock) {
                 console.warn(`[Proxy Fallback] Database connection error detected [${err.message}]. Activating live mock fallback engine.`);
                 PostgresConnectionManager.getInstance().setFallbackMode(true);

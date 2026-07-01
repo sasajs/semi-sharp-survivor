@@ -1,0 +1,25 @@
+[
+  {
+    "week": 1,
+    "game_time": "2026-09-10T20:20:00Z",
+    "home_team": "KC",
+    "away_team": "DET",
+    "home_score": 20,
+    "away_score": 21,
+    "status": "final"
+  },
+  {
+    "week": 1,
+    "game_time": "2026-09-13T13:00:00Z",
+    "home_team": "Arizona Cardinals",
+    "away_team": "Washington Commanders",
+    "status": "scheduled"
+  },
+  {
+    "week": 2,
+    "game_time": "2026-09-17T20:15:00Z",
+    "home_team": "PHI",
+    "away_team": "MIN",
+    "status": "scheduled"
+  }
+]

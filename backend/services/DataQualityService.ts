@@ -54,8 +54,38 @@ export class DataQualityService {
         });
       }
 
-      // 2. Self Play
-      if (row.home_team && row.away_team && row.home_team.trim().toLowerCase() === row.away_team.trim().toLowerCase()) {
+      // Resolve Team Aliases FIRST
+      let resolvedHome: string | null = null;
+      let resolvedAway: string | null = null;
+
+      if (row.home_team && row.home_team.trim() !== "") {
+        resolvedHome = await teamAliasResolverService.resolveTeamId(row.home_team, providerName);
+        if (!resolvedHome) {
+          issues.push({
+            row_index: rowIndex,
+            type: 'unknown_alias',
+            message: `Unresolved home team alias: '${row.home_team}' at row ${rowIndex}.`,
+            severity: 'error',
+            raw_data: rawString
+          });
+        }
+      }
+
+      if (row.away_team && row.away_team.trim() !== "") {
+        resolvedAway = await teamAliasResolverService.resolveTeamId(row.away_team, providerName);
+        if (!resolvedAway) {
+          issues.push({
+            row_index: rowIndex,
+            type: 'unknown_alias',
+            message: `Unresolved away team alias: '${row.away_team}' at row ${rowIndex}.`,
+            severity: 'error',
+            raw_data: rawString
+          });
+        }
+      }
+
+      // 2. Self Play (using resolved canonical team IDs!)
+      if (resolvedHome && resolvedAway && resolvedHome === resolvedAway) {
         issues.push({
           row_index: rowIndex,
           type: 'schedule_conflict',
@@ -97,36 +127,6 @@ export class DataQualityService {
           severity: 'warning',
           raw_data: rawString
         });
-      }
-
-      // Resolve Team Aliases
-      let resolvedHome: string | null = null;
-      let resolvedAway: string | null = null;
-
-      if (row.home_team) {
-        resolvedHome = await teamAliasResolverService.resolveTeamId(row.home_team, providerName);
-        if (!resolvedHome) {
-          issues.push({
-            row_index: rowIndex,
-            type: 'unknown_alias',
-            message: `Unresolved home team alias: '${row.home_team}' at row ${rowIndex}.`,
-            severity: 'warning',
-            raw_data: rawString
-          });
-        }
-      }
-
-      if (row.away_team) {
-        resolvedAway = await teamAliasResolverService.resolveTeamId(row.away_team, providerName);
-        if (!resolvedAway) {
-          issues.push({
-            row_index: rowIndex,
-            type: 'unknown_alias',
-            message: `Unresolved away team alias: '${row.away_team}' at row ${rowIndex}.`,
-            severity: 'warning',
-            raw_data: rawString
-          });
-        }
       }
 
       // Trace batch-level schedule duplicate & conflicts if aliases are resolved

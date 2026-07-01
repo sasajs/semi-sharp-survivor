@@ -105,6 +105,80 @@ export async function seedDatabase() {
     }
     console.log(`[Seeder] Seeded ${initialTeams.length} NFL Teams.`);
 
+    // 2.5. Insert Team Aliases
+    const addedAliases = new Set<string>();
+    const aliasesToInsert: { team_id: string; alias: string; normalized_alias: string; alias_type: string }[] = [];
+
+    const addAlias = (teamId: string, alias: string, type: string) => {
+      const norm = alias.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (!norm) return;
+      const key = `${norm}:null`;
+      if (addedAliases.has(key)) return;
+      addedAliases.add(key);
+      aliasesToInsert.push({
+        team_id: teamId,
+        alias,
+        normalized_alias: norm,
+        alias_type: type
+      });
+    };
+
+    for (const t of initialTeams) {
+      addAlias(t.id, t.id, "common");
+      addAlias(t.id, t.abbreviation, "abbreviation");
+      addAlias(t.id, t.name, "full_name");
+      
+      const spaceIdx = t.name.lastIndexOf(' ');
+      if (spaceIdx > 0) {
+        const city = t.name.substring(0, spaceIdx);
+        const nickname = t.name.substring(spaceIdx + 1);
+        addAlias(t.id, city, "city");
+        addAlias(t.id, nickname, "nickname");
+      }
+    }
+
+    const extraVariants = [
+      { teamId: "ari", alias: "AZ", type: "abbreviation" },
+      { teamId: "ari", alias: "Ariz", type: "historical" },
+      { teamId: "gb", alias: "GNB", type: "abbreviation" },
+      { teamId: "jax", alias: "JAC", type: "abbreviation" },
+      { teamId: "kc", alias: "KAN", type: "abbreviation" },
+      { teamId: "lv", alias: "LVR", type: "abbreviation" },
+      { teamId: "lv", alias: "Vegas Raiders", type: "common" },
+      { teamId: "lv", alias: "Oakland Raiders", type: "historical" },
+      { teamId: "lac", alias: "LA Chargers", type: "common" },
+      { teamId: "lac", alias: "San Diego Chargers", type: "historical" },
+      { teamId: "lac", alias: "SD", type: "abbreviation" },
+      { teamId: "lar", alias: "LA Rams", type: "common" },
+      { teamId: "lar", alias: "St Louis Rams", type: "historical" },
+      { teamId: "lar", alias: "STL", type: "abbreviation" },
+      { teamId: "ne", alias: "NWE", type: "abbreviation" },
+      { teamId: "no", alias: "NOR", type: "abbreviation" },
+      { teamId: "sf", alias: "SFO", type: "abbreviation" },
+      { teamId: "sf", alias: "Niners", type: "nickname" },
+      { teamId: "tb", alias: "TBB", type: "abbreviation" },
+      { teamId: "tb", alias: "Bucs", type: "nickname" },
+      { teamId: "ten", alias: "Houston Oilers", type: "historical" },
+      { teamId: "was", alias: "WSH", type: "abbreviation" },
+      { teamId: "was", alias: "Washington Football Team", type: "historical" },
+      { teamId: "was", alias: "Football Team", type: "nickname" },
+      { teamId: "was", alias: "Redskins", type: "historical" }
+    ];
+
+    for (const v of extraVariants) {
+      addAlias(v.teamId, v.alias, v.type);
+    }
+
+    for (const a of aliasesToInsert) {
+      await query(
+        `INSERT INTO team_aliases (team_id, alias, normalized_alias, alias_type, provider_name, active)
+         VALUES ($1, $2, $3, $4, NULL, TRUE)
+         ON CONFLICT (normalized_alias, provider_name) DO NOTHING`,
+        [a.team_id, a.alias, a.normalized_alias, a.alias_type]
+      );
+    }
+    console.log(`[Seeder] Seeded ${aliasesToInsert.length} Team Aliases.`);
+
     // 3. Insert Contest
     const contest = initialContests[0];
     const contestUuid = toUuid(contest.id, "contest");

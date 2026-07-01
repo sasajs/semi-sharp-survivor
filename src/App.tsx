@@ -52,6 +52,7 @@ import { ChampionshipPlanningPanel } from "./components/ChampionshipPlanningPane
 import { DecisionAnalyticsPanel } from "./components/DecisionAnalyticsPanel";
 import { WeeklyLearningLoopPanel } from "./components/WeeklyLearningLoopPanel";
 import { AdminDashboard } from "./pages/AdminDashboard";
+import { FEATURES, SHOW_FUTURE_RELEASES } from "./config/featureVisibility";
 
 import { LoginScreen } from "./components/LoginScreen";
 import { OwnerWorkspaceDashboard } from "./components/OwnerWorkspaceDashboard";
@@ -99,6 +100,18 @@ export default function App() {
     eliminatedEntriesCount,
     currentPickForLeg
   } = useAppData();
+
+  const [selectedFeatureKey, setSelectedFeatureKey] = useState<string>("dashboard");
+
+  useEffect(() => {
+    const currentFeature = FEATURES[selectedFeatureKey];
+    if (!currentFeature || currentFeature.route !== activeTab) {
+      const found = Object.values(FEATURES).find(f => f.route === activeTab);
+      if (found) {
+        setSelectedFeatureKey(found.key);
+      }
+    }
+  }, [activeTab, selectedFeatureKey]);
 
   // Monkeypatch window.fetch for session authentication
   useEffect(() => {
@@ -453,74 +466,111 @@ export default function App() {
             </div>
 
             {/* Sidebar selection menu */}
-            <nav className="space-y-1">
-              {(currentUser?.role === "admin"
-                ? [
-                    { id: "dashboard", label: "Dashboard Overview", icon: Activity },
-                    { id: "contest-setup", label: "Circa Survivor Rules & Leg Map", icon: Award },
-                    { id: "entries", label: "Portfolio Entries", icon: Columns },
-                    { id: "picks", label: "Weekly Pick Matrix", icon: TrendingUp },
-                    { id: "inventory", label: "Full 32 Team Inventory", icon: Settings2 },
-                    { id: "thanksgiving", label: "Thanksgiving Shield", icon: Flame, badge: "Leg 13" },
-                    { id: "christmas", label: "Christmas Day Preservation", icon: Sparkles, badge: "Leg 18" },
-                    { id: "reports", label: "Contest Equity Report", icon: FileText },
-                    { id: "recommendation-audits", label: "Recommendation Audit", icon: History, badge: "New" },
-                    { id: "recommendation-confidence", label: "Confidence & Stability", icon: ShieldCheck, badge: "Layer 2" },
-                    { id: "recommendation-consensus", label: "Consensus Analysis", icon: Zap, badge: "Layer 2" },
-                    { id: "recommendation-portfolio", label: "Portfolio Optimizer", icon: Layers, badge: "v0.39" },
-                    { id: "contest-ev", label: "Contest EV Optimizer", icon: Award, badge: "v0.40" },
-                    { id: "ownership-calibration", label: "Ownership Calibration", icon: Sliders, badge: "v0.41" },
-                    { id: "market-calibration", label: "Market Calibration", icon: Scale, badge: "v0.42" },
-                    { id: "model-performance", label: "Model Performance", icon: Target, badge: "v0.43" },
-                    { id: "rolling-validation", label: "Rolling Validation", icon: History, badge: "v0.44" },
-                    { id: "model-drift", label: "Model Drift Analysis", icon: Shield, badge: "v0.45" },
-                    { id: "model-weights", label: "Adaptive Weights", icon: Scale, badge: "v0.46" },
-                    { id: "decision-policies", label: "Decision Policies", icon: Shield, badge: "v0.48" },
-                    { id: "survivor-decisions", label: "Survivor Decisions", icon: Cpu, badge: "v0.49" },
-                    { id: "survivor-plans", label: "Survivor Plans", icon: Compass, badge: "v0.50" },
-                    { id: "championship-plans", label: "Championship Plans", icon: Award, badge: "v0.51" },
-                    { id: "decision-analytics", label: "Decision Analytics", icon: Activity, badge: "v0.52" },
-                    { id: "weekly-learning", label: "Weekly Learning Loop", icon: BrainCircuit, badge: "v0.54" },
-                    { id: "admin", label: "Admin Dashboard", icon: ShieldAlert, badge: "Secure" },
-                  ]
-                : [
-                    { id: "dashboard", label: "My Dashboard", icon: Activity },
-                    { id: "entries", label: "My Entries", icon: Columns },
-                    { id: "roadmaps", label: "My Roadmaps", icon: Compass },
-                    { id: "recommendations", label: "My Recommendations", icon: TrendingUp },
-                    { id: "reports", label: "Reports", icon: FileText },
-                    { id: "circa-rules", label: "Circa Rules", icon: Award },
-                    { id: "standard-rules", label: "Standard Rules", icon: ShieldAlert },
-                  ]
-              ).map(tab => {
-                const Icon = tab.icon;
-                const isSelected = activeTab === tab.id;
+            <div className="space-y-6">
+              {[
+                {
+                  id: "user_working" as const,
+                  title: "User Dashboard",
+                  description: "Stable, high-precision tools for contest execution.",
+                  badge: "Working",
+                  badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-100",
+                },
+                {
+                  id: "user_future" as const,
+                  title: "User Dashboard — Future Releases",
+                  description: "Core mathematical models & simulations in development.",
+                  badge: "Future Release",
+                  badgeColor: "bg-amber-50 text-amber-700 border-amber-150",
+                },
+                {
+                  id: "admin_working" as const,
+                  title: "Admin Dashboard",
+                  description: "Usable data operation audit trails & ingestion metrics.",
+                  badge: "Operator",
+                  badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-100",
+                },
+                {
+                  id: "admin_future" as const,
+                  title: "Admin Dashboard — Future Releases",
+                  description: "Advanced reference diagnostics & automated workflows.",
+                  badge: "Diagnostics",
+                  badgeColor: "bg-slate-50 text-slate-700 border-slate-150",
+                }
+              ].map(sec => {
+                const sectionFeatures = Object.values(FEATURES).filter(f => f.section === sec.id && f.enabled);
+
+                if (sectionFeatures.length === 0) return null;
+
                 return (
-                  <button
-                    key={tab.id}
-                    id={`tab-btn-${tab.id}`}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                      isSelected 
-                        ? "bg-slate-900 text-white shadow-md shadow-indigo-650/5" 
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <Icon className={`w-4 h-4 ${isSelected ? "text-indigo-400" : "text-slate-400"}`} />
-                      <span>{tab.label}</span>
+                  <div key={sec.id} className="space-y-2 border-t border-slate-100 pt-4 first:border-0 first:pt-0">
+                    <div className="px-1.5 pb-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest leading-none">
+                          {sec.title}
+                        </h4>
+                        <span className={`text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded-full border ${sec.badgeColor} leading-none shrink-0`}>
+                          {sec.badge}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-1 leading-normal font-medium">
+                        {sec.description}
+                      </p>
                     </div>
-                    {tab.badge && (
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                        isSelected ? "bg-indigo-600/35 text-indigo-100" : "bg-slate-100 text-slate-500"
-                      }`}>
-                        {tab.badge}
-                      </span>
-                    )}
-                  </button>
+
+                    <nav className="space-y-1">
+                      {sectionFeatures.map(feature => {
+                        const Icon = feature.icon;
+                        const isSelected = selectedFeatureKey === feature.key;
+                        const isFuture = sec.id.endsWith("_future");
+
+                        let badgeColor = "bg-slate-100 text-slate-600 border-slate-200";
+                        if (feature.badge === "Working") {
+                          badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
+                        } else if (feature.badge === "Future Release") {
+                          badgeColor = "bg-amber-50 text-amber-700 border-amber-200";
+                        } else if (feature.badge === "Experimental") {
+                          badgeColor = "bg-purple-50 text-purple-700 border-purple-200";
+                        } else if (feature.badge === "Backend Ready") {
+                          badgeColor = "bg-blue-50 text-blue-700 border-blue-200";
+                        } else if (feature.badge === "Not Wired") {
+                          badgeColor = "bg-rose-50 text-rose-700 border-rose-200";
+                        }
+
+                        return (
+                          <button
+                            key={feature.key}
+                            id={`tab-btn-${feature.key}`}
+                            onClick={() => {
+                              setSelectedFeatureKey(feature.key);
+                              setActiveTab(feature.route);
+                            }}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all cursor-pointer border ${
+                              isSelected 
+                                ? "bg-slate-900 text-white border-slate-900 shadow-md shadow-indigo-650/5 font-black" 
+                                : isFuture
+                                  ? "text-slate-400 hover:bg-slate-50 hover:text-slate-900 border-transparent font-medium"
+                                  : "text-slate-650 hover:bg-slate-50 hover:text-slate-900 border-transparent font-bold"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Icon className={`w-3.5 h-3.5 ${isSelected ? "text-indigo-400" : isFuture ? "text-slate-300" : "text-slate-450"} shrink-0`} />
+                              <span className="truncate text-left">{feature.label}</span>
+                            </div>
+                            {feature.badge && (
+                              <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded border uppercase shrink-0 ${
+                                isSelected ? "bg-white/10 text-white border-white/20" : badgeColor
+                              }`}>
+                                {feature.badge}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </nav>
+                  </div>
                 );
               })}
-            </nav>
+            </div>
 
           </div>
 
@@ -1608,7 +1658,12 @@ export default function App() {
               )}
 
               {activeTab === "admin" && (
-                <AdminDashboard />
+                <AdminDashboard 
+                  initialTab={FEATURES[selectedFeatureKey]?.adminParams?.initialTab}
+                  initialImportTab={FEATURES[selectedFeatureKey]?.adminParams?.initialImportTab}
+                  initialRefTab={FEATURES[selectedFeatureKey]?.adminParams?.initialRefTab}
+                  initialDiagTab={FEATURES[selectedFeatureKey]?.adminParams?.initialDiagTab}
+                />
               )}
 
               {/* ========================================================

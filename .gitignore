@@ -6,5 +6,12 @@ coverage/
 *.log
 .env*
 !.env.example
-reports/validation/*.log
-reports/validation/*_server.log
+
+# Ignore operational import files but preserve directories
+imports/**/pending/*
+!imports/**/pending/.gitkeep
+imports/**/processed/*
+!imports/**/processed/.gitkeep
+imports/**/rejected/*
+!imports/**/rejected/.gitkeep
+

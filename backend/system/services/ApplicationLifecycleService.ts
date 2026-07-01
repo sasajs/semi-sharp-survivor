@@ -54,6 +54,11 @@ export class ApplicationLifecycleService {
           const tag = process.env.GIT_TAG || "v0.27-project-memory-foundation";
 
           console.log(`[Lifecycle Engine] Writing operational system metadata [Host: ${hostname}, DB: ${dbName}]`);
+          if (!databaseConfig.useMock) {
+            console.log("DB: postgres");
+          } else {
+            console.log("DB: mock");
+          }
           await systemMetadataRepo.save({
             systemName: "Semi-Sharp",
             currentVersion,

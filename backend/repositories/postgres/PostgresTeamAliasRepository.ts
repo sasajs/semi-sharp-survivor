@@ -22,7 +22,7 @@ export class PostgresTeamAliasRepository implements ITeamAliasRepository {
     const params = [normalizedAlias];
     
     if (providerName) {
-      sql += " AND (provider_name = $2 OR provider_name IS NULL) ORDER BY provider_name DESC LIMIT 1";
+      sql += " AND (provider_name = $2 OR provider_name IS NULL) ORDER BY CASE WHEN provider_name = $2 THEN 1 ELSE 2 END ASC, provider_name DESC LIMIT 1";
       params.push(providerName);
     } else {
       sql += " AND provider_name IS NULL LIMIT 1";
@@ -50,6 +50,36 @@ export class PostgresTeamAliasRepository implements ITeamAliasRepository {
       [alias.team_id, alias.alias, alias.normalized_alias, alias.provider_name || null, alias.alias_type, alias.active !== false]
     );
     return mapTeamAlias(rows[0]);
+  }
+
+  async upsertAlias(alias: Omit<TeamAlias, "id" | "created_at" | "updated_at">): Promise<TeamAlias> {
+    const pName = alias.provider_name || null;
+    let existing;
+    if (pName) {
+      existing = await query("SELECT * FROM team_aliases WHERE normalized_alias = $1 AND provider_name = $2 LIMIT 1", [alias.normalized_alias, pName]);
+    } else {
+      existing = await query("SELECT * FROM team_aliases WHERE normalized_alias = $1 AND provider_name IS NULL LIMIT 1", [alias.normalized_alias]);
+    }
+
+    if (existing.length > 0) {
+      const id = existing[0].id;
+      const rows = await query(
+        `UPDATE team_aliases 
+         SET team_id = $1, alias = $2, alias_type = $3, active = $4, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $5
+         RETURNING *`,
+        [alias.team_id, alias.alias, alias.alias_type, alias.active !== false, id]
+      );
+      return mapTeamAlias(rows[0]);
+    } else {
+      const rows = await query(
+        `INSERT INTO team_aliases (team_id, alias, normalized_alias, provider_name, alias_type, active)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING *`,
+        [alias.team_id, alias.alias, alias.normalized_alias, pName, alias.alias_type, alias.active !== false]
+      );
+      return mapTeamAlias(rows[0]);
+    }
   }
 
   async deactivateAlias(id: string): Promise<boolean> {

@@ -3765,6 +3765,34 @@ export class MockTeamAliasRepository implements ITeamAliasRepository {
     return newAlias;
   }
 
+  async upsertAlias(alias: Omit<TeamAlias, "id" | "created_at" | "updated_at">): Promise<TeamAlias> {
+    const pName = alias.provider_name || null;
+    const existingIdx = mockTeamAliases.findIndex(a => a.normalized_alias === alias.normalized_alias && a.provider_name === pName);
+    
+    if (existingIdx !== -1) {
+      mockTeamAliases[existingIdx].team_id = alias.team_id;
+      mockTeamAliases[existingIdx].alias = alias.alias;
+      mockTeamAliases[existingIdx].alias_type = alias.alias_type;
+      mockTeamAliases[existingIdx].active = alias.active !== false;
+      mockTeamAliases[existingIdx].updated_at = new Date().toISOString();
+      return mockTeamAliases[existingIdx];
+    } else {
+      const newAlias: TeamAlias = {
+        id: `alias-gen-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        team_id: alias.team_id,
+        alias: alias.alias,
+        normalized_alias: alias.normalized_alias,
+        provider_name: pName,
+        alias_type: alias.alias_type,
+        active: alias.active !== false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      mockTeamAliases.push(newAlias);
+      return newAlias;
+    }
+  }
+
   async deactivateAlias(id: string): Promise<boolean> {
     const idx = mockTeamAliases.findIndex(a => a.id === id);
     if (idx === -1) return false;

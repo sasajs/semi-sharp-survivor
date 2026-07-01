@@ -1,14 +1,25 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
+# scripts/restore-local-config.sh
+set -e
 
-cd "$(dirname "$0")/.."
+echo "=== Restoring Local Configuration ==="
 
-echo "Restoring Semi-Sharp local development configuration..."
-
-git checkout HEAD -- package.json .gitignore reports/validation/.gitkeep
-
-bash ./scripts/fix-vite-config.sh
-
-rm -f test_rec.ts
-
-echo "✓ Local development configuration restored."
+if [ -f .env.example ]; then
+  echo "Copying .env.example to .env..."
+  cp .env.example .env
+  
+  # Configure .env to run in PostgreSQL mode (without mock fallback) for strict testing
+  echo "Setting USE_MOCK=false and USE_MOCK_DATA=false in .env..."
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' 's/USE_MOCK=true/USE_MOCK=false/g' .env
+    sed -i '' 's/USE_MOCK_DATA=true/USE_MOCK_DATA=false/g' .env
+  else
+    sed -i 's/USE_MOCK=true/USE_MOCK=false/g' .env
+    sed -i 's/USE_MOCK_DATA=true/USE_MOCK_DATA=false/g' .env
+  fi
+  
+  echo "Configuration restored successfully."
+else
+  echo "Error: .env.example not found at project root."
+  exit 1
+fi

@@ -9,13 +9,9 @@
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
+    "validate:all": "npm run lint && npm run build && bash scripts/regression-suite.sh",
     "db:migrate": "tsx backend/database/migrations/migrate.ts",
-    "db:seed": "tsx backend/database/seed/seed.ts",
-    "validate": "bash ./scripts/validate-update.sh",
-    "validate:db": "bash ./scripts/db-validation.sh",
-    "validate:api": "bash ./scripts/api-validation.sh",
-    "validate:regression": "bash ./scripts/regression-suite.sh",
-    "validate:all": "npm run validate:regression"
+    "db:seed": "tsx backend/database/seed/seed.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

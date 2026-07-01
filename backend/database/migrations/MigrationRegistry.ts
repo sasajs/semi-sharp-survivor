@@ -196,5 +196,10 @@ export const migrationRegistry: Migration[] = [
     version: "V063",
     description: "Schedule Import Pipeline and Data Quality tables.",
     filePath: path.join(process.cwd(), "backend", "database", "schema", "V063__ScheduleImportPipeline.sql")
+  },
+  {
+    version: "V064",
+    description: "Backfill and seed team_aliases for all 32 NFL teams.",
+    filePath: path.join(process.cwd(), "backend", "database", "schema", "V064__SeedTeamAliases.sql")
   }
 ];

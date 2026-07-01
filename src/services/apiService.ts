@@ -724,5 +724,34 @@ export const apiService = {
     if (!res.ok) throw new Error("Failed to deactivate team alias");
     const data = await res.json();
     return data.success;
+  },
+
+  async loadTeamAliasesCsv(): Promise<any> {
+    const res = await fetch("/api/admin/data/team-aliases/csv-load");
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || "Failed to load reference CSV");
+    }
+    return res.json();
+  },
+
+  async previewTeamAliasesCsv(): Promise<any> {
+    const res = await fetch("/api/admin/data/team-aliases/csv-preview");
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || "Failed to preview reference CSV");
+    }
+    return res.json();
+  },
+
+  async importTeamAliasesCsv(): Promise<any> {
+    const res = await fetch("/api/admin/data/team-aliases/csv-import", {
+      method: "POST"
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || "Failed to import reference CSV");
+    }
+    return res.json();
   }
 };

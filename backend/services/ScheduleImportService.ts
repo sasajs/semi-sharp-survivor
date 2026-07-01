@@ -23,8 +23,10 @@ export interface ImportPreviewResult {
     week: number;
     home_team: string;
     resolved_home: string | null;
+    resolved_home_alias?: string | null;
     away_team: string;
     resolved_away: string | null;
+    resolved_away_alias?: string | null;
     game_time: string;
     action: 'insert' | 'update' | 'reject';
     reason?: string;
@@ -90,6 +92,8 @@ export class ScheduleImportService {
       const row = rawRows[i];
       const resHome = await getResolvedId(row.home_team);
       const resAway = await getResolvedId(row.away_team);
+      const resHomeAlias = teamAliasResolverService.normalizeTeamAlias(row.home_team);
+      const resAwayAlias = teamAliasResolverService.normalizeTeamAlias(row.away_team);
 
       if (!resHome || !resAway || isNaN(row.week) || row.week < 1 || row.week > 18) {
         rows_rejected++;
@@ -97,8 +101,10 @@ export class ScheduleImportService {
           week: row.week,
           home_team: row.home_team,
           resolved_home: resHome,
+          resolved_home_alias: resHomeAlias,
           away_team: row.away_team,
           resolved_away: resAway,
+          resolved_away_alias: resAwayAlias,
           game_time: row.game_time,
           action: 'reject',
           reason: !resHome ? `Unresolved home team '${row.home_team}'` : (!resAway ? `Unresolved away team '${row.away_team}'` : `Invalid week ${row.week}`)
@@ -114,8 +120,10 @@ export class ScheduleImportService {
           week: row.week,
           home_team: row.home_team,
           resolved_home: resHome,
+          resolved_home_alias: resHomeAlias,
           away_team: row.away_team,
           resolved_away: resAway,
+          resolved_away_alias: resAwayAlias,
           game_time: row.game_time,
           action: 'reject',
           reason: `No active contest leg configured for NFL Week ${row.week}`
@@ -137,8 +145,10 @@ export class ScheduleImportService {
           week: row.week,
           home_team: row.home_team,
           resolved_home: resHome,
+          resolved_home_alias: resHomeAlias,
           away_team: row.away_team,
           resolved_away: resAway,
+          resolved_away_alias: resAwayAlias,
           game_time: row.game_time,
           action: 'update',
           reason: `Game already exists. Kickoff or score metadata will be updated.`
@@ -149,8 +159,10 @@ export class ScheduleImportService {
           week: row.week,
           home_team: row.home_team,
           resolved_home: resHome,
+          resolved_home_alias: resHomeAlias,
           away_team: row.away_team,
           resolved_away: resAway,
+          resolved_away_alias: resAwayAlias,
           game_time: row.game_time,
           action: 'insert'
         });
