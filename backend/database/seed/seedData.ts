@@ -282,7 +282,7 @@ export async function seedDatabase() {
          divisional_game_flag, short_week_flag
        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        ON CONFLICT (contest_leg_id, team_id) DO NOTHING`,
-      [wiKcUuid, leg1Uuid, "KC", 7, 0, 95.5, 2.0, 0.0, 0.1, "active", false, false]
+      [wiKcUuid, leg1Uuid, "kc", 7, 0, 95.5, 2.0, 0.0, 0.1, "active", false, false]
     );
 
     await query(
@@ -292,7 +292,7 @@ export async function seedDatabase() {
          divisional_game_flag, short_week_flag
        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        ON CONFLICT (contest_leg_id, team_id) DO NOTHING`,
-      [wiNeUuid, leg1Uuid, "NE", 7, 0, 88.0, 4.0, 0.0, 0.1, "active", false, false]
+      [wiNeUuid, leg1Uuid, "ne", 7, 0, 88.0, 4.0, 0.0, 0.1, "active", false, false]
     );
     console.log("[Seeder] Seeded Sample Weekly Inputs.");
 
@@ -307,7 +307,7 @@ export async function seedDatabase() {
          sic_score, rest_days, quarterback_status, short_week_flag, travel_disadvantage
        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
        ON CONFLICT (contest_leg_id, team_id) DO NOTHING`,
-      [tfKcUuid, leg1Uuid, "KC", 0.25, -0.05, 0.30, 2.0, 85.0, 78.5, 0.28, -0.04, 95.5, 7, "active", false, 0.0]
+      [tfKcUuid, leg1Uuid, "kc", 0.25, -0.05, 0.30, 2.0, 85.0, 78.5, 0.28, -0.04, 95.5, 7, "active", false, 0.0]
     );
 
     await query(
@@ -317,20 +317,20 @@ export async function seedDatabase() {
          sic_score, rest_days, quarterback_status, short_week_flag, travel_disadvantage
        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
        ON CONFLICT (contest_leg_id, team_id) DO NOTHING`,
-      [tfNeUuid, leg1Uuid, "NE", -0.10, 0.05, -0.15, 4.0, 68.2, 74.0, -0.12, 0.06, 88.0, 7, "active", false, 0.0]
+      [tfNeUuid, leg1Uuid, "ne", -0.10, 0.05, -0.15, 4.0, 68.2, 74.0, -0.12, 0.06, 88.0, 7, "active", false, 0.0]
     );
     console.log("[Seeder] Seeded Sample Team Features.");
 
     // 13. Insert Sample Game Features
     const gfKcUuid = toUuid("seed-gf-kc-ne", "pick");
-    const game1Uuid = toUuid(`game-${leg1Uuid.substring(0, 8)}-KC-NE`, "game");
+    const game1Uuid = toUuid("g-leg-1-0", "game");
     await query(
       `INSERT INTO game_features (
          id, contest_leg_id, game_id, home_team_id, away_team_id, rest_disparity,
          weather_risk, divisional_game_flag, line_spread, over_under, home_win_probability_pff
        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        ON CONFLICT (contest_leg_id, home_team_id, away_team_id) DO NOTHING`,
-      [gfKcUuid, leg1Uuid, game1Uuid, "KC", "NE", 0, 0.1, false, -7.0, 48.5, 0.72]
+      [gfKcUuid, leg1Uuid, game1Uuid, "kc", "ne", 0, 0.1, false, -7.0, 48.5, 0.72]
     );
     console.log("[Seeder] Seeded Sample Game Features.");
 

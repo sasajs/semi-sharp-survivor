@@ -3990,7 +3990,7 @@ router.get("/admin/data/import-jobs/:id", async (req: Request, res: Response) =>
 });
 
 // POST /api/admin/data/import-jobs/preview - Preview schedule file
-router.post("/api/admin/data/import-jobs/preview", async (req: Request, res: Response) => {
+router.post("/admin/data/import-jobs/preview", async (req: Request, res: Response) => {
   try {
     const { filename, content, provider } = req.body;
     if (!filename || !content || !provider) {
@@ -4004,7 +4004,7 @@ router.post("/api/admin/data/import-jobs/preview", async (req: Request, res: Res
 });
 
 // POST /api/admin/data/import-jobs/import - Run import or dry_run pipeline
-router.post("/api/admin/data/import-jobs/import", async (req: Request, res: Response) => {
+router.post("/admin/data/import-jobs/import", async (req: Request, res: Response) => {
   try {
     const { filename, content, provider, mode, initiated_by } = req.body;
     if (!filename || !content || !provider || !mode) {
