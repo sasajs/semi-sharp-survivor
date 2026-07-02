@@ -149,6 +149,7 @@ export async function seedDatabase() {
       { teamId: "lac", alias: "LA Chargers", type: "common" },
       { teamId: "lac", alias: "San Diego Chargers", type: "historical" },
       { teamId: "lac", alias: "SD", type: "abbreviation" },
+      { teamId: "lar", alias: "LA", type: "provider_specific" },
       { teamId: "lar", alias: "LA Rams", type: "common" },
       { teamId: "lar", alias: "St Louis Rams", type: "historical" },
       { teamId: "lar", alias: "STL", type: "abbreviation" },

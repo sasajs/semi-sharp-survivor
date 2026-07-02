@@ -4447,7 +4447,7 @@ router.get("/admin/data/files", async (req: Request, res: Response) => {
 });
 
 // POST /api/admin/data/files/preview - Preview pending file metadata and rows
-router.post("/api/admin/data/files/preview", async (req: Request, res: Response) => {
+router.post("/admin/data/files/preview", async (req: Request, res: Response) => {
   try {
     const { type, filename } = req.body;
     if (!type || !filename) {
@@ -4526,7 +4526,7 @@ router.post("/api/admin/data/files/preview", async (req: Request, res: Response)
 });
 
 // POST /api/admin/data/files/import - Run import and move successful/failed files
-router.post("/api/admin/data/files/import", async (req: Request, res: Response) => {
+router.post("/admin/data/files/import", async (req: Request, res: Response) => {
   const { type, filename } = req.body;
   if (!type || !filename) {
     return res.status(400).json({ error: "Missing type or filename" });
@@ -4549,7 +4549,7 @@ router.post("/api/admin/data/files/import", async (req: Request, res: Response) 
 
     if (type === "schedule") {
       // Run pipeline
-      summary = await weeklyPipelineCoordinator.runPipeline(filename, content, "Filesystem", "admin");
+      summary = await scheduleImportService.runImport(filename, content, "Filesystem", "commit", "admin");
       importSuccess = summary.status === "completed";
     } else {
       // Generic mock import for other types so that visual flow completes beautifully
