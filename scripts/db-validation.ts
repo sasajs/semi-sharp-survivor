@@ -109,6 +109,70 @@ async function runValidation() {
       }
     }
 
+    // 8. Owner-entry persistence validation
+    const nullOwners = await manager.query(
+      "SELECT COUNT(*) as count FROM survivor_entries WHERE owner_id IS NULL;"
+    );
+    const nullOwnerCount = parseInt(nullOwners[0]?.count || "0", 10);
+    if (nullOwnerCount > 0) {
+      console.error(`[DB Validation] FAIL: survivor_entries contains ${nullOwnerCount} NULL owner_id values.`);
+      failed = true;
+    } else {
+      console.log("[DB Validation] PASS: survivor_entries.owner_id contains no NULL values.");
+    }
+
+    const invalidOwners = await manager.query(
+      "SELECT COUNT(*) as count FROM survivor_entries se LEFT JOIN owners o ON se.owner_id = o.id WHERE se.owner_id IS NOT NULL AND o.id IS NULL;"
+    );
+    const invalidOwnerCount = parseInt(invalidOwners[0]?.count || "0", 10);
+    if (invalidOwnerCount > 0) {
+      console.error(`[DB Validation] FAIL: Found ${invalidOwnerCount} survivor_entries with invalid owner_id references.`);
+      failed = true;
+    } else {
+      console.log("[DB Validation] PASS: All survivor_entries.owner_id values reference valid owners.");
+    }
+
+    const expectedOwnerMappings = [
+      { name: "UWOSH-1", ownerId: "owner-steve" },
+      { name: "UWOSH-2", ownerId: "owner-steve" },
+      { name: "UWOSH-3", ownerId: "owner-cameron" },
+      { name: "UWOSH-4", ownerId: "owner-uw-oshkosh" }
+    ];
+
+    for (const item of expectedOwnerMappings) {
+      const rows = await manager.query(
+        "SELECT owner_id FROM survivor_entries WHERE name = $1 LIMIT 1;",
+        [item.name]
+      );
+      const ownerId = rows[0]?.owner_id;
+      if (ownerId !== item.ownerId) {
+        console.error(`[DB Validation] FAIL: ${item.name} assigned to '${ownerId || "NULL"}' instead of '${item.ownerId}'.`);
+        failed = true;
+      } else {
+        console.log(`[DB Validation] PASS: ${item.name} assigned to ${item.ownerId}.`);
+      }
+    }
+
+    const expectedOwnerCounts = [
+      { ownerId: "owner-steve", expected: 2, label: "Steve" },
+      { ownerId: "owner-cameron", expected: 1, label: "Cameron" },
+      { ownerId: "owner-uw-oshkosh", expected: 1, label: "UW Oshkosh Group" }
+    ];
+
+    for (const item of expectedOwnerCounts) {
+      const rows = await manager.query(
+        "SELECT COUNT(*) as count FROM survivor_entries WHERE owner_id = $1;",
+        [item.ownerId]
+      );
+      const count = parseInt(rows[0]?.count || "0", 10);
+      if (count !== item.expected) {
+        console.error(`[DB Validation] FAIL: ${item.label} owns ${count} survivor entries; expected ${item.expected}.`);
+        failed = true;
+      } else {
+        console.log(`[DB Validation] PASS: ${item.label} owns exactly ${item.expected} survivor entries.`);
+      }
+    }
+
     if (failed) {
       console.error("[DB Validation] Validation completed with ERRORS. Seed integrity is broken.");
       process.exit(1);
