@@ -313,10 +313,17 @@ export async function seedDatabase() {
     // 8. Insert Survivor Entries
     for (const ent of initialEntries) {
       const entUuid = toUuid(ent.id, "entry");
+      const ownerId =
+        ent.name === "UWOSH-1" ? "owner-steve" :
+        ent.name === "UWOSH-2" ? "owner-steve" :
+        ent.name === "UWOSH-3" ? "owner-cameron" :
+        ent.name === "UWOSH-4" ? "owner-uw-oshkosh" :
+        null;
+
       await query(
-        `INSERT INTO survivor_entries (id, contest_id, name, status, notes, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [entUuid, contestUuid, ent.name, ent.status, ent.notes || "", ent.created_at || new Date().toISOString()]
+        `INSERT INTO survivor_entries (id, contest_id, name, status, notes, owner_id, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [entUuid, contestUuid, ent.name, ent.status, ent.notes || "", ownerId, ent.created_at || new Date().toISOString()]
       );
     }
     console.log(`[Seeder] Seeded ${initialEntries.length} Survivor Entries.`);

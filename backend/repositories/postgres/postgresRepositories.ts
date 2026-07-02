@@ -113,18 +113,7 @@ function mapTeamWeekLine(row: any): TeamWeekLine {
 function mapSurvivorEntry(row: any): SurvivorEntry {
   const idStr = row.id ? row.id.toString() : "";
   const nameStr = row.name ? row.name.toString() : "";
-  let ownerId = row.owner_id || undefined;
-
-  // Explicit mappings for SAS, CNS, UWO
-  if (idStr === "22222222-2222-4222-c222-000000000101" || nameStr === "UWOSH-1" || idStr === "UWOSH-1") {
-    ownerId = "owner-steve";
-  } else if (idStr === "22222222-2222-4222-c222-000000000102" || nameStr === "UWOSH-2" || idStr === "UWOSH-2") {
-    ownerId = "owner-steve";
-  } else if (idStr === "22222222-2222-4222-c222-000000000103" || nameStr === "UWOSH-3" || idStr === "UWOSH-3") {
-    ownerId = "owner-cameron";
-  } else if (idStr === "22222222-2222-4222-c222-000000000104" || nameStr === "UWOSH-4" || idStr === "UWOSH-4") {
-    ownerId = "owner-uw-oshkosh";
-  }
+  const ownerId = row.owner_id || undefined;
 
   return {
     id: fromUuid(row.id),
