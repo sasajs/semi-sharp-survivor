@@ -72,10 +72,15 @@ export const ScheduleImportManager: React.FC<Props> = ({ type, title }) => {
   };
 
   const handleValidate = async () => {
-    if (!selectedFile && files.length > 0) {
-      // Auto preview the first file if none selected
-      await handlePreview(files[0].filename);
+    if (!selectedFile) {
+      setError("Select a schedule file before validating.");
+      return;
     }
+
+    if (!preview) {
+      await handlePreview(selectedFile);
+    }
+
     setIsValidating(true);
     setError(null);
     try {
@@ -126,8 +131,11 @@ export const ScheduleImportManager: React.FC<Props> = ({ type, title }) => {
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  const handleImport = async (filename: string) => {
-    setSelectedFile(filename);
+  const handleImport = async () => {
+    if (!selectedFile) {
+      setError("Select a schedule file before updating the schedule.");
+      return;
+    }
     setLoading(true);
     setError(null);
     setPreview(null);
@@ -157,7 +165,7 @@ export const ScheduleImportManager: React.FC<Props> = ({ type, title }) => {
       const res = await fetch("/api/admin/data/files/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, filename })
+        body: JSON.stringify({ type, filename: selectedFile })
       });
       
       if (!res.ok) {
@@ -259,7 +267,11 @@ export const ScheduleImportManager: React.FC<Props> = ({ type, title }) => {
               </div>
               <button
                 onClick={() => {
-                  if (files.length > 0) handlePreview(files[0].filename);
+                  if (!selectedFile) {
+                    setError("Select a schedule file before previewing.");
+                    return;
+                  }
+                  handlePreview(selectedFile);
                 }}
                 disabled={loading || files.length === 0 || !!preview}
                 className="w-full bg-slate-900 hover:bg-slate-800 text-white disabled:bg-slate-200 font-bold text-[10px] py-1.5 rounded-lg shadow-2xs transition shrink-0 cursor-pointer mt-3"
@@ -304,7 +316,7 @@ export const ScheduleImportManager: React.FC<Props> = ({ type, title }) => {
               </div>
               <button
                 onClick={() => {
-                  if (selectedFile) handleImport(selectedFile);
+                  if (selectedFile) handleImport();
                 }}
                 disabled={loading || !validated || !!result}
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-slate-200 font-bold text-[10px] py-1.5 rounded-lg shadow-2xs transition shrink-0 cursor-pointer mt-3"
@@ -423,32 +435,24 @@ export const ScheduleImportManager: React.FC<Props> = ({ type, title }) => {
                             {new Date(file.modified).toLocaleDateString()}
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <div className="flex justify-end gap-1.5">
-                              <button
-                                onClick={() => handlePreview(file.filename)}
-                                disabled={loading}
-                                className="px-2 py-1 text-[11px] font-extrabold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-md transition disabled:opacity-50 cursor-pointer"
-                              >
-                                Preview Schedule
-                              </button>
-                              {type === "schedule" && !validated ? (
-                                <button
-                                  onClick={handleValidate}
-                                  disabled={loading}
-                                  className="px-2 py-1 text-[11px] font-extrabold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-md transition disabled:opacity-50 cursor-pointer"
-                                >
-                                  Validate Schedule
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => handleImport(file.filename)}
-                                  disabled={loading || (type === "schedule" && !validated)}
-                                  className="px-2 py-1 text-[11px] font-extrabold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md transition disabled:opacity-50 cursor-pointer"
-                                >
-                                  Update Schedule
-                                </button>
-                              )}
-                            </div>
+                            <button
+                              onClick={() => {
+                                setSelectedFile(file.filename);
+                                setPreview(null);
+                                setResult(null);
+                                setValidated(false);
+                                setValidationIssues([]);
+                                setError(null);
+                              }}
+                              disabled={loading}
+                              className={`px-3 py-1 text-[11px] font-extrabold rounded-md transition disabled:opacity-50 cursor-pointer ${
+                                selectedFile === file.filename
+                                  ? "text-white bg-indigo-600 hover:bg-indigo-700"
+                                  : "text-indigo-600 bg-indigo-50 hover:bg-indigo-100"
+                              }`}
+                            >
+                              {selectedFile === file.filename ? "Selected" : "Select"}
+                            </button>
                           </td>
                         </tr>
                       );

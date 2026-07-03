@@ -11,7 +11,8 @@
     "lint": "tsc --noEmit",
     "validate:all": "npm run lint && npm run build && bash scripts/regression-suite.sh",
     "db:migrate": "tsx backend/database/migrations/migrate.ts",
-    "db:seed": "tsx backend/database/seed/seed.ts"
+    "db:seed": "tsx backend/database/seed/seed.ts",
+    "validate:regression": "bash scripts/regression-suite.sh"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
