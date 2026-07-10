@@ -1,0 +1,932 @@
+SemiSharp Database Dictionary V3.0
+================================================================================
+Generated: 2026-07-10 13:21:19.791591
+Database: semisharp
+
+
+================================================================================
+SCHEMA: analytics
+TABLE: historical_risk_analysis
+================================================================================
+
+Rows: 3028
+
+Columns:
+  historical_risk_id            integer             nullable=NO
+  season                        integer             nullable=NO
+  week                          integer             nullable=NO
+  game_id                       text                nullable=NO
+  favorite_team_id              integer             nullable=NO
+  underdog_team_id              integer             nullable=NO
+  spread_line                   numeric             nullable=YES
+  risk_score                    numeric             nullable=NO
+  risk_factors                  text                nullable=YES
+  upset                         boolean             nullable=NO
+  created_at                    timestamp with time zonenullable=YES
+
+Primary Keys:
+  historical_risk_id
+
+Foreign Keys:
+
+Indexes:
+  historical_risk_analysis_pkey
+
+
+================================================================================
+SCHEMA: analytics
+TABLE: historical_upset_games
+================================================================================
+
+Rows: 3028
+
+Columns:
+  historical_upset_id           integer             nullable=NO
+  season                        integer             nullable=NO
+  week                          integer             nullable=NO
+  game_id                       text                nullable=NO
+  favorite_team_id              integer             nullable=YES
+  underdog_team_id              integer             nullable=YES
+  spread_line                   numeric             nullable=YES
+  favorite_score                integer             nullable=YES
+  underdog_score                integer             nullable=YES
+  favorite_won                  boolean             nullable=NO
+  upset                         boolean             nullable=NO
+  created_at                    timestamp with time zonenullable=YES
+
+Primary Keys:
+  historical_upset_id
+
+Foreign Keys:
+
+Indexes:
+  historical_upset_games_pkey
+
+
+================================================================================
+SCHEMA: auth
+TABLE: users
+================================================================================
+
+Rows: 4
+
+Columns:
+  user_id                       integer             nullable=NO
+  username                      text                nullable=NO
+  display_name                  text                nullable=NO
+  role                          text                nullable=NO
+  password_hash                 text                nullable=YES
+  is_active                     boolean             nullable=NO
+  created_at                    timestamp with time zonenullable=NO
+
+Primary Keys:
+  user_id
+
+Foreign Keys:
+
+Indexes:
+  users_pkey
+  users_username_key
+
+
+================================================================================
+SCHEMA: contest
+TABLE: formats
+================================================================================
+
+Rows: 2
+
+Columns:
+  contest_format_id             integer             nullable=NO
+  format_code                   text                nullable=NO
+  format_name                   text                nullable=NO
+  includes_thanksgiving         boolean             nullable=NO
+  includes_christmas            boolean             nullable=NO
+  is_active                     boolean             nullable=NO
+
+Primary Keys:
+  contest_format_id
+
+Foreign Keys:
+
+Indexes:
+  formats_pkey
+  formats_format_code_key
+
+
+================================================================================
+SCHEMA: contest
+TABLE: legs
+================================================================================
+
+Rows: 38
+
+Columns:
+  contest_leg_id                integer             nullable=NO
+  contest_format_id             integer             nullable=NO
+  season                        integer             nullable=NO
+  leg_number                    integer             nullable=NO
+  leg_code                      text                nullable=NO
+  leg_name                      text                nullable=NO
+  nfl_week                      integer             nullable=YES
+  is_special_leg                boolean             nullable=NO
+  special_leg_type              text                nullable=YES
+  starts_on                     date                nullable=YES
+  ends_on                       date                nullable=YES
+
+Primary Keys:
+  contest_leg_id
+
+Foreign Keys:
+
+Indexes:
+  legs_pkey
+  legs_contest_format_id_season_leg_code_key
+
+
+================================================================================
+SCHEMA: injuries
+TABLE: team_sic_scores
+================================================================================
+
+Rows: 32
+
+Columns:
+  team_sic_score_id             integer             nullable=NO
+  season                        integer             nullable=NO
+  week                          integer             nullable=NO
+  team_id                       integer             nullable=NO
+  sic_score                     numeric             nullable=NO
+  source_system                 text                nullable=NO
+  source_note                   text                nullable=YES
+  imported_at                   timestamp with time zonenullable=NO
+
+Primary Keys:
+  team_sic_score_id
+
+Foreign Keys:
+
+Indexes:
+  team_sic_scores_pkey
+  team_sic_scores_season_week_team_id_source_system_key
+
+
+================================================================================
+SCHEMA: jobs
+TABLE: job_queue
+================================================================================
+
+Rows: 4
+
+Columns:
+  job_id                        integer             nullable=NO
+  job_type                      text                nullable=NO
+  job_status                    text                nullable=NO
+  request_payload               jsonb               nullable=NO
+  result_payload                jsonb               nullable=YES
+  error_message                 text                nullable=YES
+  created_at                    timestamp with time zonenullable=NO
+  started_at                    timestamp with time zonenullable=YES
+  completed_at                  timestamp with time zonenullable=YES
+  worker_id                     text                nullable=YES
+  attempt_count                 integer             nullable=YES
+  claimed_at                    timestamp with time zonenullable=YES
+
+Primary Keys:
+  job_id
+
+Foreign Keys:
+
+Indexes:
+  job_queue_pkey
+  idx_job_queue_status
+  idx_job_queue_poll
+
+
+================================================================================
+SCHEMA: market
+TABLE: bookmakers
+================================================================================
+
+Rows: 9
+
+Columns:
+  bookmaker_key                 text                nullable=NO
+  bookmaker_title               text                nullable=NO
+  is_active                     boolean             nullable=NO
+  created_at                    timestamp with time zonenullable=NO
+
+Primary Keys:
+  bookmaker_key
+
+Foreign Keys:
+
+Indexes:
+  bookmakers_pkey
+
+
+================================================================================
+SCHEMA: market
+TABLE: consensus_spreads
+================================================================================
+
+Rows: 150
+
+Columns:
+  game_id                       text                nullable=YES
+  season                        integer             nullable=YES
+  week                          integer             nullable=YES
+  team_id                       integer             nullable=YES
+  team_abbr                     text                nullable=YES
+  consensus_spread              numeric             nullable=YES
+  consensus_price               numeric             nullable=YES
+  sportsbook_count              bigint              nullable=YES
+  latest_snapshot               timestamp with time zonenullable=YES
+
+Primary Keys:
+
+Foreign Keys:
+
+Indexes:
+
+
+================================================================================
+SCHEMA: market
+TABLE: events
+================================================================================
+
+Rows: 75
+
+Columns:
+  market_event_id               integer             nullable=NO
+  odds_api_event_id             text                nullable=NO
+  game_id                       text                nullable=YES
+  season                        integer             nullable=NO
+  week                          integer             nullable=NO
+  home_team_id                  integer             nullable=YES
+  away_team_id                  integer             nullable=YES
+  home_team_name                text                nullable=NO
+  away_team_name                text                nullable=NO
+  commence_time                 timestamp with time zonenullable=NO
+  source_system                 text                nullable=NO
+  created_at                    timestamp with time zonenullable=NO
+
+Primary Keys:
+  market_event_id
+
+Foreign Keys:
+
+Indexes:
+  events_pkey
+  events_odds_api_event_id_key
+  idx_market_events_game_id
+
+
+================================================================================
+SCHEMA: market
+TABLE: projection_edges
+================================================================================
+
+Rows: 75
+
+Columns:
+  game_id                       text                nullable=YES
+  season                        integer             nullable=YES
+  week                          integer             nullable=YES
+  team_id                       integer             nullable=YES
+  team_abbr                     text                nullable=YES
+  semisharp_spread              numeric             nullable=YES
+  market_spread                 numeric             nullable=YES
+  edge_points                   numeric             nullable=YES
+  sportsbook_count              bigint              nullable=YES
+  latest_snapshot               timestamp with time zonenullable=YES
+
+Primary Keys:
+
+Foreign Keys:
+
+Indexes:
+
+
+================================================================================
+SCHEMA: market
+TABLE: spreads
+================================================================================
+
+Rows: 504
+
+Columns:
+  market_spread_id              integer             nullable=NO
+  market_event_id               integer             nullable=NO
+  bookmaker_key                 text                nullable=NO
+  team_id                       integer             nullable=YES
+  team_name                     text                nullable=NO
+  team_abbr                     text                nullable=YES
+  spread_points                 numeric             nullable=NO
+  price                         integer             nullable=YES
+  last_update                   timestamp with time zonenullable=YES
+  pulled_at                     timestamp with time zonenullable=NO
+  source_system                 text                nullable=NO
+  imported_at                   timestamp with time zonenullable=NO
+
+Primary Keys:
+  market_spread_id
+
+Foreign Keys:
+
+Indexes:
+  spreads_pkey
+  idx_market_spreads_event
+  idx_market_spreads_bookmaker
+  idx_market_spreads_pulled_at
+
+
+================================================================================
+SCHEMA: projections
+TABLE: game_spreads
+================================================================================
+
+Rows: 272
+
+Columns:
+  projection_id                 integer             nullable=NO
+  season                        integer             nullable=NO
+  week                          integer             nullable=NO
+  game_id                       text                nullable=NO
+  rating_week                   integer             nullable=NO
+  hfa_source_system             text                nullable=NO
+  home_team_id                  integer             nullable=NO
+  away_team_id                  integer             nullable=NO
+  home_power_rating             numeric             nullable=NO
+  away_power_rating             numeric             nullable=NO
+  power_rating_diff             numeric             nullable=NO
+  home_field_points             numeric             nullable=NO
+  projected_home_margin         numeric             nullable=NO
+  projected_favorite_team_id    integer             nullable=YES
+  projected_favorite_abbr       text                nullable=NO
+  projected_spread              numeric             nullable=NO
+  source_system                 text                nullable=NO
+  created_at                    timestamp with time zonenullable=NO
+
+Primary Keys:
+  projection_id
+
+Foreign Keys:
+
+Indexes:
+  game_spreads_pkey
+  game_spreads_season_week_game_id_rating_week_hfa_source_sys_key
+
+
+================================================================================
+SCHEMA: projections
+TABLE: projection_inputs
+================================================================================
+
+Rows: 272
+
+Columns:
+  game_id                       text                nullable=YES
+  season                        integer             nullable=YES
+  week                          integer             nullable=YES
+  home_team_id                  integer             nullable=YES
+  home_team                     text                nullable=YES
+  away_team_id                  integer             nullable=YES
+  away_team                     text                nullable=YES
+  home_power                    numeric             nullable=YES
+  away_power                    numeric             nullable=YES
+  home_field_points             numeric             nullable=YES
+  home_sic                      numeric             nullable=YES
+  away_sic                      numeric             nullable=YES
+  sic_difference                numeric             nullable=YES
+
+Primary Keys:
+
+Foreign Keys:
+
+Indexes:
+
+
+================================================================================
+SCHEMA: ratings
+TABLE: pff_power_ratings
+================================================================================
+
+Rows: 32
+
+Columns:
+  pff_power_rating_id           integer             nullable=NO
+  season                        integer             nullable=NO
+  week                          integer             nullable=NO
+  contest_leg_id                integer             nullable=YES
+  team_id                       integer             nullable=NO
+  pff_team_code                 text                nullable=NO
+  point_spread_rating           numeric             nullable=YES
+  qb_rating                     numeric             nullable=YES
+  sos_to_date                   numeric             nullable=YES
+  sos_remaining                 numeric             nullable=YES
+  projected_wins                numeric             nullable=YES
+  make_playoffs_pct             numeric             nullable=YES
+  win_division_pct              numeric             nullable=YES
+  win_conference_pct            numeric             nullable=YES
+  win_super_bowl_pct            numeric             nullable=YES
+  source_file                   text                nullable=NO
+  imported_at                   timestamp with time zonenullable=NO
+
+Primary Keys:
+  pff_power_rating_id
+
+Foreign Keys:
+
+Indexes:
+  pff_power_ratings_pkey
+  pff_power_ratings_season_week_team_id_key
+
+
+================================================================================
+SCHEMA: reference
+TABLE: home_field_advantage
+================================================================================
+
+Rows: 64
+
+Columns:
+  home_field_advantage_id       integer             nullable=NO
+  season                        integer             nullable=NO
+  team_id                       integer             nullable=NO
+  home_field_points             numeric             nullable=NO
+  source_system                 text                nullable=NO
+  notes                         text                nullable=YES
+  is_active                     boolean             nullable=NO
+  created_at                    timestamp with time zonenullable=NO
+
+Primary Keys:
+  home_field_advantage_id
+
+Foreign Keys:
+
+Indexes:
+  home_field_advantage_pkey
+  home_field_advantage_season_team_source_key
+
+
+================================================================================
+SCHEMA: reference
+TABLE: team_aliases
+================================================================================
+
+Rows: 104
+
+Columns:
+  alias_id                      integer             nullable=NO
+  team_id                       integer             nullable=NO
+  source_system                 text                nullable=NO
+  alias_value                   text                nullable=NO
+  alias_normalized              text                nullable=NO
+  alias_type                    text                nullable=NO
+  is_active                     boolean             nullable=NO
+  created_at                    timestamp with time zonenullable=NO
+
+Primary Keys:
+  alias_id
+
+Foreign Keys:
+
+Indexes:
+  team_aliases_pkey
+  team_aliases_source_system_alias_normalized_key
+
+
+================================================================================
+SCHEMA: reference
+TABLE: team_lookup
+================================================================================
+
+Rows: 104
+
+Columns:
+  alias_normalized              text                nullable=YES
+  team_id                       integer             nullable=YES
+  team_abbr                     text                nullable=YES
+  team_name                     text                nullable=YES
+
+Primary Keys:
+
+Foreign Keys:
+
+Indexes:
+
+
+================================================================================
+SCHEMA: reference
+TABLE: teams
+================================================================================
+
+Rows: 32
+
+Columns:
+  team_id                       integer             nullable=NO
+  nflverse_team_id              text                nullable=YES
+  team_abbr                     text                nullable=NO
+  team_name                     text                nullable=NO
+  team_nick                     text                nullable=NO
+  conference                    text                nullable=NO
+  division                      text                nullable=NO
+  is_active                     boolean             nullable=NO
+  created_at                    timestamp with time zonenullable=NO
+
+Primary Keys:
+  team_id
+
+Foreign Keys:
+
+Indexes:
+  teams_pkey
+  teams_nflverse_team_id_key
+  teams_team_abbr_key
+
+
+================================================================================
+SCHEMA: risk
+TABLE: game_risk_factors
+================================================================================
+
+Rows: 54
+
+Columns:
+  game_risk_factor_id           integer             nullable=NO
+  season                        integer             nullable=NO
+  week                          integer             nullable=NO
+  game_id                       text                nullable=NO
+  team_id                       integer             nullable=NO
+  risk_type                     text                nullable=NO
+  severity                      text                nullable=NO
+  risk_points                   numeric             nullable=NO
+  description                   text                nullable=NO
+  source_system                 text                nullable=NO
+  created_at                    timestamp with time zonenullable=NO
+
+Primary Keys:
+  game_risk_factor_id
+
+Foreign Keys:
+
+Indexes:
+  game_risk_factors_pkey
+  game_risk_factors_game_id_team_id_risk_type_source_system_key
+
+
+================================================================================
+SCHEMA: risk
+TABLE: game_risk_scores
+================================================================================
+
+Rows: 14
+
+Columns:
+  game_risk_score_id            integer             nullable=NO
+  season                        integer             nullable=NO
+  week                          integer             nullable=NO
+  game_id                       text                nullable=NO
+  team_id                       integer             nullable=NO
+  risk_score                    numeric             nullable=NO
+  risk_stars                    integer             nullable=NO
+  risk_level                    text                nullable=NO
+  factor_count                  integer             nullable=NO
+  risk_summary                  text                nullable=YES
+  source_system                 text                nullable=NO
+  created_at                    timestamp with time zonenullable=YES
+
+Primary Keys:
+  game_risk_score_id
+
+Foreign Keys:
+
+Indexes:
+  game_risk_scores_pkey
+  game_risk_scores_game_team_unique
+
+
+================================================================================
+SCHEMA: risk
+TABLE: game_risk_summary
+================================================================================
+
+Rows: 16
+
+Columns:
+  season                        integer             nullable=YES
+  week                          integer             nullable=YES
+  game_id                       text                nullable=YES
+  team_id                       integer             nullable=YES
+  total_risk_points             numeric             nullable=YES
+  risk_factor_count             bigint              nullable=YES
+  risk_types                    text                nullable=YES
+
+Primary Keys:
+
+Foreign Keys:
+
+Indexes:
+
+
+================================================================================
+SCHEMA: risk
+TABLE: manual_team_risks
+================================================================================
+
+Rows: 0
+
+Columns:
+  manual_team_risk_id           integer             nullable=NO
+  season                        integer             nullable=NO
+  week                          integer             nullable=NO
+  team_id                       integer             nullable=NO
+  risk_type                     text                nullable=NO
+  severity                      text                nullable=NO
+  risk_points                   numeric             nullable=NO
+  description                   text                nullable=NO
+  source_system                 text                nullable=NO
+  created_at                    timestamp with time zonenullable=NO
+
+Primary Keys:
+  manual_team_risk_id
+
+Foreign Keys:
+
+Indexes:
+  manual_team_risks_pkey
+  manual_team_risks_season_week_team_id_risk_type_key
+
+
+================================================================================
+SCHEMA: risk
+TABLE: risk_factor_weights
+================================================================================
+
+Rows: 13
+
+Columns:
+  risk_type                     text                nullable=NO
+  default_points                numeric             nullable=NO
+  severity                      text                nullable=NO
+  active                        boolean             nullable=NO
+  description                   text                nullable=YES
+  created_at                    timestamp with time zonenullable=YES
+
+Primary Keys:
+  risk_type
+
+Foreign Keys:
+
+Indexes:
+  risk_factor_weights_pkey
+
+
+================================================================================
+SCHEMA: schedule
+TABLE: games
+================================================================================
+
+Rows: 3300
+
+Columns:
+  game_id                       text                nullable=NO
+  season                        integer             nullable=NO
+  week                          integer             nullable=NO
+  game_type                     text                nullable=NO
+  gameday                       date                nullable=YES
+  weekday                       text                nullable=YES
+  gametime                      text                nullable=YES
+  away_team_id                  integer             nullable=YES
+  home_team_id                  integer             nullable=YES
+  away_team_abbr                text                nullable=NO
+  home_team_abbr                text                nullable=NO
+  location                      text                nullable=YES
+  result                        integer             nullable=YES
+  total                         numeric             nullable=YES
+  overtime                      boolean             nullable=YES
+  is_thanksgiving               boolean             nullable=NO
+  is_christmas                  boolean             nullable=NO
+  created_at                    timestamp with time zonenullable=NO
+  away_score                    integer             nullable=YES
+  home_score                    integer             nullable=YES
+  away_rest                     integer             nullable=YES
+  home_rest                     integer             nullable=YES
+  spread_line                   numeric             nullable=YES
+  total_line                    numeric             nullable=YES
+  div_game                      boolean             nullable=YES
+  roof                          text                nullable=YES
+  surface                       text                nullable=YES
+  temp                          integer             nullable=YES
+  wind                          integer             nullable=YES
+  stadium_id                    text                nullable=YES
+  stadium                       text                nullable=YES
+  away_coach                    text                nullable=YES
+  home_coach                    text                nullable=YES
+  source_system                 text                nullable=YES
+  source_loaded_at              timestamp with time zonenullable=YES
+
+Primary Keys:
+  game_id
+
+Foreign Keys:
+
+Indexes:
+  games_pkey
+
+
+================================================================================
+SCHEMA: strategy
+TABLE: recommendations
+================================================================================
+
+Rows: 0
+
+Columns:
+  recommendation_id             integer             nullable=NO
+  strategy_run_id               integer             nullable=NO
+  entry_id                      integer             nullable=NO
+  contest_leg_id                integer             nullable=NO
+  team_id                       integer             nullable=NO
+  game_id                       text                nullable=YES
+  projected_spread              numeric             nullable=YES
+  projected_favorite_abbr       text                nullable=YES
+  rank_order                    integer             nullable=NO
+  rationale                     text                nullable=YES
+  created_at                    timestamp with time zonenullable=NO
+
+Primary Keys:
+  recommendation_id
+
+Foreign Keys:
+
+Indexes:
+  recommendations_pkey
+  recommendations_strategy_run_id_entry_id_contest_leg_id_ran_key
+
+
+================================================================================
+SCHEMA: strategy
+TABLE: registry
+================================================================================
+
+Rows: 10
+
+Columns:
+  strategy_id                   integer             nullable=NO
+  strategy_code                 text                nullable=NO
+  display_name                  text                nullable=NO
+  description                   text                nullable=NO
+  endpoint                      text                nullable=NO
+  runtime_class                 text                nullable=NO
+  requires_background_job       boolean             nullable=NO
+  parameters                    jsonb               nullable=NO
+  is_active                     boolean             nullable=NO
+  created_at                    timestamp with time zonenullable=NO
+  updated_at                    timestamp with time zonenullable=NO
+
+Primary Keys:
+  strategy_id
+
+Foreign Keys:
+
+Indexes:
+  registry_pkey
+  registry_strategy_code_key
+
+
+================================================================================
+SCHEMA: strategy
+TABLE: runs
+================================================================================
+
+Rows: 0
+
+Columns:
+  strategy_run_id               integer             nullable=NO
+  strategy_code                 text                nullable=NO
+  strategy_name                 text                nullable=NO
+  strategy_version              text                nullable=NO
+  season                        integer             nullable=NO
+  contest_format_id             integer             nullable=NO
+  rating_week                   integer             nullable=YES
+  hfa_source_system             text                nullable=YES
+  notes                         text                nullable=YES
+  created_at                    timestamp with time zonenullable=NO
+
+Primary Keys:
+  strategy_run_id
+
+Foreign Keys:
+
+Indexes:
+  runs_pkey
+
+
+================================================================================
+SCHEMA: survivor
+TABLE: entries
+================================================================================
+
+Rows: 4
+
+Columns:
+  entry_id                      integer             nullable=NO
+  user_id                       integer             nullable=NO
+  survivor_sweat_name           text                nullable=NO
+  entry_label                   text                nullable=NO
+  is_active                     boolean             nullable=NO
+  created_at                    timestamp with time zonenullable=NO
+  eliminated_leg_id             integer             nullable=YES
+  eliminated_at                 timestamp with time zonenullable=YES
+  eliminated_reason             text                nullable=YES
+
+Primary Keys:
+  entry_id
+
+Foreign Keys:
+
+Indexes:
+  entries_pkey
+  entries_survivor_sweat_name_key
+
+
+================================================================================
+SCHEMA: survivor
+TABLE: entry_picks
+================================================================================
+
+Rows: 0
+
+Columns:
+  entry_pick_id                 integer             nullable=NO
+  entry_id                      integer             nullable=NO
+  contest_leg_id                integer             nullable=NO
+  team_id                       integer             nullable=NO
+  pick_source                   text                nullable=NO
+  picked_at                     timestamp with time zonenullable=NO
+  notes                         text                nullable=YES
+  created_at                    timestamp with time zonenullable=NO
+
+Primary Keys:
+  entry_pick_id
+
+Foreign Keys:
+
+Indexes:
+  entry_picks_pkey
+  entry_picks_entry_id_contest_leg_id_key
+  entry_picks_entry_id_team_id_key
+
+
+================================================================================
+SCHEMA: survivor
+TABLE: user_entries
+================================================================================
+
+Rows: 5
+
+Columns:
+  user_id                       integer             nullable=YES
+  username                      text                nullable=YES
+  display_name                  text                nullable=YES
+  role                          text                nullable=YES
+  entry_id                      integer             nullable=YES
+  survivor_sweat_name           text                nullable=YES
+  entry_label                   text                nullable=YES
+  entry_is_active               boolean             nullable=YES
+
+Primary Keys:
+
+Foreign Keys:
+
+Indexes:
+
+
+================================================================================
+SCHEMA: system
+TABLE: application_context
+================================================================================
+
+Rows: 1
+
+Columns:
+  context_id                    integer             nullable=NO
+  season                        integer             nullable=NO
+  current_week                  integer             nullable=NO
+  rating_week                   integer             nullable=NO
+  projection_model              text                nullable=NO
+  hfa_source                    text                nullable=NO
+  is_active                     boolean             nullable=NO
+  created_at                    timestamp with time zonenullable=NO
+  updated_at                    timestamp with time zonenullable=NO
+
+Primary Keys:
+  context_id
+
+Foreign Keys:
+
+Indexes:
+  application_context_pkey
+  application_context_is_active_key

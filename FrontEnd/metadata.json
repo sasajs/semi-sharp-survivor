@@ -1,0 +1,6 @@
+{
+  "name": "SemiSharp",
+  "description": "High-fidelity frontend presentation client for the SemiSharp projection, risk, and survivor strategy backend engines.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

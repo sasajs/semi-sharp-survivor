@@ -1,0 +1,2146 @@
+{
+  "generated": "2026-07-10 13:21:19.791591",
+  "database": "semisharp",
+  "tables": [
+    {
+      "schema": "analytics",
+      "table": "historical_risk_analysis",
+      "row_count": 3028,
+      "columns": [
+        {
+          "name": "historical_risk_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "week",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "game_id",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "favorite_team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "underdog_team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "spread_line",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "risk_score",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "risk_factors",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "upset",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "YES"
+        }
+      ],
+      "primary_keys": [
+        "historical_risk_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "historical_risk_analysis_pkey"
+      ]
+    },
+    {
+      "schema": "analytics",
+      "table": "historical_upset_games",
+      "row_count": 3028,
+      "columns": [
+        {
+          "name": "historical_upset_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "week",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "game_id",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "favorite_team_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "underdog_team_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "spread_line",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "favorite_score",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "underdog_score",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "favorite_won",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "upset",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "YES"
+        }
+      ],
+      "primary_keys": [
+        "historical_upset_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "historical_upset_games_pkey"
+      ]
+    },
+    {
+      "schema": "auth",
+      "table": "users",
+      "row_count": 4,
+      "columns": [
+        {
+          "name": "user_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "username",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "display_name",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "role",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "password_hash",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "user_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "users_pkey",
+        "users_username_key"
+      ]
+    },
+    {
+      "schema": "contest",
+      "table": "formats",
+      "row_count": 2,
+      "columns": [
+        {
+          "name": "contest_format_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "format_code",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "format_name",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "includes_thanksgiving",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "includes_christmas",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "contest_format_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "formats_pkey",
+        "formats_format_code_key"
+      ]
+    },
+    {
+      "schema": "contest",
+      "table": "legs",
+      "row_count": 38,
+      "columns": [
+        {
+          "name": "contest_leg_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "contest_format_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "leg_number",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "leg_code",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "leg_name",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "nfl_week",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "is_special_leg",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "special_leg_type",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "starts_on",
+          "type": "date",
+          "nullable": "YES"
+        },
+        {
+          "name": "ends_on",
+          "type": "date",
+          "nullable": "YES"
+        }
+      ],
+      "primary_keys": [
+        "contest_leg_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "legs_pkey",
+        "legs_contest_format_id_season_leg_code_key"
+      ]
+    },
+    {
+      "schema": "injuries",
+      "table": "team_sic_scores",
+      "row_count": 32,
+      "columns": [
+        {
+          "name": "team_sic_score_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "week",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "sic_score",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "source_system",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "source_note",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "imported_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "team_sic_score_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "team_sic_scores_pkey",
+        "team_sic_scores_season_week_team_id_source_system_key"
+      ]
+    },
+    {
+      "schema": "jobs",
+      "table": "job_queue",
+      "row_count": 4,
+      "columns": [
+        {
+          "name": "job_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "job_type",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "job_status",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "request_payload",
+          "type": "jsonb",
+          "nullable": "NO"
+        },
+        {
+          "name": "result_payload",
+          "type": "jsonb",
+          "nullable": "YES"
+        },
+        {
+          "name": "error_message",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        },
+        {
+          "name": "started_at",
+          "type": "timestamp with time zone",
+          "nullable": "YES"
+        },
+        {
+          "name": "completed_at",
+          "type": "timestamp with time zone",
+          "nullable": "YES"
+        },
+        {
+          "name": "worker_id",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "attempt_count",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "claimed_at",
+          "type": "timestamp with time zone",
+          "nullable": "YES"
+        }
+      ],
+      "primary_keys": [
+        "job_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "job_queue_pkey",
+        "idx_job_queue_status",
+        "idx_job_queue_poll"
+      ]
+    },
+    {
+      "schema": "market",
+      "table": "bookmakers",
+      "row_count": 9,
+      "columns": [
+        {
+          "name": "bookmaker_key",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "bookmaker_title",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "bookmaker_key"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "bookmakers_pkey"
+      ]
+    },
+    {
+      "schema": "market",
+      "table": "consensus_spreads",
+      "row_count": 150,
+      "columns": [
+        {
+          "name": "game_id",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "week",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "team_abbr",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "consensus_spread",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "consensus_price",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "sportsbook_count",
+          "type": "bigint",
+          "nullable": "YES"
+        },
+        {
+          "name": "latest_snapshot",
+          "type": "timestamp with time zone",
+          "nullable": "YES"
+        }
+      ],
+      "primary_keys": [],
+      "foreign_keys": [],
+      "indexes": []
+    },
+    {
+      "schema": "market",
+      "table": "events",
+      "row_count": 75,
+      "columns": [
+        {
+          "name": "market_event_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "odds_api_event_id",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "game_id",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "week",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "home_team_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "away_team_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "home_team_name",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "away_team_name",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "commence_time",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        },
+        {
+          "name": "source_system",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "market_event_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "events_pkey",
+        "events_odds_api_event_id_key",
+        "idx_market_events_game_id"
+      ]
+    },
+    {
+      "schema": "market",
+      "table": "projection_edges",
+      "row_count": 75,
+      "columns": [
+        {
+          "name": "game_id",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "week",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "team_abbr",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "semisharp_spread",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "market_spread",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "edge_points",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "sportsbook_count",
+          "type": "bigint",
+          "nullable": "YES"
+        },
+        {
+          "name": "latest_snapshot",
+          "type": "timestamp with time zone",
+          "nullable": "YES"
+        }
+      ],
+      "primary_keys": [],
+      "foreign_keys": [],
+      "indexes": []
+    },
+    {
+      "schema": "market",
+      "table": "spreads",
+      "row_count": 504,
+      "columns": [
+        {
+          "name": "market_spread_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "market_event_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "bookmaker_key",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "team_name",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "team_abbr",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "spread_points",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "price",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "last_update",
+          "type": "timestamp with time zone",
+          "nullable": "YES"
+        },
+        {
+          "name": "pulled_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        },
+        {
+          "name": "source_system",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "imported_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "market_spread_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "spreads_pkey",
+        "idx_market_spreads_event",
+        "idx_market_spreads_bookmaker",
+        "idx_market_spreads_pulled_at"
+      ]
+    },
+    {
+      "schema": "projections",
+      "table": "game_spreads",
+      "row_count": 272,
+      "columns": [
+        {
+          "name": "projection_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "week",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "game_id",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "rating_week",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "hfa_source_system",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "home_team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "away_team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "home_power_rating",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "away_power_rating",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "power_rating_diff",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "home_field_points",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "projected_home_margin",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "projected_favorite_team_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "projected_favorite_abbr",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "projected_spread",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "source_system",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "projection_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "game_spreads_pkey",
+        "game_spreads_season_week_game_id_rating_week_hfa_source_sys_key"
+      ]
+    },
+    {
+      "schema": "projections",
+      "table": "projection_inputs",
+      "row_count": 272,
+      "columns": [
+        {
+          "name": "game_id",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "week",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "home_team_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "home_team",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "away_team_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "away_team",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "home_power",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "away_power",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "home_field_points",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "home_sic",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "away_sic",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "sic_difference",
+          "type": "numeric",
+          "nullable": "YES"
+        }
+      ],
+      "primary_keys": [],
+      "foreign_keys": [],
+      "indexes": []
+    },
+    {
+      "schema": "ratings",
+      "table": "pff_power_ratings",
+      "row_count": 32,
+      "columns": [
+        {
+          "name": "pff_power_rating_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "week",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "contest_leg_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "pff_team_code",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "point_spread_rating",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "qb_rating",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "sos_to_date",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "sos_remaining",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "projected_wins",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "make_playoffs_pct",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "win_division_pct",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "win_conference_pct",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "win_super_bowl_pct",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "source_file",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "imported_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "pff_power_rating_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "pff_power_ratings_pkey",
+        "pff_power_ratings_season_week_team_id_key"
+      ]
+    },
+    {
+      "schema": "reference",
+      "table": "home_field_advantage",
+      "row_count": 64,
+      "columns": [
+        {
+          "name": "home_field_advantage_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "home_field_points",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "source_system",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "home_field_advantage_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "home_field_advantage_pkey",
+        "home_field_advantage_season_team_source_key"
+      ]
+    },
+    {
+      "schema": "reference",
+      "table": "team_aliases",
+      "row_count": 104,
+      "columns": [
+        {
+          "name": "alias_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "source_system",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "alias_value",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "alias_normalized",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "alias_type",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "alias_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "team_aliases_pkey",
+        "team_aliases_source_system_alias_normalized_key"
+      ]
+    },
+    {
+      "schema": "reference",
+      "table": "team_lookup",
+      "row_count": 104,
+      "columns": [
+        {
+          "name": "alias_normalized",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "team_abbr",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "team_name",
+          "type": "text",
+          "nullable": "YES"
+        }
+      ],
+      "primary_keys": [],
+      "foreign_keys": [],
+      "indexes": []
+    },
+    {
+      "schema": "reference",
+      "table": "teams",
+      "row_count": 32,
+      "columns": [
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "nflverse_team_id",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "team_abbr",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "team_name",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "team_nick",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "conference",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "division",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "team_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "teams_pkey",
+        "teams_nflverse_team_id_key",
+        "teams_team_abbr_key"
+      ]
+    },
+    {
+      "schema": "risk",
+      "table": "game_risk_factors",
+      "row_count": 54,
+      "columns": [
+        {
+          "name": "game_risk_factor_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "week",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "game_id",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "risk_type",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "severity",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "risk_points",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "source_system",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "game_risk_factor_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "game_risk_factors_pkey",
+        "game_risk_factors_game_id_team_id_risk_type_source_system_key"
+      ]
+    },
+    {
+      "schema": "risk",
+      "table": "game_risk_scores",
+      "row_count": 14,
+      "columns": [
+        {
+          "name": "game_risk_score_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "week",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "game_id",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "risk_score",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "risk_stars",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "risk_level",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "factor_count",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "risk_summary",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "source_system",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "YES"
+        }
+      ],
+      "primary_keys": [
+        "game_risk_score_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "game_risk_scores_pkey",
+        "game_risk_scores_game_team_unique"
+      ]
+    },
+    {
+      "schema": "risk",
+      "table": "game_risk_summary",
+      "row_count": 16,
+      "columns": [
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "week",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "game_id",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "total_risk_points",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "risk_factor_count",
+          "type": "bigint",
+          "nullable": "YES"
+        },
+        {
+          "name": "risk_types",
+          "type": "text",
+          "nullable": "YES"
+        }
+      ],
+      "primary_keys": [],
+      "foreign_keys": [],
+      "indexes": []
+    },
+    {
+      "schema": "risk",
+      "table": "manual_team_risks",
+      "row_count": 0,
+      "columns": [
+        {
+          "name": "manual_team_risk_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "week",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "risk_type",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "severity",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "risk_points",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "source_system",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "manual_team_risk_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "manual_team_risks_pkey",
+        "manual_team_risks_season_week_team_id_risk_type_key"
+      ]
+    },
+    {
+      "schema": "risk",
+      "table": "risk_factor_weights",
+      "row_count": 13,
+      "columns": [
+        {
+          "name": "risk_type",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "default_points",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "severity",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "YES"
+        }
+      ],
+      "primary_keys": [
+        "risk_type"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "risk_factor_weights_pkey"
+      ]
+    },
+    {
+      "schema": "schedule",
+      "table": "games",
+      "row_count": 3300,
+      "columns": [
+        {
+          "name": "game_id",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "week",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "game_type",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "gameday",
+          "type": "date",
+          "nullable": "YES"
+        },
+        {
+          "name": "weekday",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "gametime",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "away_team_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "home_team_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "away_team_abbr",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "home_team_abbr",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "location",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "result",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "total",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "overtime",
+          "type": "boolean",
+          "nullable": "YES"
+        },
+        {
+          "name": "is_thanksgiving",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "is_christmas",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        },
+        {
+          "name": "away_score",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "home_score",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "away_rest",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "home_rest",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "spread_line",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "total_line",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "div_game",
+          "type": "boolean",
+          "nullable": "YES"
+        },
+        {
+          "name": "roof",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "surface",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "temp",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "wind",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "stadium_id",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "stadium",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "away_coach",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "home_coach",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "source_system",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "source_loaded_at",
+          "type": "timestamp with time zone",
+          "nullable": "YES"
+        }
+      ],
+      "primary_keys": [
+        "game_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "games_pkey"
+      ]
+    },
+    {
+      "schema": "strategy",
+      "table": "recommendations",
+      "row_count": 0,
+      "columns": [
+        {
+          "name": "recommendation_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "strategy_run_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "entry_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "contest_leg_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "game_id",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "projected_spread",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "projected_favorite_abbr",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "rank_order",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "rationale",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "recommendation_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "recommendations_pkey",
+        "recommendations_strategy_run_id_entry_id_contest_leg_id_ran_key"
+      ]
+    },
+    {
+      "schema": "strategy",
+      "table": "registry",
+      "row_count": 10,
+      "columns": [
+        {
+          "name": "strategy_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "strategy_code",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "display_name",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "endpoint",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "runtime_class",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "requires_background_job",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "parameters",
+          "type": "jsonb",
+          "nullable": "NO"
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "strategy_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "registry_pkey",
+        "registry_strategy_code_key"
+      ]
+    },
+    {
+      "schema": "strategy",
+      "table": "runs",
+      "row_count": 0,
+      "columns": [
+        {
+          "name": "strategy_run_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "strategy_code",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "strategy_name",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "strategy_version",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "contest_format_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "rating_week",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "hfa_source_system",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "strategy_run_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "runs_pkey"
+      ]
+    },
+    {
+      "schema": "survivor",
+      "table": "entries",
+      "row_count": 4,
+      "columns": [
+        {
+          "name": "entry_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "user_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "survivor_sweat_name",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "entry_label",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        },
+        {
+          "name": "eliminated_leg_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "eliminated_at",
+          "type": "timestamp with time zone",
+          "nullable": "YES"
+        },
+        {
+          "name": "eliminated_reason",
+          "type": "text",
+          "nullable": "YES"
+        }
+      ],
+      "primary_keys": [
+        "entry_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "entries_pkey",
+        "entries_survivor_sweat_name_key"
+      ]
+    },
+    {
+      "schema": "survivor",
+      "table": "entry_picks",
+      "row_count": 0,
+      "columns": [
+        {
+          "name": "entry_pick_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "entry_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "contest_leg_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "pick_source",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "picked_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "entry_pick_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "entry_picks_pkey",
+        "entry_picks_entry_id_contest_leg_id_key",
+        "entry_picks_entry_id_team_id_key"
+      ]
+    },
+    {
+      "schema": "survivor",
+      "table": "user_entries",
+      "row_count": 5,
+      "columns": [
+        {
+          "name": "user_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "username",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "display_name",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "role",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "entry_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "survivor_sweat_name",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "entry_label",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "entry_is_active",
+          "type": "boolean",
+          "nullable": "YES"
+        }
+      ],
+      "primary_keys": [],
+      "foreign_keys": [],
+      "indexes": []
+    },
+    {
+      "schema": "system",
+      "table": "application_context",
+      "row_count": 1,
+      "columns": [
+        {
+          "name": "context_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "current_week",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "rating_week",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "projection_model",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "hfa_source",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "context_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "application_context_pkey",
+        "application_context_is_active_key"
+      ]
+    }
+  ]
+}
