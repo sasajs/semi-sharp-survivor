@@ -12,6 +12,7 @@ def parse_args():
     parser.add_argument("--contest-format", choices=["STANDARD", "CIRCA"], required=True)
     parser.add_argument("--rating-week", type=int, required=True)
     parser.add_argument("--hfa-source", required=True)
+    parser.add_argument("--user-id", type=int, required=True)
     return parser.parse_args()
 
 
@@ -67,9 +68,9 @@ def main():
             cur.execute("""
                 SELECT entry_id, survivor_sweat_name
                 FROM survivor.entries
-                WHERE is_active = TRUE
+                WHERE is_active = TRUE AND user_id = %s
                 ORDER BY entry_id;
-            """)
+            """, (args.user_id,))
             entries = [{"entry_id": r[0], "survivor_sweat_name": r[1], "used": set(), "picks": []} for r in cur.fetchall()]
 
             for entry in entries:

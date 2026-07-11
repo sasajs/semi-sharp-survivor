@@ -3,8 +3,8 @@ import json
 import sys
 from app.db import get_connection
 
+# V3 Calibration: Future Value penalty weight
 FUTURE_VALUE_WEIGHT = 0.35
-
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -12,27 +12,20 @@ def parse_args():
     parser.add_argument("--contest-format", choices=["STANDARD", "CIRCA"], required=True)
     parser.add_argument("--rating-week", type=int, required=True)
     parser.add_argument("--hfa-source", required=True)
+    # Added required entry-id for session-aware execution
+    parser.add_argument("--entry-id", type=int, required=True, help="Survivor Entry ID")
     return parser.parse_args()
-
 
 def get_legs(cur, args):
     cur.execute("""
-        SELECT
-            l.contest_leg_id,
-            l.leg_number,
-            l.leg_code,
-            l.leg_name,
-            l.nfl_week,
-            l.special_leg_type
+        SELECT l.contest_leg_id, l.leg_number, l.leg_code, l.leg_name, l.nfl_week, l.special_leg_type
         FROM contest.legs l
         JOIN contest.formats f ON f.contest_format_id = l.contest_format_id
-        WHERE l.season = %s
-          AND f.format_code = %s
+        WHERE l.season = %s AND f.format_code = %s
         ORDER BY l.leg_number;
     """, (args.season, args.contest_format))
     cols = [d[0] for d in cur.description]
     return [dict(zip(cols, row)) for row in cur.fetchall()]
-
 
 def get_candidates_with_risk(cur, args, leg):
     if leg["special_leg_type"] == "THANKSGIVING":
@@ -61,182 +54,80 @@ def get_candidates_with_risk(cur, args, leg):
         FROM projections.game_spreads p
         JOIN schedule.games g ON g.game_id = p.game_id
         LEFT JOIN risk.game_risk_scores r ON r.game_id = p.game_id AND r.team_id = p.projected_favorite_team_id
-        WHERE p.season = %s
-          AND p.rating_week = %s
-          AND p.hfa_source_system = %s
-          AND {filter_sql}
+        WHERE p.season = %s AND p.rating_week = %s AND p.hfa_source_system = %s AND {filter_sql}
         ORDER BY ABS(p.projected_spread) DESC;
     """, params)
 
     cols = [d[0] for d in cur.description]
     return [dict(zip(cols, row)) for row in cur.fetchall()]
 
-
 def calculate_future_value(team_id, current_leg_number, candidates_by_leg):
     future_scores = []
     for leg_number, candidates in candidates_by_leg.items():
-        if leg_number <= current_leg_number:
-            continue
+        if leg_number <= current_leg_number: continue
         for candidate in candidates:
             if candidate["team_id"] == team_id:
                 future_scores.append(float(candidate["spread_strength"]))
-
-    if not future_scores:
-        return 0.0
-    return max(future_scores)
-
+    return max(future_scores) if future_scores else 0.0
 
 def get_current_application_context(cur):
-    cur.execute("""
-        SELECT current_week 
-        FROM system.application_context 
-        WHERE is_active = TRUE 
-        LIMIT 1;
-    """)
+    cur.execute("SELECT current_week FROM system.application_context WHERE is_active = TRUE LIMIT 1;")
     row = cur.fetchone()
     return row[0] if row else 1
 
-
 def main():
     args = parse_args()
-
     output = {
         "strategy": "FUTURE_VALUE",
         "strategy_version": "v3.0",
-        "season": args.season,
-        "contest_format": args.contest_format,
-        "rating_week": args.rating_week,
-        "hfa_source": args.hfa_source,
-        "future_value_weight": FUTURE_VALUE_WEIGHT,
         "entries": []
     }
 
     with get_connection() as conn:
         with conn.cursor() as cur:
             current_active_week = get_current_application_context(cur)
-            entries = cur.fetchall()
-            
-            cur.execute("""
-                SELECT entry_id, survivor_sweat_name
-                FROM survivor.entries
-                WHERE is_active = TRUE
-                ORDER BY entry_id;
-            """)
-            entries = cur.fetchall()
-
             legs = get_legs(cur, args)
+            candidates_by_leg = {leg["leg_number"]: get_candidates_with_risk(cur, args, leg) for leg in legs}
 
-            candidates_by_leg = {
-                leg["leg_number"]: get_candidates_with_risk(cur, args, leg)
-                for leg in legs
-            }
+            processing_order = legs if args.contest_format != "CIRCA" else ([l for l in legs if l["special_leg_type"]] + [l for l in legs if not l["special_leg_type"]])
 
-            if args.contest_format == "CIRCA":
-                special = [l for l in legs if l["special_leg_type"] in ("THANKSGIVING", "CHRISTMAS")]
-                normal = [l for l in legs if l["special_leg_type"] is None]
-                processing_order = special + normal
-            else:
-                processing_order = legs
+            cur.execute("SELECT entry_id, survivor_sweat_name FROM survivor.entries WHERE entry_id = %s", (args.entry_id,))
+            entry = cur.fetchone()
+            if not entry: sys.exit(1)
+            
+            entry_id, sweat_name = entry
+            cur.execute("SELECT team_id FROM survivor.entry_picks WHERE entry_id = %s", (entry_id,))
+            used = {r[0] for r in cur.fetchall()}
 
-            for entry_id, sweat_name in entries:
-                cur.execute("""
-                    SELECT team_id
-                    FROM survivor.entry_picks
-                    WHERE entry_id = %s;
-                """, (entry_id,))
-                used = {r[0] for r in cur.fetchall()}
+            picks, current_week_alternatives = [], []
 
-                picks = []
-                current_week_alternatives = None
+            for leg in processing_order:
+                scored = []
+                for candidate in candidates_by_leg[leg["leg_number"]]:
+                    if candidate["team_id"] in used: continue
+                    current_strength = float(candidate["spread_strength"])
+                    future_value = calculate_future_value(candidate["team_id"], leg["leg_number"], candidates_by_leg)
+                    # V3 Risk-Aware Adjustment
+                    adjusted_score = current_strength - (FUTURE_VALUE_WEIGHT * future_value) - float(candidate["risk_score"])
+                    scored.append({**candidate, "adjusted_score": adjusted_score})
 
-                for leg in processing_order:
-                    scored = []
-
-                    for candidate in candidates_by_leg[leg["leg_number"]]:
-                        if candidate["team_id"] in used:
-                            continue
-
-                        current_strength = float(candidate["spread_strength"])
-                        future_value = calculate_future_value(
-                            candidate["team_id"],
-                            leg["leg_number"],
-                            candidates_by_leg
-                        )
-
-                        # V3 Risk Integration: Subtract risk score directly from the optimization profile
-                        risk_points = float(candidate["risk_score"])
-                        adjusted_score = current_strength - (FUTURE_VALUE_WEIGHT * future_value) - risk_points
-
-                        scored.append({
-                            "candidate": candidate,
-                            "current_strength": current_strength,
-                            "future_value": future_value,
-                            "adjusted_score": adjusted_score,
-                            "risk_points": risk_points,
-                            "risk_stars": candidate["risk_stars"],
-                            "risk_level": candidate["risk_level"],
-                            "risk_summary": candidate["risk_summary"]
-                        })
-
-                    if not scored:
-                        continue
-
-                    scored.sort(key=lambda x: x["adjusted_score"], reverse=True)
-                    chosen_score = scored[0]
-                    chosen = chosen_score["candidate"]
-
-                    used.add(chosen["team_id"])
-
-                    picks.append({
-                        "leg_number": leg["leg_number"],
-                        "leg_code": leg["leg_code"],
-                        "leg_name": leg["leg_name"],
-                        "team": chosen["projected_favorite_abbr"],
-                        "projected_line": f"{chosen['projected_favorite_abbr']} {round(float(chosen['projected_spread']), 1)}",
-                        "game_id": chosen["game_id"],
-                        "current_strength": round(chosen_score["current_strength"], 2),
-                        "future_value": round(chosen_score["future_value"], 2),
-                        "adjusted_score": round(chosen_score["adjusted_score"], 2),
-                        "risk_stars": chosen_score["risk_stars"],
-                        "risk_level": chosen_score["risk_level"],
-                        "risk_points": chosen_score["risk_points"],
-                        "risk_summary": chosen_score["risk_summary"],
-                        "rationale": "Optimized score: spread strength minus future value opportunity cost and calibrated V3 risk points."
-                    })
-
-                    # Compile alternative recommendation row for active context leg
-                    if leg["nfl_week"] == current_active_week and leg["special_leg_type"] is None:
-                        alt_nodes = []
-                        for alt_opt in scored[1:]:
-                            alt_candidate = alt_opt["candidate"]
-                            if alt_candidate["team_id"] not in used and alt_candidate["game_id"] != chosen["game_id"]:
-                                alt_nodes.append({
-                                    "team": alt_candidate["projected_favorite_abbr"],
-                                    "projected_line": f"{alt_candidate['projected_favorite_abbr']} {round(float(alt_candidate['projected_spread']), 1)}",
-                                    "game_id": alt_candidate["game_id"],
-                                    "current_strength": round(alt_opt["current_strength"], 2),
-                                    "future_value": round(alt_opt["future_value"], 2),
-                                    "adjusted_score": round(alt_opt["adjusted_score"], 2),
-                                    "risk_stars": alt_opt["risk_stars"],
-                                    "risk_level": alt_opt["risk_level"],
-                                    "risk_points": alt_opt["risk_points"],
-                                    "risk_summary": alt_opt["risk_summary"]
-                                })
-                                if len(alt_nodes) >= 2:
-                                    break
-                        current_week_alternatives = alt_nodes
-
-                picks.sort(key=lambda x: x["leg_number"])
-
-                output["entries"].append({
-                    "entry_id": entry_id,
-                    "survivor_sweat_name": sweat_name,
-                    "alternative_recommendations": current_week_alternatives or [],
-                    "picks": picks
+                if not scored: continue
+                scored.sort(key=lambda x: x["adjusted_score"], reverse=True)
+                chosen = scored[0]
+                used.add(chosen["team_id"])
+                
+                picks.append({
+                    "leg": leg["leg_number"],
+                    "team": chosen["projected_favorite_abbr"],
+                    "adjusted_score": round(chosen["adjusted_score"], 2),
+                    "risk_stars": chosen["risk_stars"]
                 })
 
-    print(json.dumps(output, indent=2, default=str))
+                if leg["nfl_week"] == current_active_week:
+                    current_week_alternatives = [{"team": a["projected_favorite_abbr"], "risk": a["risk_stars"]} for a in scored[1:3]]
 
+            output["entries"].append({"entry_id": entry_id, "picks": picks, "alts": current_week_alternatives})
+    print(json.dumps(output, indent=2))
 
 if __name__ == "__main__":
     main()

@@ -11,6 +11,7 @@ def parse_args():
     parser.add_argument("--contest-format", choices=["STANDARD", "CIRCA"], required=True)
     parser.add_argument("--rating-week", type=int, required=True)
     parser.add_argument("--hfa-source", required=True)
+    parser.add_argument("--entry-id", type=int, required=True) # Add this
     return parser.parse_args()
 
 
@@ -86,12 +87,12 @@ def main():
         with conn.cursor() as cur:
             current_active_week = get_current_application_context(cur)
 
+            # Query only the active entry requested by the API
             cur.execute("""
                 SELECT entry_id, survivor_sweat_name
                 FROM survivor.entries
-                WHERE is_active = TRUE
-                ORDER BY entry_id;
-            """)
+                WHERE entry_id = %s;
+            """, (args.entry_id,))
             entries = cur.fetchall()
 
             cur.execute("""
@@ -112,7 +113,7 @@ def main():
             cols = [d[0] for d in cur.description]
             legs = [dict(zip(cols, row)) for row in cur.fetchall()]
 
-            # Enforce Circa Rules: Process holiday nodes first to lock top options
+            # Enforce Circa Rules
             if args.contest_format == "CIRCA":
                 special = [l for l in legs if l["special_leg_type"] in ("THANKSGIVING", "CHRISTMAS")]
                 normal = [l for l in legs if l["special_leg_type"] is None]
@@ -133,7 +134,8 @@ def main():
 
                 for leg in processing_order:
                     candidates = get_candidates_with_v3_risk(cur, args, leg)
-
+                    
+                    # (Rest of your original logic remains the same here)
                     chosen = None
                     valid_idx = -1
                     for idx, c in enumerate(candidates):
@@ -144,7 +146,6 @@ def main():
 
                     if chosen:
                         used.add(chosen["team_id"])
-                        
                         pick_node = {
                             "leg_number": leg["leg_number"],
                             "leg_code": leg["leg_code"],
@@ -159,7 +160,6 @@ def main():
                         }
                         picks.append(pick_node)
 
-                        # Generate alternative option exclusively for the active week context
                         if leg["nfl_week"] == current_active_week and leg["special_leg_type"] is None:
                             alt_options = []
                             for alt_c in candidates[valid_idx + 1:]:
@@ -173,8 +173,7 @@ def main():
                                         "risk_points": float(alt_c["risk_score"]),
                                         "risk_summary": alt_c["risk_summary"]
                                     })
-                                    if len(alt_options) >= 2:  # Retain up to two safe fallbacks
-                                        break
+                                    if len(alt_options) >= 2: break
                             current_week_alternatives = alt_options
 
                 picks.sort(key=lambda x: x["leg_number"])
@@ -187,7 +186,6 @@ def main():
                 })
 
     print(json.dumps(output, indent=2, default=str))
-
 
 if __name__ == "__main__":
     main()

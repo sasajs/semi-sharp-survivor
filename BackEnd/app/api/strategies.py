@@ -2,7 +2,8 @@ from fastapi import APIRouter, Query
 from app.services import strategy_service
 from app.db import get_connection
 
-router = APIRouter(prefix="/strategies", tags=["Strategies"])
+# Prefix is already set in main.py, so these routes map correctly to /strategies/{endpoint}
+router = APIRouter(tags=["Strategies"])
 
 @router.get("")
 def get_strategies():
@@ -32,9 +33,10 @@ def current_week_highest_win(
     season: int,
     contest_format: str,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026")
+    hfa_source: str = Query("SEMISHARP_2026"),
+    entry_id: int = Query(1)
 ):
-    return strategy_service.current_week_highest_win(season, contest_format, rating_week, hfa_source)
+    return strategy_service.current_week_highest_win(season, contest_format, rating_week, hfa_source, entry_id)
 
 
 @router.get("/future-value/{season}/{contest_format}")
@@ -42,9 +44,10 @@ def future_value(
     season: int,
     contest_format: str,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026")
+    hfa_source: str = Query("SEMISHARP_2026"),
+    entry_id: int = Query(1)
 ):
-    return strategy_service.future_value(season, contest_format, rating_week, hfa_source)
+    return strategy_service.future_value(season, contest_format, rating_week, hfa_source, entry_id)
 
 
 @router.get("/multiple-entry/{season}/{contest_format}")
@@ -52,9 +55,10 @@ def multiple_entry(
     season: int,
     contest_format: str,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026")
+    hfa_source: str = Query("SEMISHARP_2026"),
+    user_id: int = Query(1)
 ):
-    return strategy_service.multiple_entry(season, contest_format, rating_week, hfa_source)
+    return strategy_service.multiple_entry(season, contest_format, rating_week, hfa_source, user_id)
 
 
 @router.get("/circa-holiday/{season}")
