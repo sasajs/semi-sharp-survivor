@@ -212,19 +212,19 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           </Card>
 
           {/* SECTION 2: WEEKLY DECISION OVERVIEW */}
-          <Card className="p-6 border-l-4 border-l-rose-500">
+          <Card className="p-6 border-l-4 border-l-emerald-500">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 font-mono">
-                <AlertCircle className="w-4 h-4 text-rose-500" /> 2. Weekly Decision Overview
+                <AlertCircle className="w-4 h-4 text-emerald-500" /> 2. Weekly Decision Overview
               </h3>
-              <span className="text-[10px] font-extrabold bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded-sm uppercase tracking-wider font-mono">
-                RESTRICTED
+              <span className="text-[10px] font-extrabold bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-sm uppercase tracking-wider font-mono">
+                ACTIVE
               </span>
             </div>
 
-            {/* Structured Metric Blocks with a Lock / Dev Overlay */}
+            {/* Structured Metric Blocks */}
             <div className="relative">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 opacity-45 pointer-events-none filter blur-2xs">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-center space-y-1">
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Upcoming Games</span>
                   <div className="text-xl font-bold text-slate-800">16</div>
@@ -240,21 +240,6 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-center space-y-1">
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Risk Alerts</span>
                   <div className="text-xl font-bold text-slate-800">2</div>
-                </div>
-              </div>
-
-              {/* Aggregation Needed Overlay Banner */}
-              <div className="absolute inset-0 flex items-center justify-center p-4">
-                <div className="bg-slate-900/95 border border-slate-800 rounded-xl p-6 shadow-xl max-w-md text-center space-y-3 backdrop-blur-xs">
-                  <div className="inline-flex p-2 bg-amber-500/10 text-amber-500 rounded-lg">
-                    <Database className="w-5 h-5" />
-                  </div>
-                  <h4 className="text-xs font-bold text-amber-500 uppercase tracking-widest font-sans">
-                    Executive Summary Module / Phase 2 Enhancement
-                  </h4>
-                  <p className="text-[11px] text-slate-300 leading-relaxed font-sans">
-                    This executive summary module is scheduled as an upcoming premium visual integration. To maintain absolute algorithmic separation, all core computational math, model weightings, and real-time projections reside exclusively at server-level FastAPI nodes prior to client presentation.
-                  </p>
                 </div>
               </div>
             </div>

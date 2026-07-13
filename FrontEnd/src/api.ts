@@ -72,8 +72,33 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       } catch {
         errorData = await response.text();
       }
+
+      let errorMessage = `API request failed with status ${response.status}`;
+      if (typeof errorData === 'string') {
+        errorMessage = errorData;
+      } else if (errorData && typeof errorData === 'object') {
+        if (errorData.detail) {
+          if (Array.isArray(errorData.detail)) {
+            errorMessage = errorData.detail
+              .map((err: any) => {
+                const field = err.loc ? err.loc.filter((l: any) => l !== 'body' && l !== 'query').join('.') : '';
+                const msg = err.msg || '';
+                return field ? `${field}: ${msg}` : msg;
+              })
+              .filter(Boolean)
+              .join(', ');
+          } else if (typeof errorData.detail === 'string') {
+            errorMessage = errorData.detail;
+          } else {
+            errorMessage = JSON.stringify(errorData.detail);
+          }
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      }
+
       throw new ApiError(
-        typeof errorData === 'string' ? errorData : errorData?.detail || `API request failed with status ${response.status}`,
+        errorMessage,
         response.status,
         errorData
       );
@@ -110,11 +135,12 @@ export const SemiSharpApi = {
    * Matches BOTH query parameter and JSON payload formats for maximum server compatibility.
    */
   async login(username: string, password: string): Promise<LoginResponse> {
-    // API contract explicitly shows: POST /auth/login?username=SAS&password=SAS
-    const encodedUser = encodeURIComponent(username);
-    const encodedPass = encodeURIComponent(password);
-    return request<LoginResponse>(`/auth/login?username=${encodedUser}&password=${encodedPass}`, {
+    return request<LoginResponse>('/auth/login', {
       method: 'POST',
+      body: JSON.stringify({
+        username,
+        password,
+      }),
     });
   },
 
@@ -177,7 +203,7 @@ export const SemiSharpApi = {
 
   // --- Strategy Engine ---
   async getStrategyHighestWin(season: number, contestFormat: string): Promise<StrategyRecommendation> {
-    return request<StrategyRecommendation>(`/strategies/highest-win/${season}/${contestFormat}`);
+    return request<StrategyRecommendation>(`/strategies/current-week-highest-win/${season}/${contestFormat}`);
   },
 
   async getStrategyFutureValue(season: number, contestFormat: string): Promise<StrategyRecommendation> {

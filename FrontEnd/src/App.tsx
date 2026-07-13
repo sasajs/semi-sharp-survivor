@@ -12,7 +12,6 @@ import { WeeklyMatchups } from './components/WeeklyMatchups';
 import { Projections } from './components/Projections';
 import { RiskAnalysis } from './components/RiskAnalysis';
 import { MarketEdge } from './components/MarketEdge';
-import { DevelopmentStatus } from './components/DevelopmentStatus';
 import { ExecutiveDashboard } from './components/ExecutiveDashboard';
 import { SurvivorStrategies } from './components/SurvivorStrategies';
 import { ScholarsGuideLogo } from './components/ScholarsGuideLogo';
@@ -113,27 +112,6 @@ function LoginScreen() {
               Sign In
             </Button>
           </form>
-
-          {/* Quick Sandbox Help */}
-          <div className="mt-6 pt-6 border-t border-slate-100 text-center">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Sandbox Quick Credentials</span>
-            <div className="flex justify-center gap-2">
-              <button 
-                type="button"
-                onClick={() => { setUsername('SAS'); setPassword('SAS'); }}
-                className="px-2.5 py-1 text-xs font-mono bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-md transition-colors"
-              >
-                SAS / SAS
-              </button>
-              <button 
-                type="button"
-                onClick={() => { setUsername('CNS'); setPassword('CNS'); }}
-                className="px-2.5 py-1 text-xs font-mono bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-md transition-colors"
-              >
-                CNS / CNS
-              </button>
-            </div>
-          </div>
         </Card>
         
         {/* Environment configuration helper */}

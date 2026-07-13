@@ -130,7 +130,7 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
       switch (selectedStrategy) {
         case 'CURRENT_WEEK_HIGHEST_WIN':
         case 'highest-win':
-          endpointStr = `GET /strategies/highest-win/${season}/${mappedFormat}`;
+          endpointStr = `GET /strategies/current-week-highest-win/${season}/${mappedFormat}`;
           setActiveEndpoint(endpointStr);
           res = await SemiSharpApi.getStrategyHighestWin(season, mappedFormat);
           break;
@@ -182,11 +182,23 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
       setSuccess('LIVE API Recommendation');
     } catch (err: any) {
       console.error('Error generating strategy recommendation:', err);
-      if (selectedStrategy === 'monte-carlo') {
-        setError('Unable to complete Monte Carlo simulation');
-      } else {
-        setError('Unable to retrieve strategy recommendation');
+      
+      let errorMsg = '';
+      if (err instanceof Error) {
+        errorMsg = err.message;
+      } else if (err && typeof err === 'object') {
+        errorMsg = err.detail || err.message || JSON.stringify(err);
+      } else if (err) {
+        errorMsg = String(err);
       }
+
+      if (!errorMsg) {
+        errorMsg = selectedStrategy === 'monte-carlo'
+          ? 'Unable to complete Monte Carlo simulation'
+          : 'Unable to retrieve strategy recommendation';
+      }
+      
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -466,8 +478,8 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                   </div>
                   <div className="space-y-1">
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Entry</span>
-                    <span className="text-sm font-black text-indigo-600 block font-sans truncate" title={selectedStrategy === 'multiple-entry' ? 'All Portfolio Entries' : selectedEntry?.entry_label}>
-                      {selectedStrategy === 'multiple-entry' ? 'All Portfolio Entries' : (selectedEntry?.entry_label || 'Bypassed')}
+                    <span className="text-sm font-black text-indigo-600 block font-sans truncate" title={selectedEntry?.entry_label || 'Bypassed'}>
+                      {selectedEntry?.entry_label || 'Bypassed'}
                     </span>
                   </div>
                   {selectedStrategy === 'monte-carlo' && activeMatch?.estimated_path_survival_probability !== undefined && (
@@ -492,70 +504,132 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
               {recommendation.entries && recommendation.entries.length > 0 ? (
                 <div className="space-y-4">
                   {selectedStrategy === 'multiple-entry' ? (
-                    <div className="space-y-6">
-                      {recommendation.entries.map((entry, eIdx) => (
-                        <Card key={entry.entry_id || eIdx} className="p-5 border border-slate-200 bg-white rounded-xl shadow-sm space-y-4">
-                          {/* Grouped Entry Header */}
-                          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                            <span className="text-xs font-black text-slate-400 font-mono uppercase tracking-widest">
-                              Entry:
-                            </span>
-                            <span className="text-sm font-black text-slate-900 font-mono">
-                              {entry.survivor_sweat_name || `Entry ${entry.entry_id}`}
-                            </span>
-                          </div>
+                    (() => {
+                      const matchedEntry = recommendation.entries.find(e => {
+                        const backendId = e.entry_id?.toString().trim();
+                        const frontendId = selectedEntry?.entry_id?.toString().trim();
+                        return frontendId && backendId === frontendId;
+                      });
 
-                          {/* Grouped Picks Details */}
-                          {entry.picks && entry.picks.length > 0 ? (
-                            <div className="space-y-4">
-                              {entry.picks.map((pick, pIdx) => {
+                      if (!matchedEntry) {
+                        return (
+                          <Card className="p-8 text-center space-y-2 border border-slate-200 bg-white shadow-sm">
+                            <Info className="w-8 h-8 text-slate-300 mx-auto animate-pulse" />
+                            <h4 className="text-sm font-bold text-slate-800">No recommendations found for this entry.</h4>
+                            <p className="text-xs text-slate-500 max-w-md mx-auto">
+                              No matched portfolio strategy recommendation found for entry ID "{selectedEntry?.entry_id || 'N/A'}" ("{selectedEntry?.entry_label || 'N/A'}").
+                            </p>
+                          </Card>
+                        );
+                      }
+
+                      if (!matchedEntry.picks || matchedEntry.picks.length === 0) {
+                        return (
+                          <Card className="p-8 text-center space-y-2 border border-slate-200 bg-white shadow-sm">
+                            <Info className="w-8 h-8 text-slate-300 mx-auto" />
+                            <h4 className="text-sm font-bold text-slate-800">No recommendations found for this entry.</h4>
+                            <p className="text-xs text-slate-500 max-w-md mx-auto">
+                              The backend portfolio succeeds, but returned no matching pick rows for entry "{selectedEntry?.entry_label || 'N/A'}".
+                            </p>
+                          </Card>
+                        );
+                      }
+
+                      return (
+                        <div className="overflow-hidden border border-slate-200 rounded-xl bg-white shadow-sm overflow-x-auto animate-fade-in">
+                          <table className="w-full text-left border-collapse min-w-[800px]">
+                            <thead>
+                              <tr className="bg-slate-900 border-b border-slate-800 text-[10px] font-extrabold text-slate-300 uppercase tracking-widest font-mono">
+                                <th className="py-3 px-4">Leg</th>
+                                <th className="py-3 px-4">Week</th>
+                                <th className="py-3 px-4">Team</th>
+                                <th className="py-3 px-4">Game</th>
+                                <th className="py-3 px-4 text-right">Projected Line</th>
+                                <th className="py-3 px-4">Risk Level</th>
+                                <th className="py-3 px-4 text-center">Risk Stars</th>
+                                <th className="py-3 px-4 text-right">Risk Points</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
+                              {matchedEntry.picks.map((pick, pIdx) => {
                                 const gameInfo = findMatchupForTeam(pick.team);
                                 const gameDisplay = gameInfo 
                                   ? `${gameInfo.away_team} @ ${gameInfo.home_team}`
                                   : 'TBD';
                                 
                                 const spreadValue = pick.projected_line;
-                                const lineText = spreadValue !== undefined 
-                                  ? `${pick.team.toUpperCase()} ${spreadValue > 0 ? `+${spreadValue}` : spreadValue}`
-                                  : 'N/A';
+                                const riskInfo = findRiskForTeam(pick.team);
 
                                 return (
-                                  <div key={pIdx} className="bg-slate-50/50 rounded-lg p-4 border border-slate-100 space-y-3 animate-fade-in">
-                                    <div className="text-xs font-black text-indigo-600 font-mono uppercase tracking-wider">
-                                      {pick.leg_name || `Week ${pick.leg_number}`}:
-                                    </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                      <div className="space-y-1">
-                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block font-mono">Team</span>
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded bg-indigo-50 border border-indigo-100 text-indigo-700 font-mono font-black text-[11px]">
+                                  <React.Fragment key={pIdx}>
+                                    <tr className="hover:bg-slate-50/50 transition-colors">
+                                      <td className="py-4 px-4 font-mono font-black text-slate-400">
+                                        {pick.leg_number}
+                                      </td>
+                                      <td className="py-4 px-4 font-black text-slate-900 whitespace-nowrap">
+                                        {pick.leg_name || `Week ${pick.leg_number}`}
+                                      </td>
+                                      <td className="py-4 px-4">
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-indigo-50 border border-indigo-100 text-indigo-700 font-mono font-black text-[11px]">
                                           {pick.team.toUpperCase()}
                                         </span>
-                                      </div>
-                                      <div className="space-y-1">
-                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block font-mono">Game</span>
-                                        <span className="text-xs font-bold text-slate-700 block mt-0.5">
-                                          {gameDisplay}
-                                        </span>
-                                      </div>
-                                      <div className="space-y-1">
-                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block font-mono">Projected Line</span>
-                                        <span className="text-xs font-black text-indigo-600 font-mono block mt-0.5">
-                                          {lineText}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </div>
+                                      </td>
+                                      <td className="py-4 px-4 font-medium text-slate-500">
+                                        <div className="font-semibold text-slate-700">{gameDisplay}</div>
+                                        {gameInfo?.stadium && (
+                                          <span className="block text-[10px] text-slate-400 mt-0.5 truncate max-w-xs">
+                                            {gameInfo.stadium}
+                                          </span>
+                                        )}
+                                      </td>
+                                      <td className="py-4 px-4 text-right font-mono font-black text-indigo-600 text-sm whitespace-nowrap">
+                                        {spreadValue !== undefined 
+                                          ? (spreadValue > 0 ? `+${spreadValue}` : spreadValue) 
+                                          : 'N/A'}
+                                      </td>
+                                      <td className="py-4 px-4">
+                                        <div className="flex flex-col">
+                                          <span className={`inline-flex items-center w-fit px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                            pick.risk_level?.toUpperCase() === 'HIGH' ? 'bg-rose-100 text-rose-800 border border-rose-200/50' :
+                                            pick.risk_level?.toUpperCase() === 'ELEVATED' ? 'bg-orange-100 text-orange-800 border border-orange-200/50' :
+                                            pick.risk_level?.toUpperCase() === 'MODERATE' ? 'bg-amber-100 text-amber-800 border border-amber-200/50' :
+                                            pick.risk_level?.toUpperCase() === 'LOW' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200/50' :
+                                            'bg-slate-100 text-slate-800 border border-slate-200/50'
+                                          }`}>
+                                            {pick.risk_level || 'N/A'}
+                                          </span>
+                                          {pick.risk_summary && (
+                                            <span className="text-[10px] text-slate-400 font-medium leading-tight mt-1 max-w-[160px] truncate" title={pick.risk_summary}>
+                                              {pick.risk_summary}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </td>
+                                      <td className="py-4 px-4 text-center">
+                                        {renderStars(pick.risk_stars)}
+                                      </td>
+                                      <td className="py-4 px-4 text-right font-mono font-black text-slate-800 text-sm">
+                                        {pick.risk_points !== undefined ? pick.risk_points.toFixed(1) : 'N/A'}
+                                      </td>
+                                    </tr>
+                                    {riskInfo && (
+                                      <tr className="bg-rose-50/20">
+                                        <td colSpan={8} className="py-2 px-4 border-t border-rose-100/50">
+                                          <div className="flex items-center gap-2 text-[10px] text-rose-600 font-bold font-mono">
+                                            <AlertOctagon className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                                            <span>RISK ASSESSMENT: {riskInfo.risk_points} Points ({riskInfo.risk_types})</span>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    )}
+                                  </React.Fragment>
                                 );
                               })}
-                            </div>
-                          ) : (
-                            <p className="text-xs text-slate-400 font-mono italic">
-                              No recommendations found for this entry
-                            </p>
-                          )}
-                        </Card>
-                      ))}
-                    </div>
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    })()
                   ) : (
                     (() => {
                     const activeMatch = recommendation.entries.find(e => {
@@ -577,7 +651,7 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                       return (
                         <Card className="p-8 text-center space-y-2 border border-slate-200">
                           <Info className="w-8 h-8 text-slate-300 mx-auto" />
-                          <h4 className="text-sm font-bold text-slate-800">No active picks for selected entry</h4>
+                          <h4 className="text-sm font-bold text-slate-800">No recommendations found for this entry.</h4>
                           <p className="text-xs text-slate-500">
                             The backend optimizer succeeded, but returned no matching pick rows for entry "{selectedEntry?.entry_label || 'N/A'}".
                           </p>
@@ -1211,7 +1285,7 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
               ) : (
                 <Card className="p-8 text-center space-y-2 border border-slate-200">
                   <Info className="w-8 h-8 text-slate-300 mx-auto" />
-                  <h4 className="text-sm font-bold text-slate-800">Recommendation format compiled successfully</h4>
+                  <h4 className="text-sm font-bold text-slate-800">No recommendations found for this entry.</h4>
                   <p className="text-xs text-slate-500">
                     No individual pick rows were output by the optimizer for this configuration.
                   </p>
