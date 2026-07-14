@@ -1005,36 +1005,9 @@ test(
     validate_compare_late_leg_horizon,
 )
 
-
-# In-season management correctness
-test(
-    "[54] Season Management Status",
-    api_get("/season-management/status"),
-)
-test(
-    "[55] Season Management Valid Picks",
-    api_get(
-        "/season-management/entries/1/valid-picks/19"
-    ),
-)
-test(
-    "[56] Season Management Smoke Test",
-    run_script(
-        "scripts/tests/season_management_smoke_test.py",
-        [],
-    ),
-)
-test(
-    "[57] Week 3 Recalculation",
-    run_script(
-        "scripts/tests/week3_recalculation_test.py",
-        [],
-    ),
-)
-
 # Authentication
 test(
-    "[58] API Auth Login Valid",
+    "[54] API Auth Login Valid",
     api_post(
         "/auth/login",
         {
@@ -1045,7 +1018,7 @@ test(
     ),
 )
 test(
-    "[59] API Auth Login Invalid",
+    "[55] API Auth Login Invalid",
     api_post(
         "/auth/login",
         {

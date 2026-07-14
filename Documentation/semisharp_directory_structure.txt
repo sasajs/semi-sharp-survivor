@@ -5,11 +5,9 @@
 │   ├── Simulation
 │   ├── StrategyEngine
 │   └── Tests
-├── API
 ├── app
 │   ├── api
 │   │   ├── auth.py
-│   │   ├── Backup V2 - strategies.py
 │   │   ├── context.py
 │   │   ├── health.py
 │   │   ├── __init__.py
@@ -19,7 +17,9 @@
 │   │   ├── risk.before_methodology.py
 │   │   ├── risk.py
 │   │   ├── schedule.py
+│   │   ├── season_management.py
 │   │   ├── strategies.py
+│   │   ├── strategy_context.py
 │   │   ├── strategy_registry.py
 │   │   └── teams.py
 │   ├── db.py
@@ -35,13 +35,20 @@
 │   │   └── worker.py
 │   ├── main.py
 │   ├── repositories
+│   │   ├── analytics_repository.py
 │   │   ├── __init__.py
 │   │   ├── team_repository.py
 │   │   └── user_repository.py
 │   └── services
+│       ├── analytics_service.py
 │       ├── auth_service.py
-│       ├── Backup V2 - strategy_service.py
+│       ├── candidate_builder_backup_before_context_used_teams.py
+│       ├── candidate_builder.py
+│       ├── compare_strategies_service.py
 │       ├── __init__.py
+│       ├── path_optimizer.py
+│       ├── season_management_service.py
+│       ├── strategy_context_service.py
 │       └── strategy_service.py
 ├── Configuration
 ├── Database
@@ -70,12 +77,16 @@
 ├── Regression
 ├── requirements.txt
 ├── .Rhistory
+├── run_tests.sh
 ├── SAMPLE_API_RESPONSES.md
 ├── scripts
+│   ├── analytics
+│   │   └── calculate_win_probability.py
 │   ├── contest
 │   │   └── generate_legs.py
 │   ├── database
 │   │   └── generate_database_dictionary.py
+│   ├── deploy_semisharp.sh
 │   ├── documentation
 │   │   ├── generate_api_catalog.py
 │   │   └── generate_system_snapshot.py
@@ -92,40 +103,40 @@
 │   │   └── import_teams.py
 │   ├── risk
 │   │   ├── analyze_historical_risk.py
-│   │   ├── analyze_historical_risk.v2_backup.py
 │   │   ├── calculate_risk_scores.py
 │   │   ├── generate_game_risks.py
-│   │   ├── generate_game_risks.v2_production_backup.py
 │   │   └── import_historical_upsets.py
 │   ├── schedule
 │   │   ├── import_schedule.before_history.py
 │   │   └── import_schedule.py
 │   ├── strategy
-│   │   ├── Backup V2 - future_value.py
-│   │   ├── Backup V2 -- highest_win_probability.py
-│   │   ├── Backup V2 - monte_carlo_survivor.py
-│   │   ├── Backup V2 - projection_edge.py
 │   │   ├── bottom_six_road_fade.py
-│   │   ├── circa_holiday_reserve.py
-│   │   ├── compare_strategies.py
 │   │   ├── current_week_highest_win.py
 │   │   ├── dynamic_programming.py
 │   │   ├── future_value.py
 │   │   ├── market_arbitrage_exit.py
-│   │   ├── monte_carlo_survivor.py
-│   │   ├── multiple_entry_portfolio.py
-│   │   └── projection_edge.py
+│   │   └── monte_carlo_survivor.py
 │   ├── test_connection.py
 │   ├── test_feature_builder.py
 │   ├── tests
-│   │   ├── Backup V2 - regression_test.py
-│   │   └── regression_test.py
+│   │   ├── regression_test_backup_before_season_management.py
+│   │   ├── regression_test.py
+│   │   ├── season_management_smoke_test_before_permission_fix.py
+│   │   ├── season_management_smoke_test.py
+│   │   └── week3_recalculation_test.py
 │   ├── test_team_lookup.py
 │   ├── test_users.py
 │   └── test_worker_registry.py
 ├── SQL
 │   └── migrations
-│       └── 002_job_audit_fields.sql
+│       ├── 002_job_audit_fields.sql
+│       ├── 003_add_adjusted_win_probs.sql
+│       ├── 004_strategy_context_models.sql
+│       ├── 005_strategy_registry_v2.sql
+│       ├── 006_activate_compare_strategies.sql
+│       ├── 007_in_season_management.sql
+│       ├── 008_entry_pick_audit_permissions.sql
+│       └── 009_entry_pick_history_read_permission.sql
 └── .venv
     ├── bin
     │   ├── activate
@@ -4269,4 +4280,4 @@
     ├── lib64 -> lib
     └── pyvenv.cfg
 
-493 directories, 3777 files
+493 directories, 3788 files

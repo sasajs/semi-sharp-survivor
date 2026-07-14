@@ -1,205 +1,628 @@
 #!/usr/bin/env python3
+"""
+SemiSharp Market Arbitrage Exit Strategy V2
+
+Purpose
+-------
+Build the safest survivor path through NFL Week 10 under the assumption
+that the entry will be sold or transferred after that point.
+
+This strategy intentionally does not preserve teams for Weeks 11-18.
+
+Canonical Probability
+---------------------
+Every selection is based on:
+
+    analytics.game_win_probabilities.risk_adjusted_wp
+
+No independent probability or risk-adjusted spread is calculated here.
+
+Planning Horizon
+----------------
+The strategy includes only contest legs whose NFL week is between the
+active week and NFL Week 10, inclusive.
+
+It returns no picks after Week 10.
+
+Objective
+---------
+Maximize short-horizon survival by selecting the highest available
+risk-adjusted win probability for each remaining leg through Week 10.
+
+Rules
+-----
+1. Start at the active contest leg.
+2. Stop after NFL Week 10.
+3. Do not reuse a team.
+4. Exclude teams already used by the selected entry.
+5. Rank candidates by risk_adjusted_wp descending.
+6. Use deterministic tie-breaking.
+7. Do not preserve teams for weeks outside the exit horizon.
+
+CIRCA Rules
+-----------
+Only CIRCA special legs falling within the Week 10 horizon constrain the
+path.
+
+Thanksgiving and Christmas normally occur after Week 10 and therefore do
+not constrain this exit strategy.
+
+If a future contest configuration places a special leg inside the
+horizon, that leg is included and must receive a valid distinct team.
+
+Output
+------
+The response includes:
+
+- one path per active survivor entry
+- picks only through NFL Week 10
+- primary current-leg recommendation
+- current-leg alternatives
+- horizon survival probability
+- conditional horizon survival probability
+- backend rationale
+- active model versions
+
+Limitations
+-----------
+The strategy optimizes survival through the exit horizon only.
+
+It is not intended for entries that will remain active for the full
+season.
+"""
+
+from __future__ import annotations
+
 import argparse
 import json
-import sys
-from app.db import get_connection
+from decimal import Decimal
+from typing import Any
 
-def parse_args():
-    parser = argparse.ArgumentParser()
+from app.db import get_connection
+from app.services.candidate_builder import (
+    CandidateBuilderError,
+    StrategyCandidate,
+    build_candidate_matrix,
+)
+from app.services.path_optimizer import (
+    PathOptimizerError,
+    candidate_probability,
+    evaluate_path,
+)
+from app.services.strategy_context_service import (
+    StrategyContext,
+    StrategyContextError,
+    build_strategy_context,
+)
+
+
+STRATEGY_CODE = "MARKET_ARBITRAGE_EXIT"
+STRATEGY_VERSION = "2.0"
+EXIT_NFL_WEEK = 10
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Generate the safest survivor path through NFL Week 10."
+        )
+    )
+
     parser.add_argument("--season", type=int, required=True)
-    parser.add_argument("--contest-format", choices=["STANDARD", "CIRCA"], required=True)
+    parser.add_argument(
+        "--contest-format",
+        choices=["STANDARD", "CIRCA"],
+        required=True,
+    )
     parser.add_argument("--rating-week", type=int, required=True)
     parser.add_argument("--hfa-source", required=True)
+
+    # Optional during migration. The current API runs all active entries.
+    parser.add_argument("--entry-id", type=int)
+
     return parser.parse_args()
 
 
-def get_candidates_with_v3_risk(cur, args, leg):
-    if leg["special_leg_type"] == "THANKSGIVING":
-        filter_sql = "g.is_thanksgiving = TRUE"
-        params = [args.season, args.rating_week, args.hfa_source]
-    elif leg["special_leg_type"] == "CHRISTMAS":
-        filter_sql = "g.is_christmas = TRUE"
-        params = [args.season, args.rating_week, args.hfa_source]
-    else:
-        filter_sql = "g.week = %s"
-        params = [args.season, args.rating_week, args.hfa_source, leg["nfl_week"]]
-        if args.contest_format == "CIRCA":
-            filter_sql += " AND g.is_thanksgiving = FALSE AND g.is_christmas = FALSE"
+def decimal_to_float(value: Any) -> Any:
+    if isinstance(value, Decimal):
+        return float(value)
 
-    cur.execute(f"""
-        SELECT
-            p.game_id,
-            p.projected_favorite_team_id AS team_id,
-            p.projected_favorite_abbr,
-            p.projected_spread,
-            ABS(p.projected_spread) AS spread_strength,
-            COALESCE(r.risk_score, 0.0) AS risk_score,
-            COALESCE(r.risk_stars, 1) AS risk_stars,
-            COALESCE(r.risk_level, 'LOW') AS risk_level,
-            COALESCE(r.risk_summary, 'No significant risk factors detected.') AS risk_summary
-        FROM projections.game_spreads p
-        JOIN schedule.games g ON g.game_id = p.game_id
-        LEFT JOIN risk.game_risk_scores r ON r.game_id = p.game_id AND r.team_id = p.projected_favorite_team_id
-        WHERE p.season = %s
-          AND p.rating_week = %s
-          AND p.hfa_source_system = %s
-          AND {filter_sql}
-        ORDER BY ABS(p.projected_spread) DESC;
-    """, params)
-
-    cols = [d[0] for d in cur.description]
-    return [dict(zip(cols, row)) for row in cur.fetchall()]
+    return value
 
 
-def get_current_application_context(cur):
-    cur.execute("""
-        SELECT current_week 
-        FROM system.application_context 
-        WHERE is_active = TRUE 
-        LIMIT 1;
-    """)
-    row = cur.fetchone()
-    return row[0] if row else 1
+def validate_request_against_context(
+    args: argparse.Namespace,
+    context: StrategyContext,
+) -> None:
+    """Reject request values that conflict with backend context."""
+    errors: list[str] = []
+
+    if args.season != context.season:
+        errors.append(
+            f"requested season {args.season} does not match "
+            f"active season {context.season}"
+        )
+
+    if args.rating_week != context.rating_week:
+        errors.append(
+            f"requested rating week {args.rating_week} does not match "
+            f"active rating week {context.rating_week}"
+        )
+
+    if args.hfa_source != context.hfa_source:
+        errors.append(
+            f"requested HFA source {args.hfa_source} does not match "
+            f"active HFA source {context.hfa_source}"
+        )
+
+    if errors:
+        raise StrategyContextError("; ".join(errors))
 
 
-def main():
-    args = parse_args()
-    output = {
-        "strategy": "MARKET_ARBITRAGE_EXIT",
-        "strategy_version": "v3.0",
+def load_active_entry_ids(
+    requested_entry_id: int | None,
+) -> list[int]:
+    """Return the requested entry or every active entry."""
+    with get_connection() as connection:
+        with connection.cursor() as cursor:
+            if requested_entry_id is not None:
+                cursor.execute(
+                    """
+                    SELECT entry_id
+                    FROM survivor.entries
+                    WHERE entry_id = %s
+                      AND is_active = TRUE;
+                    """,
+                    (requested_entry_id,),
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT entry_id
+                    FROM survivor.entries
+                    WHERE is_active = TRUE
+                    ORDER BY entry_id;
+                    """
+                )
+
+            rows = cursor.fetchall()
+
+    entry_ids = [int(row[0]) for row in rows]
+
+    if not entry_ids:
+        raise StrategyContextError(
+            "No active survivor entries were found."
+        )
+
+    return entry_ids
+
+
+def candidate_is_within_horizon(
+    candidate: StrategyCandidate,
+) -> bool:
+    """
+    Include regular or special contest legs only when their mapped NFL
+    week is no later than the Week 10 exit horizon.
+    """
+    return (
+        candidate.nfl_week is not None
+        and candidate.nfl_week <= EXIT_NFL_WEEK
+    )
+
+
+def filter_horizon_candidates(
+    candidates: list[StrategyCandidate],
+) -> list[StrategyCandidate]:
+    """Return eligible candidates inside the active exit horizon."""
+    filtered = [
+        candidate
+        for candidate in candidates
+        if candidate_is_within_horizon(candidate)
+        and candidate.eligible
+        and not candidate.already_used
+    ]
+
+    if not filtered:
+        raise PathOptimizerError(
+            "No eligible candidates exist inside the Week 10 "
+            "exit horizon."
+        )
+
+    return filtered
+
+
+def group_candidates_by_leg(
+    candidates: list[StrategyCandidate],
+) -> dict[int, list[StrategyCandidate]]:
+    """Group candidates by contest leg with deterministic ordering."""
+    grouped: dict[int, list[StrategyCandidate]] = {}
+
+    for candidate in candidates:
+        grouped.setdefault(
+            candidate.contest_leg_id,
+            [],
+        ).append(candidate)
+
+    for leg_candidates in grouped.values():
+        leg_candidates.sort(
+            key=lambda candidate: (
+                -candidate_probability(candidate),
+                -float(candidate.baseline_wp),
+                -abs(
+                    float(
+                        candidate.candidate_projected_spread
+                        or 0
+                    )
+                ),
+                candidate.team_abbr,
+            )
+        )
+
+    return grouped
+
+
+def build_rationale(
+    candidate: StrategyCandidate,
+    *,
+    rank: int | None = None,
+) -> str:
+    """Generate deterministic backend rationale."""
+    adjusted_pct = candidate_probability(candidate) * 100
+
+    prefix = (
+        f"Ranked #{rank}. "
+        if rank is not None
+        else ""
+    )
+
+    explanation = (
+        f"{prefix}Selected to maximize survival through the "
+        f"Week {EXIT_NFL_WEEK} exit horizon. "
+        f"Risk-adjusted win probability is "
+        f"{adjusted_pct:.2f}%."
+    )
+
+    if candidate.candidate_projected_spread is not None:
+        explanation += (
+            " Candidate-side projected spread is "
+            f"{float(candidate.candidate_projected_spread):.1f}."
+        )
+
+    if candidate.risk_level:
+        explanation += (
+            f" Risk level is {candidate.risk_level}"
+        )
+
+        if candidate.risk_score is not None:
+            explanation += (
+                f" with {float(candidate.risk_score):.1f} "
+                "risk points."
+            )
+        else:
+            explanation += "."
+
+    explanation += (
+        " No team value is reserved for games after the exit horizon."
+    )
+
+    return explanation
+
+
+def candidate_to_pick(
+    candidate: StrategyCandidate,
+    *,
+    rank: int | None = None,
+) -> dict[str, Any]:
+    """Convert one canonical candidate into the response schema."""
+    projected_line = None
+
+    if candidate.candidate_projected_spread is not None:
+        projected_line = (
+            f"{candidate.team_abbr} "
+            f"{float(candidate.candidate_projected_spread):.1f}"
+        )
+
+    return {
+        "rank": rank,
+        "contest_leg_id": candidate.contest_leg_id,
+        "leg_number": candidate.leg_number,
+        "leg_code": candidate.leg_code,
+        "leg_name": candidate.leg_name,
+        "nfl_week": candidate.nfl_week,
+        "is_special_leg": candidate.is_special_leg,
+        "special_leg_type": candidate.special_leg_type,
+        "game_id": candidate.game_id,
+        "team_id": candidate.team_id,
+        "team": candidate.team_abbr,
+        "team_name": candidate.team_name,
+        "team_location": candidate.team_location,
+        "opponent_team_id": candidate.opponent_team_id,
+        "opponent": candidate.opponent_team_abbr,
+        "home_team": candidate.home_team_abbr,
+        "away_team": candidate.away_team_abbr,
+        "baseline_wp": decimal_to_float(
+            candidate.baseline_wp
+        ),
+        "risk_adjusted_wp": decimal_to_float(
+            candidate.risk_adjusted_wp
+        ),
+        "risk_discount_factor": decimal_to_float(
+            candidate.risk_discount_factor
+        ),
+        "projected_spread": decimal_to_float(
+            candidate.candidate_projected_spread
+        ),
+        "projected_line": projected_line,
+        "market_spread": decimal_to_float(
+            candidate.market_spread
+        ),
+        "market_price": decimal_to_float(
+            candidate.market_price
+        ),
+        "sportsbook_count": candidate.sportsbook_count,
+        "edge_points": decimal_to_float(
+            candidate.edge_points
+        ),
+        "risk_score": decimal_to_float(
+            candidate.risk_score
+        ),
+        "risk_points": decimal_to_float(
+            candidate.risk_score
+        ),
+        "risk_stars": candidate.risk_stars,
+        "risk_level": candidate.risk_level,
+        "risk_summary": candidate.risk_summary,
+        "probability_model": candidate.probability_model,
+        "projection_model": candidate.projection_model,
+        "risk_model": candidate.risk_model,
+        "mode": "ARBITRAGE_MAX_SURVIVAL",
+        "exit_horizon_week": EXIT_NFL_WEEK,
+        "rationale": build_rationale(
+            candidate,
+            rank=rank,
+        ),
+    }
+
+
+def construct_exit_path(
+    *,
+    context: StrategyContext,
+    candidates: list[StrategyCandidate],
+) -> tuple[
+    list[StrategyCandidate],
+    list[StrategyCandidate],
+]:
+    """
+    Build one deterministic path through the Week 10 exit horizon.
+
+    Returns:
+
+    1. selected path
+    2. ranked active-leg candidates
+    """
+    grouped = group_candidates_by_leg(candidates)
+
+    leg_order = sorted({
+        (
+            candidate.leg_number,
+            candidate.contest_leg_id,
+            candidate.nfl_week,
+        )
+        for candidate in candidates
+    })
+
+    selected_path: list[StrategyCandidate] = []
+    selected_team_ids = set(context.used_team_ids)
+    current_leg_ranked: list[StrategyCandidate] = []
+
+    for _, leg_id, _ in leg_order:
+        leg_candidates = grouped.get(leg_id, [])
+
+        valid_candidates = [
+            candidate
+            for candidate in leg_candidates
+            if candidate.team_id not in selected_team_ids
+            and candidate.eligible
+            and not candidate.already_used
+        ]
+
+        if not valid_candidates:
+            raise PathOptimizerError(
+                "No eligible Market Arbitrage Exit candidate "
+                f"remains for contest leg {leg_id}."
+            )
+
+        valid_candidates.sort(
+            key=lambda candidate: (
+                -candidate_probability(candidate),
+                -float(candidate.baseline_wp),
+                -abs(
+                    float(
+                        candidate.candidate_projected_spread
+                        or 0
+                    )
+                ),
+                candidate.team_abbr,
+            )
+        )
+
+        if leg_id == context.current_contest_leg_id:
+            current_leg_ranked = list(valid_candidates)
+
+        selected = valid_candidates[0]
+
+        selected_path.append(selected)
+        selected_team_ids.add(selected.team_id)
+
+    return selected_path, current_leg_ranked
+
+
+def run_for_entry(
+    *,
+    args: argparse.Namespace,
+    entry_id: int,
+) -> dict[str, Any]:
+    """Run Market Arbitrage Exit V2 for one survivor entry."""
+    context = build_strategy_context(
+        entry_id=entry_id,
+        contest_format=args.contest_format,
+    )
+
+    validate_request_against_context(args, context)
+
+    all_candidates = build_candidate_matrix(
+        context,
+        include_ineligible=False,
+    )
+
+    horizon_candidates = filter_horizon_candidates(
+        all_candidates
+    )
+
+    selected_path, current_leg_ranked = (
+        construct_exit_path(
+            context=context,
+            candidates=horizon_candidates,
+        )
+    )
+
+    required_leg_ids = tuple(
+        leg_id
+        for _, leg_id in sorted({
+            (
+                candidate.leg_number,
+                candidate.contest_leg_id,
+            )
+            for candidate in horizon_candidates
+        })
+    )
+
+    metrics = evaluate_path(
+        context,
+        selected_path,
+        required_leg_ids=required_leg_ids,
+    )
+
+    if not metrics.is_valid:
+        raise PathOptimizerError(
+            "Generated Market Arbitrage Exit path failed "
+            "validation: "
+            + "; ".join(metrics.validation_errors)
+        )
+
+    picks = [
+        candidate_to_pick(candidate)
+        for candidate in selected_path
+    ]
+
+    primary = next(
+        (
+            pick
+            for pick in picks
+            if pick["contest_leg_id"]
+            == context.current_contest_leg_id
+        ),
+        None,
+    )
+
+    alternatives = [
+        candidate_to_pick(
+            candidate,
+            rank=rank,
+        )
+        for rank, candidate in enumerate(
+            current_leg_ranked[1:3],
+            start=2,
+        )
+    ]
+
+    return {
+        "entry_id": context.entry_id,
+        "user_id": context.user_id,
+        "survivor_sweat_name": (
+            context.survivor_sweat_name
+        ),
+        "used_team_ids": list(context.used_team_ids),
+        "used_team_abbreviations": list(
+            context.used_team_abbreviations
+        ),
+        "primary_recommendation": primary,
+        "alternative_recommendations": alternatives,
+        "picks": picks,
+        "path_metrics": metrics.to_dict(),
+        "estimated_path_survival_probability": (
+            metrics.estimated_path_survival_probability
+        ),
+        "conditional_survival_probability": (
+            metrics.conditional_survival_probability
+        ),
+    }
+
+
+def run_strategy(args: argparse.Namespace) -> dict[str, Any]:
+    entry_ids = load_active_entry_ids(args.entry_id)
+
+    entries = [
+        run_for_entry(
+            args=args,
+            entry_id=entry_id,
+        )
+        for entry_id in entry_ids
+    ]
+
+    return {
+        "strategy": STRATEGY_CODE,
+        "strategy_version": STRATEGY_VERSION,
+        "strategy_type": "EXIT_HORIZON_PATH",
+        "objective": (
+            "Maximize survivor probability through NFL Week 10 "
+            "without preserving teams for later weeks."
+        ),
         "season": args.season,
         "contest_format": args.contest_format,
         "rating_week": args.rating_week,
         "hfa_source": args.hfa_source,
-        "target_horizon": "Week 8 Marketplace Exit Maximizer",
-        "entries": []
+        "target_horizon": (
+            "NFL Week 10 Marketplace Exit"
+        ),
+        "exit_horizon_week": EXIT_NFL_WEEK,
+        "entry_count": len(entries),
+        "entries": entries,
     }
 
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            current_active_week = get_current_application_context(cur)
 
-            cur.execute("""
-                SELECT entry_id, survivor_sweat_name
-                FROM survivor.entries
-                WHERE is_active = TRUE
-                ORDER BY entry_id;
-            """)
-            entries = cur.fetchall()
+def main() -> None:
+    args = parse_args()
 
-            cur.execute("""
-                SELECT
-                    l.contest_leg_id,
-                    l.leg_number,
-                    l.leg_code,
-                    l.leg_name,
-                    l.nfl_week,
-                    l.special_leg_type
-                FROM contest.legs l
-                JOIN contest.formats f ON f.contest_format_id = l.contest_format_id
-                WHERE l.season = %s
-                  AND f.format_code = %s
-                ORDER BY l.leg_number;
-            """, (args.season, args.contest_format))
+    try:
+        output = run_strategy(args)
 
-            cols = [d[0] for d in cur.description]
-            legs = [dict(zip(cols, row)) for row in cur.fetchall()]
+    except (
+        StrategyContextError,
+        CandidateBuilderError,
+        PathOptimizerError,
+    ) as exc:
+        print(
+            json.dumps(
+                {
+                    "strategy": STRATEGY_CODE,
+                    "strategy_version": STRATEGY_VERSION,
+                    "status": "ERROR",
+                    "error": str(exc),
+                },
+                indent=2,
+            )
+        )
 
-            # Circa rule parsing: Holiday legs are prioritized first to protect critical narrow opportunities
-            if args.contest_format == "CIRCA":
-                special = [l for l in legs if l["special_leg_type"] in ("THANKSGIVING", "CHRISTMAS")]
-                normal = [l for l in legs if l["special_leg_type"] is None]
-                processing_order = special + normal
-            else:
-                processing_order = legs
+        raise SystemExit(1) from exc
 
-            for entry_id, sweat_name in entries:
-                cur.execute("SELECT team_id FROM survivor.entry_picks WHERE entry_id = %s;", (entry_id,))
-                used = {r[0] for r in cur.fetchall()}
-
-                picks = []
-                current_week_alternatives = None
-
-                for leg in processing_order:
-                    candidates = get_candidates_with_v3_risk(cur, args, leg)
-                    scored_candidates = []
-
-                    for c in candidates:
-                        if c["team_id"] in used:
-                            continue
-
-                        current_strength = float(c["spread_strength"])
-                        risk_points = float(c["risk_score"])
-
-                        # Arbitrage Horizon Rule: Weeks 1-8 ignore future value to secure maximum cash-out value.
-                        # Week 9+ falls back into default short-horizon preservation modeling.
-                        if leg["nfl_week"] is not None and leg["nfl_week"] <= 8:
-                            arbitrage_score = current_strength - risk_points
-                            mode_label = "ARBITRAGE_MAX_SURVIVAL"
-                        else:
-                            # Muted penalty for remaining weeks post-horizon
-                            arbitrage_score = current_strength - (0.15 * current_strength) - risk_points
-                            mode_label = "POST_HORIZON_PRESERVATION"
-
-                        scored_candidates.append({
-                            "candidate": c,
-                            "arbitrage_score": arbitrage_score,
-                            "mode": mode_label
-                        })
-
-                    if not scored_candidates:
-                        continue
-
-                    # Sort by the custom horizon score
-                    scored_candidates.sort(key=lambda x: x["arbitrage_score"], reverse=True)
-                    chosen_node = scored_candidates[0]
-                    chosen = chosen_node["candidate"]
-
-                    used.add(chosen["team_id"])
-
-                    picks.append({
-                        "leg_number": leg["leg_number"],
-                        "leg_code": leg["leg_code"],
-                        "leg_name": leg["leg_name"],
-                        "team": chosen["projected_favorite_abbr"],
-                        "projected_line": f"{chosen['projected_favorite_abbr']} {round(float(chosen['projected_spread']), 1)}",
-                        "game_id": chosen["game_id"],
-                        "risk_stars": chosen["risk_stars"],
-                        "risk_level": chosen["risk_level"],
-                        "risk_points": float(chosen["risk_score"]),
-                        "risk_summary": chosen["risk_summary"],
-                        "rationale": f"Optimized via {chosen_node['mode']}. Safest immediate risk-adjusted choice for Week 8 marketplace asset protection."
-                    })
-
-                    # Compile user-pivoted alternative options for active tracking week
-                    if leg["nfl_week"] == current_active_week and leg["special_leg_type"] is None:
-                        alt_nodes = []
-                        for alt_opt in scored_candidates[1:]:
-                            alt_candidate = alt_opt["candidate"]
-                            if alt_candidate["team_id"] not in used and alt_candidate["game_id"] != chosen["game_id"]:
-                                alt_nodes.append({
-                                    "team": alt_candidate["projected_favorite_abbr"],
-                                    "projected_line": f"{alt_candidate['projected_favorite_abbr']} {round(float(alt_candidate['projected_spread']), 1)}",
-                                    "game_id": alt_candidate["game_id"],
-                                    "risk_stars": alt_candidate["risk_stars"],
-                                    "risk_level": alt_candidate["risk_level"],
-                                    "risk_points": float(alt_candidate["risk_score"]),
-                                    "risk_summary": alt_candidate["risk_summary"]
-                                })
-                                if len(alt_nodes) >= 2:
-                                    break
-                        current_week_alternatives = alt_nodes
-
-                picks.sort(key=lambda x: x["leg_number"])
-
-                output["entries"].append({
-                    "entry_id": entry_id,
-                    "survivor_sweat_name": sweat_name,
-                    "alternative_recommendations": current_week_alternatives or [],
-                    "picks": picks
-                })
-
-    print(json.dumps(output, indent=2, default=str))
+    print(
+        json.dumps(
+            output,
+            indent=2,
+            default=str,
+        )
+    )
 
 
 if __name__ == "__main__":

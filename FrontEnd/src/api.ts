@@ -202,6 +202,10 @@ export const SemiSharpApi = {
   },
 
   // --- Strategy Engine ---
+  async getStrategyRegistry(): Promise<any[]> {
+    return request<any[]>('/strategies');
+  },
+
   async getStrategyHighestWin(season: number, contestFormat: string): Promise<StrategyRecommendation> {
     return request<StrategyRecommendation>(`/strategies/current-week-highest-win/${season}/${contestFormat}`);
   },
@@ -210,8 +214,9 @@ export const SemiSharpApi = {
     return request<StrategyRecommendation>(`/strategies/future-value/${season}/${contestFormat}`);
   },
 
-  async getStrategyMultipleEntry(season: number, contestFormat: string): Promise<StrategyRecommendation> {
-    return request<StrategyRecommendation>(`/strategies/multiple-entry/${season}/${contestFormat}`);
+  async getStrategyMultipleEntry(season: number, contestFormat: string, userId?: string | number): Promise<StrategyRecommendation> {
+    const query = userId ? `?userId=${userId}&user_id=${userId}` : '';
+    return request<StrategyRecommendation>(`/strategies/multiple-entry/${season}/${contestFormat}${query}`);
   },
 
   async getStrategyCircaHoliday(season: number): Promise<StrategyRecommendation> {

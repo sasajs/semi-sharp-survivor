@@ -30,6 +30,93 @@ import {
   ChevronRight
 } from 'lucide-react';
 
+const STRATEGY_DEFINITIONS = [
+  {
+    code: 'CIRCA_HOLIDAY',
+    localId: 'circa-holiday',
+    fallbackName: 'Circa Holiday Reserve',
+    desc: 'Prioritizes securing teams for Thanksgiving and Christmas legs first, then fills remaining weeks with the strongest available teams while ensuring holiday-utilized teams are protected.'
+  },
+  {
+    code: 'MULTIPLE_ENTRY',
+    localId: 'multiple-entry',
+    fallbackName: 'Multiple Entry Portfolio',
+    desc: 'Analyzes multiple entries simultaneously, applying a diversification tolerance to ensure picks vary across your portfolio.'
+  },
+  {
+    code: 'PROJECTION_EDGE',
+    localId: 'projection-edge',
+    fallbackName: 'Projection Edge',
+    desc: 'Selects the team with the highest \'adjusted edge,\' calculated by the difference between the Semisharp projection and the market spread, minus a risk-based penalty.'
+  },
+  {
+    code: 'MONTE_CARLO',
+    localId: 'monte-carlo',
+    fallbackName: 'Monte Carlo Survivor',
+    desc: 'Uses V3 risk-expanded distribution scales to simulate survival paths, selecting the team that maximizes long-term survival probability.'
+  },
+  {
+    code: 'MARKET_ARBITRAGE_EXIT',
+    localId: 'MARKET_ARBITRAGE_EXIT',
+    fallbackName: 'Market Arbitrage Exit',
+    desc: 'Optimizes selections for a Week 8 exit horizon by balancing spread strength against risk scores to maximize asset value.'
+  },
+  {
+    code: 'BOTTOM_SIX_ROAD_FADE',
+    localId: 'BOTTOM_SIX_ROAD_FADE',
+    fallbackName: 'Bottom Six Road Fade',
+    desc: 'Targets matchups where a \'Bottom Six\' team is playing on the road, defaulting to safe favorites only when no such fade opportunities exist.'
+  },
+  {
+    code: 'CURRENT_WEEK_HIGHEST_WIN',
+    localId: 'CURRENT_WEEK_HIGHEST_WIN',
+    fallbackName: 'Current Week Highest Win',
+    desc: 'Selects the safest favorite for the current week, adjusted by V3 risk scores to avoid high-volatility games.'
+  },
+  {
+    code: 'FUTURE_VALUE',
+    localId: 'future-value',
+    fallbackName: 'Future Value',
+    desc: 'Evaluates picks by calculating a \'future value\' penalty, which discourages using teams that are strong favorites in later, more difficult legs.'
+  }
+];
+
+const getRiskAssessmentStyle = (points?: number) => {
+  const pts = points !== undefined && points !== null ? points : 0;
+  
+  if (pts >= 16) {
+    return {
+      assessmentBgClass: 'bg-rose-50/20',
+      assessmentBorderClass: 'border-rose-100/50',
+      assessmentTextClass: 'text-rose-600',
+      iconColorClass: 'text-rose-500',
+      Icon: AlertOctagon,
+      label: 'High Risk',
+    };
+  }
+  
+  if (pts >= 6) {
+    return {
+      assessmentBgClass: 'bg-amber-50/20',
+      assessmentBorderClass: 'border-amber-100/50',
+      assessmentTextClass: 'text-amber-600',
+      iconColorClass: 'text-amber-500',
+      Icon: AlertTriangle,
+      label: 'Moderate Risk',
+    };
+  }
+  
+  // 0-5 Points: Green (Low Risk)
+  return {
+    assessmentBgClass: 'bg-emerald-50/10',
+    assessmentBorderClass: 'border-emerald-100/30',
+    assessmentTextClass: 'text-emerald-600',
+    iconColorClass: 'text-emerald-500',
+    Icon: CheckCircle2,
+    label: 'Low Risk',
+  };
+};
+
 interface SurvivorStrategiesProps {
   season: number;
   week: number;
@@ -59,6 +146,30 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [activeEndpoint, setActiveEndpoint] = useState<string>('');
+
+  // Registry state queried from live database table strategy.registry
+  const [registry, setRegistry] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchRegistry = async () => {
+      try {
+        const data = await SemiSharpApi.getStrategyRegistry();
+        if (data && Array.isArray(data)) {
+          setRegistry(data);
+        }
+      } catch (err) {
+        console.warn('Failed to query strategy.registry database table:', err);
+      }
+    };
+    fetchRegistry();
+  }, []);
+
+  const getStrategyDisplayName = (id: string) => {
+    const def = STRATEGY_DEFINITIONS.find(d => d.localId === id);
+    if (!def) return id;
+    const match = registry.find(r => r.strategy_code === def.code);
+    return match?.display_name || def.fallbackName;
+  };
 
   // Enrichment data (to look up matchups, spreads, risks)
   const [games, setGames] = useState<GameMatchup[]>([]);
@@ -149,11 +260,14 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
           setActiveEndpoint(endpointStr);
           res = await SemiSharpApi.getStrategyFutureValue(season, mappedFormat);
           break;
-        case 'multiple-entry':
-          endpointStr = `GET /strategies/multiple-entry/${season}/${mappedFormat}`;
+        case 'multiple-entry': {
+          const uId = user?.user_id;
+          const queryStr = uId ? `?userId=${uId}` : '';
+          endpointStr = `GET /strategies/multiple-entry/${season}/${mappedFormat}${queryStr}`;
           setActiveEndpoint(endpointStr);
-          res = await SemiSharpApi.getStrategyMultipleEntry(season, mappedFormat);
+          res = await SemiSharpApi.getStrategyMultipleEntry(season, mappedFormat, uId);
           break;
+        }
         case 'circa-holiday':
           endpointStr = `GET /strategies/circa-holiday/${season}`;
           setActiveEndpoint(endpointStr);
@@ -228,35 +342,16 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
     return risks.find(r => r.team.toUpperCase() === teamUpper);
   };
 
-  const strategiesList = [
-    { id: 'CURRENT_WEEK_HIGHEST_WIN', name: 'Current Week Highest Win', status: 'LIVE', desc: 'Prioritizes maximum immediate survival probability for the current week.' },
-    { id: 'BOTTOM_SIX_ROAD_FADE', name: 'Bottom Six Road Fade', status: 'LIVE', desc: 'Optimizes survivor pathways by fading the lowest tier of road teams.' },
-    { id: 'MARKET_ARBITRAGE_EXIT', name: 'Market Arbitrage Exit (Week 8)', status: 'LIVE', desc: 'Strategic exit strategy maximizing portfolio value and arbitrage opportunities by Week 8.' },
-    { id: 'future-value', name: 'Future Value', status: 'LIVE', desc: 'Preserves elite rosters by avoiding teams with high future values.' },
-    { id: 'projection-edge', name: 'Projection Edge', status: 'LIVE', desc: 'Targets high-discrepancy matchups compared to market spreads.' },
-    { id: 'multiple-entry', name: 'Multiple Entry Portfolio', status: 'LIVE', desc: 'Diversifies selections across multiple entries to hedge risk.' },
-    { id: 'circa-holiday', name: 'Circa Holiday Reserve', status: 'LIVE', desc: 'Ensures premium teams remain available for Thanksgiving/Christmas slates.' },
-    { id: 'monte-carlo', name: 'Monte Carlo Survivor', status: 'LIVE', desc: 'Simulates 10,000 seasons to evaluate the complete survival path.' },
-  ];
+  const strategiesList = STRATEGY_DEFINITIONS.map(def => ({
+    id: def.localId,
+    name: getStrategyDisplayName(def.localId),
+    status: 'LIVE',
+    desc: def.desc
+  }));
 
   return (
     <div className="space-y-8 animate-fade-in">
       
-      {/* EXPLANATORY HEADER BANNER */}
-      <Card className="p-5 border-l-4 border-l-indigo-600 bg-indigo-50/10">
-        <div className="flex items-start gap-3">
-          <Info className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider font-mono">
-              Strict Mathematical Presentation Protocol
-            </h4>
-            <p className="text-xs text-slate-500 leading-relaxed font-medium">
-              This panel interfaces directly with compiled back-end optimization servers. The frontend acts exclusively as a secure viewport: no probabilities are estimated, no teams are sorted client-side, and no mock data is generated. All recommended selections represent server-authoritative optimization solutions.
-            </p>
-          </div>
-        </div>
-      </Card>
-
       {/* TWO-COLUMN GRID: CONTROLS & OUTPUT */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
@@ -273,10 +368,41 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
             </div>
 
             {/* Strategy Select */}
-            <div className="space-y-1.5">
-              <label htmlFor="strategy-select" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
-                Select Strategy Engine
-              </label>
+            <div className="space-y-1.5 relative">
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="strategy-select" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
+                  Select Strategy Engine
+                </label>
+                
+                {/* TOOLTIP COMPONENT */}
+                <div className="relative group inline-block">
+                  <div className="flex items-center gap-1 text-[10px] text-indigo-600 font-bold font-mono cursor-pointer bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 hover:bg-indigo-100 transition-colors">
+                    <Info className="w-3 h-3 text-indigo-500 shrink-0" />
+                    <span>Engine Info</span>
+                  </div>
+                  
+                  {/* Tooltip Content popover on group-hover */}
+                  <div className="absolute right-0 top-full mt-2 w-80 bg-slate-900 text-slate-100 p-4 rounded-xl shadow-2xl border border-slate-800 hidden group-hover:block z-50 animate-fade-in transition-all">
+                    <div className="absolute top-0 right-4 -mt-1.5 h-3 w-3 rotate-45 bg-slate-900 border-t border-l border-slate-800"></div>
+                    <div className="space-y-3 relative z-10">
+                      <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+                        <Sparkles className="w-4 h-4 text-indigo-400 shrink-0" />
+                        <h4 className="text-xs font-black uppercase tracking-wider text-white font-mono">
+                          {getStrategyDisplayName(selectedStrategy)}
+                        </h4>
+                      </div>
+                      <p className="text-[11px] text-slate-300 leading-relaxed font-medium">
+                        {STRATEGY_DEFINITIONS.find(d => d.localId === selectedStrategy)?.desc}
+                      </p>
+                      <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest font-mono flex items-center gap-1 border-t border-slate-800/50 pt-2">
+                        <Database className="w-3 h-3 text-slate-500" />
+                        <span>Source: strategy.registry</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <select
                 id="strategy-select"
                 value={selectedStrategy}
@@ -294,8 +420,11 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                   </option>
                 ))}
               </select>
-              <p className="text-[11px] text-slate-400 leading-normal mt-1">
-                {strategiesList.find(s => s.id === selectedStrategy)?.desc}
+              <p className="text-[11px] text-slate-400 leading-normal mt-1.5 flex items-start gap-1.5">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
+                <span>
+                  {strategiesList.find(s => s.id === selectedStrategy)?.desc}
+                </span>
               </p>
             </div>
 
@@ -545,9 +674,7 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                                 <th className="py-3 px-4">Team</th>
                                 <th className="py-3 px-4">Game</th>
                                 <th className="py-3 px-4 text-right">Projected Line</th>
-                                <th className="py-3 px-4">Risk Level</th>
-                                <th className="py-3 px-4 text-center">Risk Stars</th>
-                                <th className="py-3 px-4 text-right">Risk Points</th>
+                                <th className="py-3 px-4 text-right">Risk Score</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
@@ -559,6 +686,8 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                                 
                                 const spreadValue = pick.projected_line;
                                 const riskInfo = findRiskForTeam(pick.team);
+                                const riskStyle = riskInfo ? getRiskAssessmentStyle(riskInfo.risk_points) : getRiskAssessmentStyle(pick.risk_points);
+                                const RiskIcon = riskStyle.Icon;
 
                                 return (
                                   <React.Fragment key={pIdx}>
@@ -583,41 +712,20 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                                         )}
                                       </td>
                                       <td className="py-4 px-4 text-right font-mono font-black text-indigo-600 text-sm whitespace-nowrap">
-                                        {spreadValue !== undefined 
+                                        {spreadValue !== undefined && spreadValue !== null
                                           ? (spreadValue > 0 ? `+${spreadValue}` : spreadValue) 
-                                          : 'N/A'}
-                                      </td>
-                                      <td className="py-4 px-4">
-                                        <div className="flex flex-col">
-                                          <span className={`inline-flex items-center w-fit px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                            pick.risk_level?.toUpperCase() === 'HIGH' ? 'bg-rose-100 text-rose-800 border border-rose-200/50' :
-                                            pick.risk_level?.toUpperCase() === 'ELEVATED' ? 'bg-orange-100 text-orange-800 border border-orange-200/50' :
-                                            pick.risk_level?.toUpperCase() === 'MODERATE' ? 'bg-amber-100 text-amber-800 border border-amber-200/50' :
-                                            pick.risk_level?.toUpperCase() === 'LOW' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200/50' :
-                                            'bg-slate-100 text-slate-800 border border-slate-200/50'
-                                          }`}>
-                                            {pick.risk_level || 'N/A'}
-                                          </span>
-                                          {pick.risk_summary && (
-                                            <span className="text-[10px] text-slate-400 font-medium leading-tight mt-1 max-w-[160px] truncate" title={pick.risk_summary}>
-                                              {pick.risk_summary}
-                                            </span>
-                                          )}
-                                        </div>
-                                      </td>
-                                      <td className="py-4 px-4 text-center">
-                                        {renderStars(pick.risk_stars)}
+                                          : '0'}
                                       </td>
                                       <td className="py-4 px-4 text-right font-mono font-black text-slate-800 text-sm">
-                                        {pick.risk_points !== undefined ? pick.risk_points.toFixed(1) : 'N/A'}
+                                        {(pick.risk_points !== undefined && pick.risk_points !== null ? pick.risk_points : 0).toFixed(1)}
                                       </td>
                                     </tr>
                                     {riskInfo && (
-                                      <tr className="bg-rose-50/20">
-                                        <td colSpan={8} className="py-2 px-4 border-t border-rose-100/50">
-                                          <div className="flex items-center gap-2 text-[10px] text-rose-600 font-bold font-mono">
-                                            <AlertOctagon className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                                            <span>RISK ASSESSMENT: {riskInfo.risk_points} Points ({riskInfo.risk_types})</span>
+                                      <tr className={riskStyle.assessmentBgClass}>
+                                        <td colSpan={6} className={`py-2 px-4 border-t ${riskStyle.assessmentBorderClass}`}>
+                                          <div className={`flex items-center gap-2 text-[10px] ${riskStyle.assessmentTextClass} font-bold font-mono`}>
+                                            <RiskIcon className={`w-3.5 h-3.5 ${riskStyle.iconColorClass} shrink-0`} />
+                                            <span>RISK ASSESSMENT ({riskStyle.label}): {riskInfo.risk_points} Points ({riskInfo.risk_types})</span>
                                           </div>
                                         </td>
                                       </tr>
@@ -690,6 +798,8 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                                     : 'hover:bg-slate-50/50 transition-colors';
                                 
                                 const riskInfo = findRiskForTeam(pick.team);
+                                const riskStyle = riskInfo ? getRiskAssessmentStyle(riskInfo.risk_points) : getRiskAssessmentStyle(pick.risk_points);
+                                const RiskIcon = riskStyle.Icon;
 
                                 return (
                                   <React.Fragment key={pIdx}>
@@ -726,17 +836,17 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                                         )}
                                       </td>
                                       <td className="py-4 px-4 text-right font-mono font-black text-indigo-600 text-sm">
-                                        {spreadValue !== undefined 
+                                        {spreadValue !== undefined && spreadValue !== null
                                           ? (spreadValue > 0 ? `+${spreadValue}` : spreadValue) 
-                                          : 'N/A'}
+                                          : '0'}
                                       </td>
                                     </tr>
                                     {riskInfo && (
-                                      <tr className="bg-rose-50/20">
-                                        <td colSpan={5} className="py-2 px-4 border-t border-rose-100/50">
-                                          <div className="flex items-center gap-2 text-[10px] text-rose-600 font-bold font-mono">
-                                            <AlertOctagon className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                                            <span>RISK ASSESSMENT: {riskInfo.risk_points} Points ({riskInfo.risk_types})</span>
+                                      <tr className={riskStyle.assessmentBgClass}>
+                                        <td colSpan={5} className={`py-2 px-4 border-t ${riskStyle.assessmentBorderClass}`}>
+                                          <div className={`flex items-center gap-2 text-[10px] ${riskStyle.assessmentTextClass} font-bold font-mono`}>
+                                            <RiskIcon className={`w-3.5 h-3.5 ${riskStyle.iconColorClass} shrink-0`} />
+                                            <span>RISK ASSESSMENT ({riskStyle.label}): {riskInfo.risk_points} Points ({riskInfo.risk_types})</span>
                                           </div>
                                         </td>
                                       </tr>
@@ -774,7 +884,7 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                                       <th className="py-3 px-4">Game</th>
                                       <th className="py-3 px-4 text-right">Projected Line</th>
                                       <th className="py-3 px-4 text-right">Win Probability</th>
-                                      <th className="py-3 px-4 text-right">Risk Points</th>
+                                      <th className="py-3 px-4 text-right">Risk Score</th>
                                       <th className="py-3 px-4 text-right">Adjusted Probability</th>
                                       <th className="py-3 px-4">Rationale</th>
                                     </tr>
@@ -788,6 +898,8 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                                       
                                       const spreadValue = pick.projected_line;
                                       const riskInfo = findRiskForTeam(pick.team);
+                                      const riskStyle = riskInfo ? getRiskAssessmentStyle(riskInfo.risk_points) : getRiskAssessmentStyle(pick.risk_points);
+                                      const RiskIcon = riskStyle.Icon;
 
                                       return (
                                         <React.Fragment key={pIdx}>
@@ -807,33 +919,33 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                                               {gameDisplay}
                                             </td>
                                             <td className="py-4 px-4 text-right font-mono font-black text-indigo-600 text-sm whitespace-nowrap">
-                                              {spreadValue !== undefined 
+                                              {spreadValue !== undefined && spreadValue !== null
                                                 ? (spreadValue > 0 ? `+${spreadValue}` : spreadValue) 
-                                                : 'N/A'}
+                                                : '0'}
                                             </td>
                                             <td className="py-4 px-4 text-right font-mono font-bold text-slate-700 whitespace-nowrap">
-                                              {pick.win_probability !== undefined 
-                                                ? (typeof pick.win_probability === 'number' ? `${(pick.win_probability * 100).toFixed(1)}%` : pick.win_probability)
-                                                : 'N/A'}
+                                              {pick.adjusted_probability !== undefined && pick.adjusted_probability !== null
+                                                ? (typeof pick.adjusted_probability === 'number' ? `${(pick.adjusted_probability * 100).toFixed(1)}%` : pick.adjusted_probability)
+                                                : '0.0%'}
                                             </td>
                                             <td className="py-4 px-4 text-right font-mono font-bold text-rose-600 whitespace-nowrap">
-                                              {pick.risk_points !== undefined ? pick.risk_points : 'N/A'}
+                                              {pick.risk_points !== undefined && pick.risk_points !== null ? pick.risk_points : '0'}
                                             </td>
                                             <td className="py-4 px-4 text-right font-mono font-black text-emerald-600 whitespace-nowrap">
-                                              {pick.adjusted_probability !== undefined
+                                              {pick.adjusted_probability !== undefined && pick.adjusted_probability !== null
                                                 ? (typeof pick.adjusted_probability === 'number' ? `${(pick.adjusted_probability * 100).toFixed(1)}%` : pick.adjusted_probability)
-                                                : 'N/A'}
+                                                : '0.0%'}
                                             </td>
                                             <td className="py-4 px-4 text-xs font-medium text-slate-600 max-w-xs truncate" title={pick.rationale}>
-                                              {pick.rationale || 'N/A'}
+                                              {pick.rationale || 'None'}
                                             </td>
                                           </tr>
                                           {riskInfo && (
-                                            <tr className="bg-rose-50/20">
-                                              <td colSpan={9} className="py-2 px-4 border-t border-rose-100/50">
-                                                <div className="flex items-center gap-2 text-[10px] text-rose-600 font-bold font-mono">
-                                                  <AlertOctagon className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                                                  <span>RISK ASSESSMENT: {riskInfo.risk_points} Points ({riskInfo.risk_types})</span>
+                                            <tr className={riskStyle.assessmentBgClass}>
+                                              <td colSpan={9} className={`py-2 px-4 border-t ${riskStyle.assessmentBorderClass}`}>
+                                                <div className={`flex items-center gap-2 text-[10px] ${riskStyle.assessmentTextClass} font-bold font-mono`}>
+                                                  <RiskIcon className={`w-3.5 h-3.5 ${riskStyle.iconColorClass} shrink-0`} />
+                                                  <span>RISK ASSESSMENT ({riskStyle.label}): {riskInfo.risk_points} Points ({riskInfo.risk_types})</span>
                                                 </div>
                                               </td>
                                             </tr>
@@ -940,6 +1052,8 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                                 const sportsbookCount = pick.sportsbook_count;
                                 
                                 const riskInfo = findRiskForTeam(pick.team);
+                                const riskStyle = riskInfo ? getRiskAssessmentStyle(riskInfo.risk_points) : getRiskAssessmentStyle(pick.risk_points);
+                                const RiskIcon = riskStyle.Icon;
 
                                 return (
                                   <React.Fragment key={pIdx}>
@@ -966,30 +1080,30 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                                       <td className="py-4 px-4 text-right font-mono font-black text-indigo-600 text-sm">
                                         {semiSharpSpread !== undefined && semiSharpSpread !== null
                                           ? (semiSharpSpread > 0 ? `+${semiSharpSpread}` : semiSharpSpread) 
-                                          : 'N/A'}
+                                          : '0'}
                                       </td>
                                       <td className="py-4 px-4 text-right font-mono font-black text-slate-600 text-sm">
                                         {marketSpread !== undefined && marketSpread !== null
                                           ? (marketSpread > 0 ? `+${marketSpread}` : marketSpread) 
-                                          : 'N/A'}
+                                          : '0'}
                                       </td>
                                       <td className="py-4 px-4 text-right font-mono font-black text-emerald-600 text-sm">
                                         {edgePoints !== undefined && edgePoints !== null
                                           ? (edgePoints > 0 ? `+${edgePoints}` : edgePoints) 
-                                          : 'N/A'}
+                                          : '0'}
                                       </td>
                                       <td className="py-4 px-4 text-right font-mono font-bold text-slate-500 text-sm">
                                         {sportsbookCount !== undefined && sportsbookCount !== null
                                           ? sportsbookCount 
-                                          : 'N/A'}
+                                          : '0'}
                                       </td>
                                     </tr>
                                     {riskInfo && (
-                                      <tr className="bg-rose-50/20">
-                                        <td colSpan={8} className="py-2 px-4 border-t border-rose-100/50">
-                                          <div className="flex items-center gap-2 text-[10px] text-rose-600 font-bold font-mono">
-                                            <AlertOctagon className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                                            <span>RISK ASSESSMENT: {riskInfo.risk_points} Points ({riskInfo.risk_types})</span>
+                                      <tr className={riskStyle.assessmentBgClass}>
+                                        <td colSpan={8} className={`py-2 px-4 border-t ${riskStyle.assessmentBorderClass}`}>
+                                          <div className={`flex items-center gap-2 text-[10px] ${riskStyle.assessmentTextClass} font-bold font-mono`}>
+                                            <RiskIcon className={`w-3.5 h-3.5 ${riskStyle.iconColorClass} shrink-0`} />
+                                            <span>RISK ASSESSMENT ({riskStyle.label}): {riskInfo.risk_points} Points ({riskInfo.risk_types})</span>
                                           </div>
                                         </td>
                                       </tr>
@@ -1013,9 +1127,7 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                               <th className="py-3 px-4">Team</th>
                               <th className="py-3 px-4">Game</th>
                               <th className="py-3 px-4 text-right">Projected Line</th>
-                              <th className="py-3 px-4">Risk Level</th>
-                              <th className="py-3 px-4 text-center">Risk Stars</th>
-                              <th className="py-3 px-4 text-right">Risk Points</th>
+                              <th className="py-3 px-4 text-right">Risk Score</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
@@ -1029,6 +1141,8 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                               
                               // Check if there is risk info for this team
                               const riskInfo = findRiskForTeam(pick.team);
+                              const riskStyle = riskInfo ? getRiskAssessmentStyle(riskInfo.risk_points) : getRiskAssessmentStyle(pick.risk_points);
+                              const RiskIcon = riskStyle.Icon;
 
                               return (
                                 <React.Fragment key={pIdx}>
@@ -1053,33 +1167,12 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                                       )}
                                     </td>
                                     <td className="py-4 px-4 text-right font-mono font-black text-indigo-600 text-sm whitespace-nowrap">
-                                      {spreadValue !== undefined 
+                                      {spreadValue !== undefined && spreadValue !== null
                                         ? (spreadValue > 0 ? `+${spreadValue}` : spreadValue) 
-                                        : 'N/A'}
-                                    </td>
-                                    <td className="py-4 px-4">
-                                      <div className="flex flex-col">
-                                        <span className={`inline-flex items-center w-fit px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                          pick.risk_level?.toUpperCase() === 'HIGH' ? 'bg-rose-100 text-rose-800 border border-rose-200/50' :
-                                          pick.risk_level?.toUpperCase() === 'ELEVATED' ? 'bg-orange-100 text-orange-800 border border-orange-200/50' :
-                                          pick.risk_level?.toUpperCase() === 'MODERATE' ? 'bg-amber-100 text-amber-800 border border-amber-200/50' :
-                                          pick.risk_level?.toUpperCase() === 'LOW' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200/50' :
-                                          'bg-slate-100 text-slate-800 border border-slate-200/50'
-                                        }`}>
-                                          {pick.risk_level || 'N/A'}
-                                        </span>
-                                        {pick.risk_summary && (
-                                          <span className="text-[10px] text-slate-400 font-medium leading-tight mt-1 max-w-[160px] truncate" title={pick.risk_summary}>
-                                            {pick.risk_summary}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </td>
-                                    <td className="py-4 px-4 text-center">
-                                      {renderStars(pick.risk_stars)}
+                                        : '0'}
                                     </td>
                                     <td className="py-4 px-4 text-right font-mono font-black text-slate-800 text-sm">
-                                      {pick.risk_points !== undefined ? pick.risk_points.toFixed(1) : 'N/A'}
+                                      {(pick.risk_points !== undefined && pick.risk_points !== null ? pick.risk_points : 0).toFixed(1)}
                                     </td>
                                   </tr>
 
@@ -1116,33 +1209,12 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                                             )}
                                           </td>
                                           <td className="py-3 px-4 text-right font-mono font-bold text-slate-500 text-sm whitespace-nowrap">
-                                            {alt.projected_line !== undefined 
+                                            {alt.projected_line !== undefined && alt.projected_line !== null
                                               ? (alt.projected_line > 0 ? `+${alt.projected_line}` : alt.projected_line) 
-                                              : 'N/A'}
-                                          </td>
-                                          <td className="py-3 px-4">
-                                            <div className="flex flex-col">
-                                              <span className={`inline-flex items-center w-fit px-2 py-0.5 rounded-full text-[9px] font-extrabold ${
-                                                alt.risk_level?.toUpperCase() === 'HIGH' ? 'bg-rose-50 text-rose-600 border border-rose-100/50' :
-                                                alt.risk_level?.toUpperCase() === 'ELEVATED' ? 'bg-orange-50 text-orange-600 border border-orange-100/50' :
-                                                alt.risk_level?.toUpperCase() === 'MODERATE' ? 'bg-amber-50 text-amber-600 border border-amber-100/50' :
-                                                alt.risk_level?.toUpperCase() === 'LOW' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100/50' :
-                                                'bg-slate-50 text-slate-600 border border-slate-100/50'
-                                              }`}>
-                                                {alt.risk_level || 'N/A'}
-                                              </span>
-                                              {alt.risk_summary && (
-                                                <span className="text-[9px] text-slate-400 font-medium leading-tight mt-1 max-w-[120px] truncate" title={alt.risk_summary}>
-                                                  {alt.risk_summary}
-                                                </span>
-                                              )}
-                                            </div>
-                                          </td>
-                                          <td className="py-3 px-4 text-center">
-                                            {renderStars(alt.risk_stars)}
+                                              : '0'}
                                           </td>
                                           <td className="py-3 px-4 text-right font-mono font-bold text-slate-500 text-sm">
-                                            {alt.risk_points !== undefined ? alt.risk_points.toFixed(1) : 'N/A'}
+                                            {(alt.risk_points !== undefined && alt.risk_points !== null ? alt.risk_points : 0).toFixed(1)}
                                           </td>
                                         </tr>
                                       );
@@ -1150,11 +1222,11 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                                   )}
 
                                   {riskInfo && (
-                                    <tr className="bg-rose-50/20">
-                                      <td colSpan={8} className="py-2 px-4 border-t border-rose-100/50">
-                                        <div className="flex items-center gap-2 text-[10px] text-rose-600 font-bold font-mono">
-                                          <AlertOctagon className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                                          <span>RISK ASSESSMENT: {riskInfo.risk_points} Points ({riskInfo.risk_types})</span>
+                                    <tr className={riskStyle.assessmentBgClass}>
+                                      <td colSpan={6} className={`py-2 px-4 border-t ${riskStyle.assessmentBorderClass}`}>
+                                        <div className={`flex items-center gap-2 text-[10px] ${riskStyle.assessmentTextClass} font-bold font-mono`}>
+                                          <RiskIcon className={`w-3.5 h-3.5 ${riskStyle.iconColorClass} shrink-0`} />
+                                          <span>RISK ASSESSMENT ({riskStyle.label}): {riskInfo.risk_points} Points ({riskInfo.risk_types})</span>
                                         </div>
                                       </td>
                                     </tr>
@@ -1266,17 +1338,21 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                           </div>
                         )}
 
-                        {riskInfo && (
-                          <div className="bg-slate-50 rounded-lg p-3.5 border border-slate-100 text-xs leading-relaxed text-slate-600">
-                            <span className="font-bold text-slate-700 block mb-1 flex items-center gap-1.5 font-mono text-[10px]">
-                              <AlertOctagon className="w-3.5 h-3.5 text-rose-500" /> RISK ASSESSMENT
-                            </span>
-                            <div className="flex justify-between">
-                              <span>Weather and Hazard Points:</span>
-                              <span className="font-bold text-rose-600 font-mono">{riskInfo.risk_points} Points ({riskInfo.risk_types})</span>
+                        {riskInfo && (() => {
+                          const riskStyle = getRiskAssessmentStyle(riskInfo.risk_points);
+                          const CardRiskIcon = riskStyle.Icon;
+                          return (
+                            <div className={`rounded-lg p-3.5 border text-xs leading-relaxed ${riskStyle.assessmentBgClass} ${riskStyle.assessmentBorderClass} ${riskStyle.assessmentTextClass}`}>
+                              <span className="font-bold block mb-1 flex items-center gap-1.5 font-mono text-[10px]">
+                                <CardRiskIcon className={`w-3.5 h-3.5 ${riskStyle.iconColorClass}`} /> RISK ASSESSMENT ({riskStyle.label})
+                              </span>
+                              <div className="flex justify-between font-medium">
+                                <span>Weather and Hazard Points:</span>
+                                <span className="font-bold font-mono">{riskInfo.risk_points} Points ({riskInfo.risk_types})</span>
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          );
+                        })()}
 
                       </Card>
                     );

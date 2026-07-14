@@ -16,18 +16,31 @@ cd ~/Projects/SemiSharp/FrontEnd
 npm install
 npm run build
 
-# 5. Run Regression Tests
+# 5. Generate System Documentation (New Step)
+echo "Generating system documentation snapshots..."
+cd ~/Projects/SemiSharp/BackEnd
+source .venv/bin/activate
+python3 scripts/documentation/generate_system_snapshot.py
+
+# 6. Run Regression Tests
 echo "Running regression tests..."
-python3 ~/Projects/SemiSharp/BackEnd/scripts/tests/regression_test.py
+python3 scripts/tests/regression_test.py
+TEST_RESULT=$?
 
-# 6. Restart and Validate
-echo "Tests passed. Restarting service..."
-sudo systemctl restart semisharp-frontend
-sleep 10
-RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://semisharp.steveschilhabel.com)
+# 7. Validate and Restart
+if [ $TEST_RESULT -eq 0 ]; then
+    echo "Tests passed. Restarting backend and frontend services..."
+    sudo systemctl restart semisharp-backend
+    sudo systemctl restart semisharp-frontend
+    sleep 10
+    RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://semisharp.steveschilhabel.com)
 
-if [ "$RESPONSE" == "200" ]; then
-  echo "Deployment successful: Site is live (HTTP 200)."
+    if [ "$RESPONSE" == "200" ]; then
+      echo "Deployment successful: Site is live (HTTP 200)."
+    else
+      echo "Deployment Warning: Site returned HTTP $RESPONSE. Please check manually."
+    fi
 else
-  echo "Deployment Warning: Site returned HTTP $RESPONSE. Please check manually."
+    echo "Deployment aborted: Regression tests failed (Exit Code: $TEST_RESULT)."
+    exit 1
 fi

@@ -1,7 +1,36 @@
 SemiSharp Database Dictionary V3.0
 ================================================================================
-Generated: 2026-07-10 13:21:19.791591
+Generated: 2026-07-14 15:55:48.427796
 Database: semisharp
+
+
+================================================================================
+SCHEMA: analytics
+TABLE: game_win_probabilities
+================================================================================
+
+Rows: 544
+
+Columns:
+  win_prob_id                   integer             nullable=NO
+  season                        integer             nullable=NO
+  week                          integer             nullable=NO
+  game_id                       text                nullable=NO
+  team_id                       integer             nullable=NO
+  baseline_wp                   numeric             nullable=NO
+  risk_adjusted_wp              numeric             nullable=NO
+  risk_discount_factor          numeric             nullable=YES
+  source_system                 text                nullable=NO
+  created_at                    timestamp with time zonenullable=YES
+
+Primary Keys:
+  win_prob_id
+
+Foreign Keys:
+
+Indexes:
+  game_win_probabilities_pkey
+  game_win_probabilities_season_week_game_id_team_id_source_s_key
 
 
 ================================================================================
@@ -551,7 +580,7 @@ SCHEMA: risk
 TABLE: game_risk_factors
 ================================================================================
 
-Rows: 54
+Rows: 348
 
 Columns:
   game_risk_factor_id           integer             nullable=NO
@@ -581,7 +610,7 @@ SCHEMA: risk
 TABLE: game_risk_scores
 ================================================================================
 
-Rows: 14
+Rows: 264
 
 Columns:
   game_risk_score_id            integer             nullable=NO
@@ -612,7 +641,7 @@ SCHEMA: risk
 TABLE: game_risk_summary
 ================================================================================
 
-Rows: 16
+Rows: 264
 
 Columns:
   season                        integer             nullable=YES
@@ -771,7 +800,7 @@ SCHEMA: strategy
 TABLE: registry
 ================================================================================
 
-Rows: 10
+Rows: 11
 
 Columns:
   strategy_id                   integer             nullable=NO
@@ -854,6 +883,41 @@ Indexes:
 
 ================================================================================
 SCHEMA: survivor
+TABLE: entry_pick_history
+================================================================================
+
+Rows: 0
+
+Columns:
+  entry_pick_history_id         bigint              nullable=NO
+  entry_pick_id                 integer             nullable=YES
+  entry_id                      integer             nullable=NO
+  contest_leg_id                integer             nullable=NO
+  team_id                       integer             nullable=NO
+  operation                     text                nullable=NO
+  pick_source                   text                nullable=NO
+  pick_status                   text                nullable=NO
+  picked_at                     timestamp with time zonenullable=YES
+  notes                         text                nullable=YES
+  change_reason                 text                nullable=YES
+  changed_by_user_id            integer             nullable=YES
+  old_record                    jsonb               nullable=YES
+  new_record                    jsonb               nullable=YES
+  changed_at                    timestamp with time zonenullable=NO
+
+Primary Keys:
+  entry_pick_history_id
+
+Foreign Keys:
+
+Indexes:
+  entry_pick_history_pkey
+  idx_entry_pick_history_entry
+  idx_entry_pick_history_leg
+
+
+================================================================================
+SCHEMA: survivor
 TABLE: entry_picks
 ================================================================================
 
@@ -868,6 +932,10 @@ Columns:
   picked_at                     timestamp with time zonenullable=NO
   notes                         text                nullable=YES
   created_at                    timestamp with time zonenullable=NO
+  pick_status                   text                nullable=NO
+  updated_at                    timestamp with time zonenullable=NO
+  updated_by_user_id            integer             nullable=YES
+  change_reason                 text                nullable=YES
 
 Primary Keys:
   entry_pick_id
@@ -921,6 +989,8 @@ Columns:
   is_active                     boolean             nullable=NO
   created_at                    timestamp with time zonenullable=NO
   updated_at                    timestamp with time zonenullable=NO
+  risk_model                    text                nullable=NO
+  probability_model             text                nullable=NO
 
 Primary Keys:
   context_id

@@ -1,7 +1,72 @@
 {
-  "generated": "2026-07-10 13:21:19.791591",
+  "generated": "2026-07-14 15:55:48.427796",
   "database": "semisharp",
   "tables": [
+    {
+      "schema": "analytics",
+      "table": "game_win_probabilities",
+      "row_count": 544,
+      "columns": [
+        {
+          "name": "win_prob_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "week",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "game_id",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "baseline_wp",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "risk_adjusted_wp",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "risk_discount_factor",
+          "type": "numeric",
+          "nullable": "YES"
+        },
+        {
+          "name": "source_system",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "YES"
+        }
+      ],
+      "primary_keys": [
+        "win_prob_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "game_win_probabilities_pkey",
+        "game_win_probabilities_season_week_game_id_team_id_source_s_key"
+      ]
+    },
     {
       "schema": "analytics",
       "table": "historical_risk_analysis",
@@ -1227,7 +1292,7 @@
     {
       "schema": "risk",
       "table": "game_risk_factors",
-      "row_count": 54,
+      "row_count": 348,
       "columns": [
         {
           "name": "game_risk_factor_id",
@@ -1297,7 +1362,7 @@
     {
       "schema": "risk",
       "table": "game_risk_scores",
-      "row_count": 14,
+      "row_count": 264,
       "columns": [
         {
           "name": "game_risk_score_id",
@@ -1372,7 +1437,7 @@
     {
       "schema": "risk",
       "table": "game_risk_summary",
-      "row_count": 16,
+      "row_count": 264,
       "columns": [
         {
           "name": "season",
@@ -1785,7 +1850,7 @@
     {
       "schema": "strategy",
       "table": "registry",
-      "row_count": 10,
+      "row_count": 11,
       "columns": [
         {
           "name": "strategy_id",
@@ -1978,6 +2043,97 @@
     },
     {
       "schema": "survivor",
+      "table": "entry_pick_history",
+      "row_count": 0,
+      "columns": [
+        {
+          "name": "entry_pick_history_id",
+          "type": "bigint",
+          "nullable": "NO"
+        },
+        {
+          "name": "entry_pick_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "entry_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "contest_leg_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "operation",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "pick_source",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "pick_status",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "picked_at",
+          "type": "timestamp with time zone",
+          "nullable": "YES"
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "change_reason",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "changed_by_user_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "old_record",
+          "type": "jsonb",
+          "nullable": "YES"
+        },
+        {
+          "name": "new_record",
+          "type": "jsonb",
+          "nullable": "YES"
+        },
+        {
+          "name": "changed_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "entry_pick_history_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "entry_pick_history_pkey",
+        "idx_entry_pick_history_entry",
+        "idx_entry_pick_history_leg"
+      ]
+    },
+    {
+      "schema": "survivor",
       "table": "entry_picks",
       "row_count": 0,
       "columns": [
@@ -2020,6 +2176,26 @@
           "name": "created_at",
           "type": "timestamp with time zone",
           "nullable": "NO"
+        },
+        {
+          "name": "pick_status",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        },
+        {
+          "name": "updated_by_user_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "change_reason",
+          "type": "text",
+          "nullable": "YES"
         }
       ],
       "primary_keys": [
@@ -2130,6 +2306,16 @@
         {
           "name": "updated_at",
           "type": "timestamp with time zone",
+          "nullable": "NO"
+        },
+        {
+          "name": "risk_model",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "probability_model",
+          "type": "text",
           "nullable": "NO"
         }
       ],

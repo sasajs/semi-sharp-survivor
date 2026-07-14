@@ -1,8 +1,20 @@
 # SemiSharp API Catalog
 
-Generated: 2026-07-10 13:21:20.445949
+Generated: 2026-07-14 15:55:49.131474
 
-Total API Routes: 23
+Total API Routes: 32
+
+---
+
+## GET /
+
+**Summary:** Read Root
+
+**Operation ID:** `read_root__get`
+
+### Responses
+
+- `200` Successful Response
 
 ---
 
@@ -14,10 +26,9 @@ Total API Routes: 23
 
 **Operation ID:** `login_auth_login_post`
 
-### Parameters
+### Request Body
 
-- `username` (query)
-- `password` (query)
+- application/json
 
 ### Responses
 
@@ -184,6 +195,26 @@ Total API Routes: 23
 
 ---
 
+## GET /risk/probabilities/{season}/{week}
+
+**Tags:** Risk
+
+**Summary:** Get Probabilities
+
+**Operation ID:** `get_probabilities_risk_probabilities__season___week__get`
+
+### Parameters
+
+- `season` (path)
+- `week` (path)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
 ## GET /risk/week/{season}/{week}
 
 **Tags:** Risk
@@ -244,9 +275,152 @@ Total API Routes: 23
 
 ---
 
+## PUT /season-management/current-week
+
+**Tags:** Season Management
+
+**Summary:** Update Current Week
+
+**Operation ID:** `update_current_week_season_management_current_week_put`
+
+### Request Body
+
+- application/json
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## GET /season-management/entries/{entry_id}/picks
+
+**Tags:** Season Management
+
+**Summary:** Entry Picks
+
+**Operation ID:** `entry_picks_season_management_entries__entry_id__picks_get`
+
+### Parameters
+
+- `entry_id` (path)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## POST /season-management/entries/{entry_id}/picks
+
+**Tags:** Season Management
+
+**Summary:** Create Pick
+
+**Operation ID:** `create_pick_season_management_entries__entry_id__picks_post`
+
+### Parameters
+
+- `entry_id` (path)
+
+### Request Body
+
+- application/json
+
+### Responses
+
+- `201` Successful Response
+- `422` Validation Error
+
+---
+
+## PUT /season-management/entries/{entry_id}/picks/{contest_leg_id}
+
+**Tags:** Season Management
+
+**Summary:** Correct Pick
+
+**Operation ID:** `correct_pick_season_management_entries__entry_id__picks__contest_leg_id__put`
+
+### Parameters
+
+- `entry_id` (path)
+- `contest_leg_id` (path)
+
+### Request Body
+
+- application/json
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## DELETE /season-management/entries/{entry_id}/picks/{contest_leg_id}
+
+**Tags:** Season Management
+
+**Summary:** Remove Pick
+
+**Operation ID:** `remove_pick_season_management_entries__entry_id__picks__contest_leg_id__delete`
+
+### Parameters
+
+- `entry_id` (path)
+- `contest_leg_id` (path)
+
+### Request Body
+
+- application/json
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## GET /season-management/entries/{entry_id}/valid-picks/{contest_leg_id}
+
+**Tags:** Season Management
+
+**Summary:** Valid Pick Options
+
+**Operation ID:** `valid_pick_options_season_management_entries__entry_id__valid_picks__contest_leg_id__get`
+
+### Parameters
+
+- `entry_id` (path)
+- `contest_leg_id` (path)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## GET /season-management/status
+
+**Tags:** Season Management
+
+**Summary:** Season Management Status
+
+**Operation ID:** `season_management_status_season_management_status_get`
+
+### Responses
+
+- `200` Successful Response
+
+---
+
 ## GET /strategies
 
-**Tags:** Strategy Registry
+**Tags:** Strategies
 
 **Summary:** Get Strategies
 
@@ -301,6 +475,29 @@ Total API Routes: 23
 
 ---
 
+## GET /strategies/compare/{season}/{contest_format}
+
+**Tags:** Strategies
+
+**Summary:** Compare Strategy Paths
+
+**Operation ID:** `compare_strategy_paths_strategies_compare__season___contest_format__get`
+
+### Parameters
+
+- `season` (path)
+- `contest_format` (path)
+- `rating_week` (query)
+- `hfa_source` (query)
+- `entry_id` (query)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
 ## GET /strategies/current-week-highest-win/{season}/{contest_format}
 
 **Tags:** Strategies
@@ -315,6 +512,7 @@ Total API Routes: 23
 - `contest_format` (path)
 - `rating_week` (query)
 - `hfa_source` (query)
+- `entry_id` (query)
 
 ### Responses
 
@@ -359,6 +557,7 @@ Total API Routes: 23
 - `contest_format` (path)
 - `rating_week` (query)
 - `hfa_source` (query)
+- `entry_id` (query)
 
 ### Responses
 
@@ -425,6 +624,7 @@ Total API Routes: 23
 - `contest_format` (path)
 - `rating_week` (query)
 - `hfa_source` (query)
+- `user_id` (query)
 
 ### Responses
 
@@ -445,6 +645,27 @@ Total API Routes: 23
 
 - `season` (path)
 - `contest_format` (path)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## GET /strategy-context/{entry_id}
+
+**Tags:** Strategy Context
+
+**Summary:** Get Strategy Context
+
+**Operation ID:** `get_strategy_context_strategy_context__entry_id__get`
+
+### Parameters
+
+- `entry_id` (path)
+- `contest_format` (query)
+- `contest_leg_id` (query)
 
 ### Responses
 
