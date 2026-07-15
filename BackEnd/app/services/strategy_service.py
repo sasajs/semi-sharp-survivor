@@ -44,17 +44,41 @@ def projection_edge(season, contest_format):
         "--season", str(season), "--contest-format", contest_format
     ])
 
-def monte_carlo(season, contest_format, rating_week, hfa_source):
-    return run_strategy("scripts/strategy/monte_carlo_survivor.py", [
+def monte_carlo(
+    season,
+    contest_format,
+    rating_week,
+    hfa_source,
+    entry_id=None,
+):
+    args = [
         "--season", str(season), "--contest-format", contest_format,
         "--rating-week", str(rating_week), "--hfa-source", hfa_source
-    ])
+    ]
+    if entry_id is not None:
+        args.extend(["--entry-id", str(entry_id)])
+    return run_strategy(
+        "scripts/strategy/monte_carlo_survivor.py",
+        args,
+    )
 
-def dynamic_programming(season, contest_format, rating_week, hfa_source):
-    return run_strategy("scripts/strategy/dynamic_programming.py", [
+def dynamic_programming(
+    season,
+    contest_format,
+    rating_week,
+    hfa_source,
+    entry_id=None,
+):
+    args = [
         "--season", str(season), "--contest-format", contest_format,
         "--rating-week", str(rating_week), "--hfa-source", hfa_source
-    ])
+    ]
+    if entry_id is not None:
+        args.extend(["--entry-id", str(entry_id)])
+    return run_strategy(
+        "scripts/strategy/dynamic_programming.py",
+        args,
+    )
 
 def bottom_six_road_fade(season, contest_format, rating_week, hfa_source):
     return run_strategy("scripts/strategy/bottom_six_road_fade.py", [

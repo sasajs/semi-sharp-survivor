@@ -18,9 +18,13 @@ Current Week Highest Win is excluded because it is a current-leg ranking
 tool rather than a season-path strategy.
 """
 
-from collections import Counter
+from collections import Counter, OrderedDict
+from copy import deepcopy
+from threading import Lock
+from time import monotonic
 from typing import Any
 
+from app.services.strategy_context_service import build_strategy_context
 from app.services.strategy_service import run_strategy
 
 
@@ -60,6 +64,87 @@ STRATEGY_DEFINITIONS = (
 
 class CompareStrategiesError(ValueError):
     """Raised when strategy comparison cannot be completed."""
+
+
+COMPARE_CACHE_TTL_SECONDS = 300.0
+COMPARE_CACHE_MAX_ENTRIES = 128
+
+_compare_cache: OrderedDict[tuple[Any, ...], tuple[float, dict[str, Any]]] = OrderedDict()
+_compare_cache_lock = Lock()
+
+
+def _comparison_cache_key(
+    *,
+    season: int,
+    contest_format: str,
+    rating_week: int,
+    hfa_source: str,
+    entry_id: int,
+) -> tuple[Any, ...]:
+    """Build an entry- and model-scoped cache key from authoritative context."""
+    context = build_strategy_context(
+        entry_id=entry_id,
+        contest_format=contest_format,
+    )
+
+    return (
+        season,
+        contest_format,
+        rating_week,
+        hfa_source,
+        entry_id,
+        context.season,
+        context.current_week,
+        context.current_contest_leg_id,
+        context.current_leg_number,
+        context.projection_model,
+        context.risk_model,
+        context.probability_model,
+        context.hfa_source,
+        context.used_team_ids,
+    )
+
+
+def _get_cached_comparison(
+    key: tuple[Any, ...],
+) -> dict[str, Any] | None:
+    now = monotonic()
+
+    with _compare_cache_lock:
+        cached = _compare_cache.get(key)
+
+        if cached is None:
+            return None
+
+        created_at, payload = cached
+
+        if now - created_at > COMPARE_CACHE_TTL_SECONDS:
+            del _compare_cache[key]
+            return None
+
+        _compare_cache.move_to_end(key)
+        return deepcopy(payload)
+
+
+def _store_cached_comparison(
+    key: tuple[Any, ...],
+    payload: dict[str, Any],
+) -> None:
+    with _compare_cache_lock:
+        _compare_cache[key] = (
+            monotonic(),
+            deepcopy(payload),
+        )
+        _compare_cache.move_to_end(key)
+
+        while len(_compare_cache) > COMPARE_CACHE_MAX_ENTRIES:
+            _compare_cache.popitem(last=False)
+
+
+def clear_compare_strategy_cache() -> None:
+    """Clear all in-process comparison results."""
+    with _compare_cache_lock:
+        _compare_cache.clear()
 
 
 def _common_arguments(
@@ -349,6 +434,19 @@ def compare_strategies(
             "contest_format must be STANDARD or CIRCA."
         )
 
+    cache_key = _comparison_cache_key(
+        season=season,
+        contest_format=format_code,
+        rating_week=rating_week,
+        hfa_source=hfa_source,
+        entry_id=entry_id,
+    )
+
+    cached = _get_cached_comparison(cache_key)
+
+    if cached is not None:
+        return cached
+
     arguments = _common_arguments(
         season=season,
         contest_format=format_code,
@@ -435,7 +533,7 @@ def compare_strategies(
         if leg["has_disagreement"]
     ]
 
-    return {
+    response = {
         "comparison_version": "1.0",
         "season": season,
         "contest_format": format_code,
@@ -477,3 +575,6 @@ def compare_strategies(
             ],
         },
     }
+
+    _store_cached_comparison(cache_key, response)
+    return response

@@ -132,12 +132,14 @@ def monte_carlo(
     contest_format: str,
     rating_week: int = Query(1),
     hfa_source: str = Query("SEMISHARP_2026"),
+    entry_id: int | None = Query(None, ge=1),
 ):
     return strategy_service.monte_carlo(
         season,
         contest_format,
         rating_week,
         hfa_source,
+        entry_id,
     )
 
 
@@ -149,12 +151,14 @@ def dynamic_programming(
     contest_format: str,
     rating_week: int = Query(1),
     hfa_source: str = Query("SEMISHARP_2026"),
+    entry_id: int | None = Query(None, ge=1),
 ):
     return strategy_service.dynamic_programming(
         season,
         contest_format,
         rating_week,
         hfa_source,
+        entry_id,
     )
 
 

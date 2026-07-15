@@ -366,6 +366,9 @@ def generate_random_path(
 
     selected_path: list[StrategyCandidate] = []
     selected_team_ids = set(context.used_team_ids)
+    enforce_holiday_feasibility = (
+        context.contest_format == "CIRCA"
+    )
 
     for _, leg_id in leg_order:
         leg_candidates = grouped.get(leg_id, [])
@@ -381,14 +384,15 @@ def generate_random_path(
                 candidate,
             ]
 
-            holiday = path_preserves_circa_holidays(
-                context,
-                all_candidates,
-                proposed_path,
-            )
+            if enforce_holiday_feasibility:
+                holiday = path_preserves_circa_holidays(
+                    context,
+                    all_candidates,
+                    proposed_path,
+                )
 
-            if not holiday.feasible:
-                continue
+                if not holiday.feasible:
+                    continue
 
             valid.append(candidate)
 
@@ -532,31 +536,63 @@ def simulate_path(
     elimination_legs: list[int] = []
     elimination_counts: dict[str, int] = {}
 
+    prepared: list[
+        tuple[int, str, float, float, float]
+    ] = []
+
+    for candidate in path:
+        mean_probability = candidate_probability(
+            candidate
+        )
+        concentration = beta_concentration(
+            candidate
+        )
+        alpha = max(
+            mean_probability * concentration,
+            0.001,
+        )
+        beta = max(
+            (1.0 - mean_probability) * concentration,
+            0.001,
+        )
+        prepared.append(
+            (
+                candidate.leg_number,
+                candidate.leg_code,
+                mean_probability,
+                alpha,
+                beta,
+            )
+        )
+
     canonical_probability = math.prod(
-        candidate_probability(candidate)
-        for candidate in path
+        item[2]
+        for item in prepared
     )
+
+    betavariate = rng.betavariate
+    random_value = rng.random
 
     for _ in range(SIMULATIONS_PER_PATH):
         legs_survived = 0
         eliminated = False
 
-        for candidate in path:
-            true_probability = uncertain_probability(
-                rng,
-                candidate,
+        for leg_number, leg_code, _, alpha, beta in prepared:
+            true_probability = betavariate(
+                alpha,
+                beta,
             )
 
-            if rng.random() <= true_probability:
+            if random_value() <= true_probability:
                 legs_survived += 1
                 continue
 
             eliminated = True
             elimination_legs.append(
-                candidate.leg_number
+                leg_number
             )
 
-            key = candidate.leg_code
+            key = leg_code
             elimination_counts[key] = (
                 elimination_counts.get(key, 0) + 1
             )

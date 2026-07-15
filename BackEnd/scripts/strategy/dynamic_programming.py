@@ -373,6 +373,9 @@ def optimize_path(
     )
 
     beam: list[SearchState] = [initial_state]
+    enforce_holiday_feasibility = (
+        context.contest_format == "CIRCA"
+    )
 
     expanded_state_count = 0
     rejected_reuse_count = 0
@@ -402,15 +405,16 @@ def optimize_path(
                     candidate,
                 )
 
-                holiday_check = path_preserves_circa_holidays(
-                    context,
-                    all_candidates,
-                    proposed_path,
-                )
+                if enforce_holiday_feasibility:
+                    holiday_check = path_preserves_circa_holidays(
+                        context,
+                        all_candidates,
+                        proposed_path,
+                    )
 
-                if not holiday_check.feasible:
-                    rejected_holiday_count += 1
-                    continue
+                    if not holiday_check.feasible:
+                        rejected_holiday_count += 1
+                        continue
 
                 probability = candidate_probability(
                     candidate
