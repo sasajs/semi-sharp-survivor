@@ -19,6 +19,7 @@ tool rather than a season-path strategy.
 """
 
 from collections import Counter, OrderedDict
+from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from threading import Lock
 from time import monotonic
@@ -455,21 +456,32 @@ def compare_strategies(
         entry_id=entry_id,
     )
 
-    strategy_results: list[dict[str, Any]] = []
-
-    for definition in STRATEGY_DEFINITIONS:
+    def execute_strategy(
+        definition: dict[str, str],
+    ) -> dict[str, Any]:
         payload = run_strategy(
             definition["script"],
             arguments,
         )
 
-        normalized = _normalize_strategy_result(
+        return _normalize_strategy_result(
             definition=definition,
             payload=payload,
             entry_id=entry_id,
         )
 
-        strategy_results.append(normalized)
+    # Each strategy already executes in an isolated subprocess. Running
+    # those subprocesses concurrently reduces comparison latency while
+    # preserving the registry-defined order returned to callers.
+    with ThreadPoolExecutor(
+        max_workers=len(STRATEGY_DEFINITIONS)
+    ) as executor:
+        strategy_results = list(
+            executor.map(
+                execute_strategy,
+                STRATEGY_DEFINITIONS,
+            )
+        )
 
     leg_comparison = _build_leg_comparison(
         strategy_results
