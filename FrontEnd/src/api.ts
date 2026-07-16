@@ -161,14 +161,7 @@ export const SemiSharpApi = {
   },
 
   // --- Schedule ---
-  async getSchedule(season: number, week: number, entryId?: string | number): Promise<{ games: GameMatchup[] }> {
-    if (entryId !== undefined && entryId !== null) {
-      return request<{ games: GameMatchup[] }>(`/schedule/${season}/${week}/${entryId}`);
-    }
-    return request<{ games: GameMatchup[] }>(`/schedule/${season}/${week}`);
-  },
-
-  async getScheduleWithoutEntry(season: number, week: number): Promise<{ games: GameMatchup[] }> {
+  async getSchedule(season: number, week: number): Promise<{ games: GameMatchup[] }> {
     return request<{ games: GameMatchup[] }>(`/schedule/${season}/${week}`);
   },
 
@@ -199,6 +192,10 @@ export const SemiSharpApi = {
   // --- Risk Engine ---
   async getRisk(season: number, week: number): Promise<RiskResponse> {
     return request<RiskResponse>(`/risk/${season}/${week}`);
+  },
+
+  async getRiskMethodology(): Promise<any> {
+    return request<any>('/risk/methodology');
   },
 
   // --- Strategy Engine ---
@@ -241,5 +238,41 @@ export const SemiSharpApi = {
 
   async getStrategyMarketArbitrageExit(season: number, contestFormat: string): Promise<StrategyRecommendation> {
     return request<StrategyRecommendation>(`/strategies/market-arbitrage-exit/${season}/${contestFormat}`);
+  },
+
+  async compareStrategies(season: number, contestFormat: string, entryId?: string | number): Promise<any> {
+    const query = entryId ? `?entry_id=${entryId}` : '';
+    return request<any>(`/strategies/compare/${season}/${contestFormat}${query}`);
+  },
+
+  // --- Season Management ---
+  async getSeasonManagementStatus(): Promise<{
+    application_context: any;
+    entries: any[];
+    all_entries_ready: boolean;
+  }> {
+    return request<any>('/season-management/status');
+  },
+
+  async getEntryPicks(entryId: string | number): Promise<{
+    entry_id: number;
+    picks: any[];
+  }> {
+    return request<any>(`/season-management/entries/${entryId}/picks`);
+  },
+
+  async getStrategyContext(entryId: string | number, contestFormat: string): Promise<any> {
+    return request<any>(`/strategy-context/${entryId}?contest_format=${encodeURIComponent(contestFormat)}`);
+  },
+
+  async getValidPicks(entryId: string | number, contestLegId: string | number): Promise<any> {
+    return request<any>(`/season-management/entries/${entryId}/valid-picks/${contestLegId}`);
+  },
+
+  async createPick(entryId: string | number, payload: { contest_leg_id: number; team_id: number }): Promise<any> {
+    return request<any>(`/season-management/entries/${entryId}/picks`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
   },
 };

@@ -14,6 +14,9 @@ import { RiskAnalysis } from './components/RiskAnalysis';
 import { MarketEdge } from './components/MarketEdge';
 import { ExecutiveDashboard } from './components/ExecutiveDashboard';
 import { SurvivorStrategies } from './components/SurvivorStrategies';
+import { RecommendationWorkspace } from './components/RecommendationWorkspace';
+import { SeasonManagement } from './components/SeasonManagement';
+import { WeeklyGameAnalysis } from './components/WeeklyGameAnalysis';
 import { ScholarsGuideLogo } from './components/ScholarsGuideLogo';
 import { Card, Button, Input, Alert, LoadingSpinner } from './components/ui';
 import { SemiSharpApi, ApiError } from './api';
@@ -31,7 +34,9 @@ import {
   Sparkles,
   AlertOctagon,
   ArrowRight,
-  Award
+  Award,
+  Brain,
+  ClipboardList
 } from 'lucide-react';
 
 function LoginScreen() {
@@ -67,7 +72,7 @@ function LoginScreen() {
           Analytical Portal Sign-In
         </h2>
         <p className="mt-2 text-center text-xs text-slate-500 font-medium font-mono uppercase tracking-widest">
-          v3.0 | MVP Release
+          v3.0 | LIVE API
         </p>
       </div>
 
@@ -170,7 +175,9 @@ function EntrySelectionScreen({ onConfirm }: { onConfirm: () => void }) {
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-slate-900">{entry.entry_label}</span>
+                          <span className="font-bold text-sm text-slate-900">
+                            {entry.entry_label} {entry.format_name ? `— ${entry.format_name}` : ''}
+                          </span>
                           <span className="text-[10px] font-mono text-slate-400">ID: {entry.entry_id}</span>
                         </div>
                         <p className="text-xs text-slate-500">Sweat Name: {entry.survivor_sweat_name}</p>
@@ -355,7 +362,7 @@ function AppContent() {
             )}
             {status === 'IN_DEVELOPMENT' && (
               <span className="text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
-                🟡 MVP
+                🟡 IN DEVELOPMENT
               </span>
             )}
             {status === 'PLACEHOLDER' && (
@@ -372,7 +379,7 @@ function AppContent() {
           <Database className="w-3.5 h-3.5 text-slate-400" />
           <span>v3.0</span>
           <span className="text-slate-300">|</span>
-          <span className="uppercase font-bold text-amber-600">MVP</span>
+          <span className="uppercase font-bold text-emerald-600">LIVE API</span>
         </div>
       )}
     </div>
@@ -474,6 +481,26 @@ function AppContent() {
         </div>
       )}
 
+      {/* WEEKLY GAME ANALYSIS VIEW */}
+      {activeTab === 'game_analysis' && (
+        <div className="space-y-6 animate-fade-in">
+          {renderScreenHeader(
+            'Weekly Game Analysis', 
+            'Review every current-week matchup in one unified analytical workspace.', 
+            <ClipboardList className="w-5 h-5" />,
+            'IN_DEVELOPMENT'
+          )}
+
+          {context ? (
+            <WeeklyGameAnalysis season={context.season} week={context.current_week ?? context.week} />
+          ) : (
+            <Card className="p-12 text-center space-y-4">
+              <LoadingSpinner size="md" message="Waiting for active session context parameters..." />
+            </Card>
+          )}
+        </div>
+      )}
+
       {/* 6. STRATEGIES VIEW */}
       {activeTab === 'strategies' && (
         <div className="space-y-6 animate-fade-in">
@@ -492,6 +519,31 @@ function AppContent() {
             </Card>
           )}
         </div>
+      )}
+
+      {/* RECOMMENDATION WORKSPACE VIEW */}
+      {activeTab === 'recommendation_workspace' && (
+        <div className="space-y-6 animate-fade-in">
+          {renderScreenHeader(
+            'Recommendation Workspace', 
+            'Review backend-generated survivor recommendations before recording an official pick.', 
+            <Brain className="w-5 h-5" />,
+            'IN_DEVELOPMENT'
+          )}
+
+          {context ? (
+            <RecommendationWorkspace season={context.season} week={context.current_week ?? context.week} />
+          ) : (
+            <Card className="p-12 text-center space-y-4">
+              <LoadingSpinner size="md" message="Waiting for active session context parameters..." />
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* Season Management View */}
+      {activeTab === 'season_management' && (
+        <SeasonManagement />
       )}
 
       {/* 7. ROADMAP PLACEHOLDERS */}

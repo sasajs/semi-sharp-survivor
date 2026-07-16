@@ -47,15 +47,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser) as UserProfile;
+        
+        // Stale session check: if entries exist but lack format fields, discard and force login
+        const isStale = parsedUser.entries.length > 0 && parsedUser.entries.some(e => !e.format_code);
+        if (isStale) {
+          localStorage.removeItem(SESSION_KEY_USER);
+          localStorage.removeItem(SESSION_KEY_ENTRY);
+          setUser(null);
+          setSelectedEntry(null);
+          setIsAuthenticated(false);
+          setIsLoading(false);
+          return;
+        }
+
         setUser(parsedUser);
         setIsAuthenticated(true);
 
         if (storedEntry) {
           const parsedEntry = JSON.parse(storedEntry) as SurvivorEntry;
-          // Verify that the stored entry still belongs to the user
-          const exists = parsedUser.entries.some(e => e.entry_id === parsedEntry.entry_id);
-          if (exists) {
-            setSelectedEntry(parsedEntry);
+          // Verify that the stored entry still belongs to the user and pick the fresh one from parsedUser
+          const matchedEntry = parsedUser.entries.find(e => e.entry_id === parsedEntry.entry_id);
+          if (matchedEntry) {
+            setSelectedEntry(matchedEntry);
           } else if (parsedUser.entries.length > 0) {
             setSelectedEntry(parsedUser.entries[0]);
           }
@@ -89,6 +102,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           survivor_sweat_name: entry.survivor_sweat_name,
           entry_label: entry.entry_label,
           is_active: entry.is_active,
+          contest_format_id: entry.contest_format_id,
+          format_code: entry.format_code,
+          format_name: entry.format_name,
         })),
       };
 

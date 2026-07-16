@@ -20,6 +20,7 @@ import {
   AlertOctagon, 
   Compass, 
   Award,
+  Brain,
   Sliders,
   CheckCircle,
   XCircle,
@@ -36,7 +37,8 @@ import {
   BarChart3,
   Users,
   LayoutDashboard,
-  Radio
+  Radio,
+  ClipboardList
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -126,21 +128,20 @@ export const Layout: React.FC<LayoutProps> = ({
       title: 'General',
       items: [
         { id: 'dashboard', name: 'Dashboard', icon: Compass, status: 'LIVE' },
+        { id: 'season_management', name: 'My Survivor Season', icon: Calendar, status: 'IN_DEVELOPMENT' },
       ]
     },
     {
       title: 'Analysis',
       items: [
-        { id: 'matchups', name: 'Weekly Matchups', icon: Calendar, status: 'LIVE' },
-        { id: 'projections', name: 'Projections', icon: TrendingUp, status: 'LIVE' },
-        { id: 'risk', name: 'Risk Analysis', icon: AlertOctagon, status: 'LIVE' },
-        { id: 'market', name: 'Market Edge', icon: Database, status: 'LIVE' },
+        { id: 'game_analysis', name: 'Weekly Game Analysis', icon: ClipboardList, status: 'LIVE' },
       ]
     },
     {
       title: 'Strategies',
       items: [
         { id: 'strategies', name: 'Survivor Tools', icon: Award, status: 'LIVE' },
+        { id: 'recommendation_workspace', name: 'Recommendation Workspace', icon: Brain, status: 'IN_DEVELOPMENT' },
       ]
     },
     {
@@ -173,7 +174,7 @@ export const Layout: React.FC<LayoutProps> = ({
         case 'LIVE':
           return <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" title="LIVE" />;
         case 'IN_DEVELOPMENT':
-          return <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" title="MVP" />;
+          return <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" title="IN DEVELOPMENT" />;
         case 'PLACEHOLDER':
         default:
           return <span className="w-1.5 h-1.5 rounded-full bg-slate-300 inline-block" title="Coming Soon" />;
@@ -190,7 +191,7 @@ export const Layout: React.FC<LayoutProps> = ({
       case 'IN_DEVELOPMENT':
         return (
           <span className="text-[9px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200/80 px-1 py-0.5 rounded-sm uppercase tracking-wider scale-90 shrink-0">
-            MVP
+            IN DEVELOPMENT
           </span>
         );
       case 'PLACEHOLDER':
@@ -263,7 +264,7 @@ export const Layout: React.FC<LayoutProps> = ({
                   >
                     {user.entries.map((entry) => (
                       <option key={entry.entry_id} value={entry.entry_id}>
-                        {entry.entry_label} {entry.is_active ? '• Active' : '• Out'}
+                        {entry.entry_label} — {entry.format_name || 'No Format'}
                       </option>
                     ))}
                   </select>

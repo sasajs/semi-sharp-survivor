@@ -11,6 +11,9 @@ export interface SurvivorEntry {
   survivor_sweat_name: string;
   entry_label: string;
   is_active: boolean;
+  contest_format_id?: number;
+  format_code?: string;
+  format_name?: string;
 }
 
 export interface UserProfile {
@@ -33,6 +36,9 @@ export interface LoginResponse {
       survivor_sweat_name: string;
       entry_label: string;
       is_active: boolean;
+      contest_format_id?: number;
+      format_code?: string;
+      format_name?: string;
     }[];
   };
 }

@@ -138,7 +138,6 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
   
   // Controls
   const [selectedStrategy, setSelectedStrategy] = useState<string>('CURRENT_WEEK_HIGHEST_WIN');
-  const [contestFormat, setContestFormat] = useState<string>('Circa Survivor');
   
   // Recommendation state
   const [recommendation, setRecommendation] = useState<StrategyRecommendation | null>(null);
@@ -201,9 +200,7 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
         
         // Fetch schedule, projections, risks in parallel
         const [scheduleRes, projectionsRes, riskRes] = await Promise.allSettled([
-          SemiSharpApi.getSchedule(season, week, entryId).catch(() => 
-            SemiSharpApi.getScheduleWithoutEntry(season, week)
-          ),
+          SemiSharpApi.getSchedule(season, week),
           SemiSharpApi.getProjections(season, week),
           SemiSharpApi.getRisk(season, week)
         ]);
@@ -228,6 +225,11 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
   }, [season, week, selectedEntry?.entry_id]);
 
   const handleGenerateRecommendation = async () => {
+    if (!selectedEntry || !selectedEntry.format_code) {
+      setError('This survivor entry does not have a contest format assigned.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -236,7 +238,7 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
     let endpointStr = '';
     try {
       let res: StrategyRecommendation;
-      const mappedFormat = contestFormat === 'Circa Survivor' ? 'CIRCA' : 'STANDARD';
+      const mappedFormat = selectedEntry.format_code;
 
       switch (selectedStrategy) {
         case 'CURRENT_WEEK_HIGHEST_WIN':
@@ -430,23 +432,12 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
 
             {/* Contest Format */}
             <div className="space-y-1.5">
-              <label htmlFor="contest-format" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
                 Contest Format
-              </label>
-              <select
-                id="contest-format"
-                value={contestFormat}
-                onChange={(e) => {
-                  setContestFormat(e.target.value);
-                  setRecommendation(null);
-                  setError(null);
-                  setSuccess(null);
-                }}
-                className="w-full text-xs font-semibold text-slate-800 bg-white border border-slate-200 hover:border-slate-300 rounded-lg px-3 py-2.5 outline-none focus:border-slate-900 transition-colors"
-              >
-                <option value="Circa Survivor">Circa Survivor</option>
-                <option value="Standard Survivor">Standard Survivor (1 Pick / Week)</option>
-              </select>
+              </span>
+              <div className="w-full text-xs font-black text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2.5 font-sans">
+                {selectedEntry?.format_name || 'No Format assigned'}
+              </div>
             </div>
 
             {/* Context meta parameters */}
@@ -602,7 +593,7 @@ export const SurvivorStrategies: React.FC<SurvivorStrategiesProps> = ({ season, 
                   <div className="space-y-1">
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Contest</span>
                     <span className="text-sm font-black text-slate-900 block font-sans">
-                      {recommendation.contest_format || contestFormat}
+                      {recommendation.contest_format || selectedEntry?.format_name || 'No Format'}
                     </span>
                   </div>
                   <div className="space-y-1">

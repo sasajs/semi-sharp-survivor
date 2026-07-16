@@ -20,22 +20,14 @@ export const WeeklyMatchups: React.FC<WeeklyMatchupsProps> = ({ season, week }) 
   const fetchSchedule = async () => {
     setLoading(true);
     setError(null);
-    const entryId = selectedEntry?.entry_id || 1;
     
     // Construct predicted endpoints for indicator
-    const primaryEndpoint = `/schedule/${season}/${week}/${entryId}`;
-    const fallbackEndpoint = `/schedule/${season}/${week}`;
+    const endpoint = `/schedule/${season}/${week}`;
     
     try {
       let response;
-      try {
-        setActiveEndpoint(`GET ${primaryEndpoint}`);
-        response = await SemiSharpApi.getSchedule(season, week, entryId);
-      } catch (err: any) {
-        console.warn(`Primary schedule endpoint ${primaryEndpoint} failed, attempting fallback to ${fallbackEndpoint}`, err);
-        setActiveEndpoint(`GET ${fallbackEndpoint}`);
-        response = await SemiSharpApi.getScheduleWithoutEntry(season, week);
-      }
+      setActiveEndpoint(`GET ${endpoint}`);
+      response = await SemiSharpApi.getSchedule(season, week);
       
       if (response && response.games) {
         setGames(response.games);
