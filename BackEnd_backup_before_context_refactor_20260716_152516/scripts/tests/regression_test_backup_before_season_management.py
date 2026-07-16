@@ -1,0 +1,1049 @@
+#!/usr/bin/env python3
+"""
+SemiSharp backend regression suite.
+
+This suite validates both operational availability and analytical
+correctness. It intentionally checks model relationships and API response
+contracts rather than only confirming that scripts execute successfully.
+"""
+
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+from typing import Any, Callable
+
+import httpx
+from dotenv import load_dotenv
+
+
+BACKEND_DIR = "/home/steve/Projects/SemiSharp/BackEnd"
+
+if BACKEND_DIR not in sys.path:
+    sys.path.insert(0, BACKEND_DIR)
+
+load_dotenv()
+
+from app.db import get_connection  # noqa: E402
+
+
+API_BASE = "http://127.0.0.1:8000"
+PYTHON_PATH = os.path.join(
+    BACKEND_DIR,
+    ".venv",
+    "bin",
+    "python3",
+)
+
+results: list[tuple[str, bool, str]] = []
+
+
+def test(name: str, function: Callable[[], None]) -> None:
+    """Execute one regression check and record its result."""
+    print(f"RUNNING {name}...", flush=True)
+
+    try:
+        function()
+        print(f"COMPLETED {name}", flush=True)
+        results.append((name, True, "OK"))
+
+    except Exception as exc:
+        message = str(exc)
+        print(f"FAILED {name}: {message}", flush=True)
+        results.append((name, False, message))
+
+
+def query_one(
+    sql: str,
+    parameters: tuple[Any, ...] | None = None,
+) -> tuple[Any, ...]:
+    """Execute a query and return exactly one row."""
+    with get_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(sql, parameters or ())
+            row = cursor.fetchone()
+
+    if row is None:
+        raise AssertionError("Query returned no rows.")
+
+    return row
+
+
+def assert_positive_count(
+    table_name: str,
+) -> None:
+    """Confirm a database object contains at least one row."""
+    row = query_one(
+        f"SELECT COUNT(*) FROM {table_name};"
+    )
+
+    count = int(row[0])
+
+    if count <= 0:
+        raise AssertionError(
+            f"{table_name} contains no rows."
+        )
+
+
+def run_script(
+    path: str,
+    arguments: list[str],
+) -> Callable[[], None]:
+    """Return a test function that executes a backend script."""
+
+    def run() -> None:
+        environment = os.environ.copy()
+        environment["PYTHONPATH"] = BACKEND_DIR
+
+        absolute_script_path = os.path.join(
+            BACKEND_DIR,
+            path,
+        )
+
+        result = subprocess.run(
+            [
+                PYTHON_PATH,
+                absolute_script_path,
+                *arguments,
+            ],
+            check=False,
+            env=environment,
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+
+        if result.returncode != 0:
+            raise AssertionError(
+                f"Exit {result.returncode}: "
+                f"{result.stderr or result.stdout}"
+            )
+
+    return run
+
+
+def get_json(
+    endpoint: str,
+    parameters: dict[str, Any] | None = None,
+) -> Any:
+    """Call a GET endpoint and return decoded JSON."""
+    response = httpx.get(
+        f"{API_BASE}{endpoint}",
+        params=parameters,
+        timeout=120,
+    )
+
+    if response.status_code != 200:
+        raise AssertionError(
+            f"Status {response.status_code}: "
+            f"{response.text}"
+        )
+
+    return response.json()
+
+
+def api_get(
+    endpoint: str,
+    parameters: dict[str, Any] | None = None,
+) -> Callable[[], None]:
+    """Return a test function that validates a GET endpoint."""
+
+    def run() -> None:
+        get_json(endpoint, parameters)
+
+    return run
+
+
+def api_post(
+    endpoint: str,
+    payload: dict[str, Any],
+    expected_status: int = 200,
+) -> Callable[[], None]:
+    """Return a test function that validates a POST endpoint."""
+
+    def run() -> None:
+        response = httpx.post(
+            f"{API_BASE}{endpoint}",
+            json=payload,
+            timeout=120,
+        )
+
+        if response.status_code != expected_status:
+            raise AssertionError(
+                f"Status {response.status_code}: "
+                f"{response.text}"
+            )
+
+    return run
+
+
+# ------------------------------------------------------------------
+# Analytical correctness tests
+# ------------------------------------------------------------------
+
+
+def validate_probability_row_counts() -> None:
+    """
+    Every projected game must have exactly two probability rows:
+    one for each team.
+    """
+    row = query_one(
+        """
+        SELECT COUNT(*)
+        FROM (
+            SELECT
+                game_id
+            FROM analytics.game_win_probabilities
+            WHERE season = 2026
+              AND source_system = 'SEMISHARP_WP_V2'
+            GROUP BY game_id
+            HAVING COUNT(*) <> 2
+        ) invalid_games;
+        """
+    )
+
+    invalid_count = int(row[0])
+
+    if invalid_count != 0:
+        raise AssertionError(
+            f"{invalid_count} games do not have exactly "
+            "two probability rows."
+        )
+
+
+def validate_probability_sums() -> None:
+    """
+    Baseline probabilities for both teams must sum to approximately 1.
+    """
+    row = query_one(
+        """
+        SELECT
+            COALESCE(
+                MAX(ABS(probability_sum - 1.0)),
+                0
+            )
+        FROM (
+            SELECT
+                game_id,
+                SUM(baseline_wp) AS probability_sum
+            FROM analytics.game_win_probabilities
+            WHERE season = 2026
+              AND source_system = 'SEMISHARP_WP_V2'
+            GROUP BY game_id
+        ) totals;
+        """
+    )
+
+    maximum_error = float(row[0])
+
+    if maximum_error > 0.0002:
+        raise AssertionError(
+            "Baseline probability sums exceed tolerance. "
+            f"Maximum error: {maximum_error}"
+        )
+
+
+def validate_favorite_probability_direction() -> None:
+    """
+    The projected favorite must have a higher baseline probability than
+    the opposing team for every game.
+    """
+    row = query_one(
+        """
+        SELECT COUNT(*)
+        FROM projections.game_spreads p
+        JOIN analytics.game_win_probabilities favorite_wp
+          ON favorite_wp.game_id = p.game_id
+         AND favorite_wp.team_id =
+             p.projected_favorite_team_id
+         AND favorite_wp.source_system =
+             'SEMISHARP_WP_V2'
+        JOIN analytics.game_win_probabilities opponent_wp
+          ON opponent_wp.game_id = p.game_id
+         AND opponent_wp.team_id <>
+             p.projected_favorite_team_id
+         AND opponent_wp.source_system =
+             'SEMISHARP_WP_V2'
+        WHERE p.season = 2026
+          AND p.source_system =
+              'SEMISHARP_PROJECTION_V2'
+          AND favorite_wp.baseline_wp <=
+              opponent_wp.baseline_wp;
+        """
+    )
+
+    invalid_count = int(row[0])
+
+    if invalid_count != 0:
+        raise AssertionError(
+            f"{invalid_count} projected favorites have a "
+            "probability less than or equal to the opponent."
+        )
+
+
+def validate_probability_models_populated() -> None:
+    """Confirm the canonical probability model contains 544 team rows."""
+    row = query_one(
+        """
+        SELECT COUNT(*)
+        FROM analytics.game_win_probabilities
+        WHERE season = 2026
+          AND source_system = 'SEMISHARP_WP_V2';
+        """
+    )
+
+    count = int(row[0])
+
+    if count != 544:
+        raise AssertionError(
+            f"Expected 544 probability rows; found {count}."
+        )
+
+
+# ------------------------------------------------------------------
+# Strategy Context tests
+# ------------------------------------------------------------------
+
+
+def validate_circa_strategy_context() -> None:
+    payload = get_json(
+        "/strategy-context/1",
+        {"contest_format": "CIRCA"},
+    )
+
+    if payload["contest_format"] != "CIRCA":
+        raise AssertionError(
+            "CIRCA context returned the wrong format."
+        )
+
+    if payload["contest_format_id"] != 2:
+        raise AssertionError(
+            "CIRCA context returned the wrong format ID."
+        )
+
+    if payload["season"] != 2026:
+        raise AssertionError(
+            "CIRCA context returned the wrong season."
+        )
+
+    if payload["probability_model"] != "SEMISHARP_WP_V2":
+        raise AssertionError(
+            "CIRCA context returned the wrong "
+            "probability model."
+        )
+
+
+def validate_standard_strategy_context() -> None:
+    payload = get_json(
+        "/strategy-context/1",
+        {"contest_format": "STANDARD"},
+    )
+
+    if payload["contest_format"] != "STANDARD":
+        raise AssertionError(
+            "STANDARD context returned the wrong format."
+        )
+
+    if payload["contest_format_id"] != 1:
+        raise AssertionError(
+            "STANDARD context returned the wrong format ID."
+        )
+
+    if payload["current_week"] != 1:
+        raise AssertionError(
+            "STANDARD context returned the wrong week."
+        )
+
+
+# ------------------------------------------------------------------
+# Current Week Highest Win V2 tests
+# ------------------------------------------------------------------
+
+
+def current_week_v2_payload() -> dict[str, Any]:
+    return get_json(
+        "/strategies/current-week-highest-win/2026/CIRCA",
+        {
+            "rating_week": 1,
+            "hfa_source": "SEMISHARP_2026",
+            "entry_id": 1,
+        },
+    )
+
+
+def validate_current_week_v2_contract() -> None:
+    payload = current_week_v2_payload()
+
+    if payload.get("strategy_version") != "2.0":
+        raise AssertionError(
+            "Current Week strategy version is not 2.0."
+        )
+
+    if (
+        payload.get("strategy_type")
+        != "CURRENT_LEG_RANKING"
+    ):
+        raise AssertionError(
+            "Current Week strategy type is incorrect."
+        )
+
+    recommendations = payload.get("recommendations")
+
+    if not isinstance(recommendations, list):
+        raise AssertionError(
+            "Recommendations is not a list."
+        )
+
+    if len(recommendations) == 0:
+        raise AssertionError(
+            "Current Week strategy returned no "
+            "recommendations."
+        )
+
+
+def validate_current_week_v2_ordering() -> None:
+    payload = current_week_v2_payload()
+    recommendations = payload["recommendations"]
+
+    probabilities = [
+        float(row["risk_adjusted_wp"])
+        for row in recommendations
+    ]
+
+    if probabilities != sorted(
+        probabilities,
+        reverse=True,
+    ):
+        raise AssertionError(
+            "Current Week recommendations are not sorted "
+            "by descending risk-adjusted probability."
+        )
+
+    expected_ranks = list(
+        range(1, len(recommendations) + 1)
+    )
+
+    actual_ranks = [
+        int(row["rank"])
+        for row in recommendations
+    ]
+
+    if actual_ranks != expected_ranks:
+        raise AssertionError(
+            "Current Week recommendation ranks are not "
+            "sequential."
+        )
+
+
+def validate_current_week_active_leg_only() -> None:
+    payload = current_week_v2_payload()
+    expected_leg_id = payload[
+        "current_contest_leg_id"
+    ]
+
+    invalid = [
+        row
+        for row in payload["recommendations"]
+        if row["contest_leg_id"] != expected_leg_id
+    ]
+
+    if invalid:
+        raise AssertionError(
+            "Current Week strategy returned candidates from "
+            "outside the active contest leg."
+        )
+
+
+def validate_current_week_primary_consistency() -> None:
+    payload = current_week_v2_payload()
+
+    recommendations = payload["recommendations"]
+    primary = payload["primary_recommendation"]
+
+    if primary != recommendations[0]:
+        raise AssertionError(
+            "Primary recommendation does not match rank 1."
+        )
+
+    alternatives = payload[
+        "alternative_recommendations"
+    ]
+
+    if alternatives != recommendations[1:3]:
+        raise AssertionError(
+            "Alternative recommendations do not match "
+            "ranks 2 and 3."
+        )
+
+
+def validate_current_week_models() -> None:
+    payload = current_week_v2_payload()
+    models = payload["models"]
+
+    expected = {
+        "projection_model": "SEMISHARP_PROJECTION_V2",
+        "hfa_source": "SEMISHARP_2026",
+        "risk_model": "SEMISHARP_RISK_V3",
+        "probability_model": "SEMISHARP_WP_V2",
+    }
+
+    if models != expected:
+        raise AssertionError(
+            f"Unexpected model context: {models}"
+        )
+
+
+def validate_current_week_used_teams_excluded() -> None:
+    """
+    Confirm no recommendation contains a team already stored for entry 1.
+
+    This remains valid when entry 1 has no prior picks; once picks are
+    entered, the test automatically verifies their exclusion.
+    """
+    payload = current_week_v2_payload()
+
+    row = query_one(
+        """
+        SELECT COALESCE(
+            ARRAY_AGG(team_id),
+            ARRAY[]::integer[]
+        )
+        FROM survivor.entry_picks
+        WHERE entry_id = 1;
+        """
+    )
+
+    used_team_ids = {
+        int(team_id)
+        for team_id in row[0]
+    }
+
+    recommended_team_ids = {
+        int(item["team_id"])
+        for item in payload["recommendations"]
+    }
+
+    overlap = used_team_ids & recommended_team_ids
+
+    if overlap:
+        raise AssertionError(
+            "Current Week strategy recommended previously "
+            f"used team IDs: {sorted(overlap)}"
+        )
+
+
+
+# ------------------------------------------------------------------
+# Compare Strategies tests
+# ------------------------------------------------------------------
+
+
+def compare_strategies_payload() -> dict[str, Any]:
+    return get_json(
+        "/strategies/compare/2026/CIRCA",
+        {
+            "rating_week": 1,
+            "hfa_source": "SEMISHARP_2026",
+            "entry_id": 1,
+        },
+    )
+
+
+def validate_compare_contract() -> None:
+    payload = compare_strategies_payload()
+
+    if payload.get("comparison_version") != "1.0":
+        raise AssertionError(
+            "Compare Strategies version is not 1.0."
+        )
+
+    if payload.get("strategy_count") != 5:
+        raise AssertionError(
+            "Compare Strategies did not return five strategies."
+        )
+
+    expected_codes = {
+        "FUTURE_VALUE",
+        "BOTTOM_SIX_ROAD_FADE",
+        "MARKET_ARBITRAGE_EXIT",
+        "MONTE_CARLO",
+        "DYNAMIC_PROGRAMMING",
+    }
+
+    actual_codes = {
+        strategy["strategy_code"]
+        for strategy in payload["strategies"]
+    }
+
+    if actual_codes != expected_codes:
+        raise AssertionError(
+            f"Unexpected comparison strategies: {actual_codes}"
+        )
+
+
+def validate_compare_leg_count() -> None:
+    payload = compare_strategies_payload()
+    summary = payload["agreement_summary"]
+
+    if summary["compared_leg_count"] != 20:
+        raise AssertionError(
+            "Compare Strategies did not return 20 CIRCA legs."
+        )
+
+    if len(payload["leg_comparison"]) != 20:
+        raise AssertionError(
+            "Leg comparison array does not contain 20 legs."
+        )
+
+
+def validate_compare_probability_horizons() -> None:
+    payload = compare_strategies_payload()
+
+    full_season_codes = {
+        row["strategy_code"]
+        for row in payload[
+            "full_season_probability_rankings"
+        ]
+    }
+
+    if "MARKET_ARBITRAGE_EXIT" in full_season_codes:
+        raise AssertionError(
+            "Market Exit was incorrectly included in "
+            "full-season probability rankings."
+        )
+
+    expected_full_season = {
+        "DYNAMIC_PROGRAMMING",
+        "FUTURE_VALUE",
+        "MONTE_CARLO",
+        "BOTTOM_SIX_ROAD_FADE",
+    }
+
+    if full_season_codes != expected_full_season:
+        raise AssertionError(
+            "Full-season ranking contains the wrong strategies."
+        )
+
+    exit_rows = payload[
+        "exit_horizon_probability_rankings"
+    ]
+
+    if len(exit_rows) != 1:
+        raise AssertionError(
+            "Expected exactly one exit-horizon strategy."
+        )
+
+    exit_row = exit_rows[0]
+
+    if (
+        exit_row["strategy_code"]
+        != "MARKET_ARBITRAGE_EXIT"
+    ):
+        raise AssertionError(
+            "Exit-horizon ranking does not contain Market Exit."
+        )
+
+    if int(exit_row["planning_horizon"]) != 10:
+        raise AssertionError(
+            "Market Exit planning horizon is not Week 10."
+        )
+
+
+def validate_compare_current_consensus() -> None:
+    payload = compare_strategies_payload()
+    current = payload["current_leg_comparison"]
+
+    if current["consensus_team"] != "LAC":
+        raise AssertionError(
+            "Current-leg comparison consensus is not LAC."
+        )
+
+    if current["agreement_count"] != 5:
+        raise AssertionError(
+            "Current-leg agreement count is not five."
+        )
+
+    if current["available_strategy_count"] != 5:
+        raise AssertionError(
+            "Current leg does not contain all five strategies."
+        )
+
+    if not current["complete_agreement"]:
+        raise AssertionError(
+            "Current leg should show complete agreement."
+        )
+
+
+def validate_compare_late_leg_horizon() -> None:
+    payload = compare_strategies_payload()
+
+    late_legs = [
+        leg
+        for leg in payload["leg_comparison"]
+        if leg["nfl_week"] is not None
+        and int(leg["nfl_week"]) > 10
+    ]
+
+    if not late_legs:
+        raise AssertionError(
+            "No post-Week-10 comparison legs were found."
+        )
+
+    for leg in late_legs:
+        if (
+            "MARKET_ARBITRAGE_EXIT"
+            in leg["strategy_picks"]
+        ):
+            raise AssertionError(
+                "Market Exit returned a pick after Week 10."
+            )
+
+        if leg["available_strategy_count"] != 4:
+            raise AssertionError(
+                "Post-Week-10 legs should contain four "
+                "full-season strategies."
+            )
+
+
+# ------------------------------------------------------------------
+# Test execution
+# ------------------------------------------------------------------
+
+# Database and model availability
+test(
+    "[01] Database Connection",
+    lambda: query_one("SELECT 1;"),
+)
+test(
+    "[02] Teams Loaded",
+    lambda: assert_positive_count("reference.teams"),
+)
+test(
+    "[03] Aliases Loaded",
+    lambda: assert_positive_count(
+        "reference.team_aliases"
+    ),
+)
+test(
+    "[04] Schedule Loaded",
+    lambda: assert_positive_count("schedule.games"),
+)
+test(
+    "[05] PFF Ratings Loaded",
+    lambda: assert_positive_count(
+        "ratings.pff_power_ratings"
+    ),
+)
+test(
+    "[06] SIC Scores Loaded",
+    lambda: assert_positive_count(
+        "injuries.team_sic_scores"
+    ),
+)
+test(
+    "[07] Market Events Loaded",
+    lambda: assert_positive_count("market.events"),
+)
+test(
+    "[08] Market Spreads Loaded",
+    lambda: assert_positive_count("market.spreads"),
+)
+test(
+    "[09] Projection Engine V2",
+    lambda: assert_positive_count(
+        "projections.game_spreads"
+    ),
+)
+
+# Probability correctness
+test(
+    "[10] Probability Model Row Count",
+    validate_probability_models_populated,
+)
+test(
+    "[11] Probability Two Teams Per Game",
+    validate_probability_row_counts,
+)
+test(
+    "[12] Probability Baseline Sums",
+    validate_probability_sums,
+)
+test(
+    "[13] Probability Favorite Direction",
+    validate_favorite_probability_direction,
+)
+
+# Strategy scripts
+test(
+    "[14] Strategy Current Week Highest Win",
+    run_script(
+        "scripts/strategy/current_week_highest_win.py",
+        [
+            "--season",
+            "2026",
+            "--contest-format",
+            "CIRCA",
+            "--rating-week",
+            "1",
+            "--hfa-source",
+            "SEMISHARP_2026",
+            "--entry-id",
+            "1",
+        ],
+    ),
+)
+test(
+    "[15] Strategy Future Value",
+    run_script(
+        "scripts/strategy/future_value.py",
+        [
+            "--season",
+            "2026",
+            "--contest-format",
+            "CIRCA",
+            "--rating-week",
+            "1",
+            "--hfa-source",
+            "SEMISHARP_2026",
+            "--entry-id",
+            "1",
+        ],
+    ),
+)
+test(
+    "[19] Strategy Monte Carlo",
+    run_script(
+        "scripts/strategy/monte_carlo_survivor.py",
+        [
+            "--season",
+            "2026",
+            "--contest-format",
+            "CIRCA",
+            "--rating-week",
+            "1",
+            "--hfa-source",
+            "SEMISHARP_2026",
+        ],
+    ),
+)
+test(
+    "[20] Strategy Dynamic Programming",
+    run_script(
+        "scripts/strategy/dynamic_programming.py",
+        [
+            "--season",
+            "2026",
+            "--contest-format",
+            "CIRCA",
+            "--rating-week",
+            "1",
+            "--hfa-source",
+            "SEMISHARP_2026",
+        ],
+    ),
+)
+test(
+    "[21] Strategy Bottom Six Road Fade",
+    run_script(
+        "scripts/strategy/bottom_six_road_fade.py",
+        [
+            "--season",
+            "2026",
+            "--contest-format",
+            "CIRCA",
+            "--rating-week",
+            "1",
+            "--hfa-source",
+            "SEMISHARP_2026",
+        ],
+    ),
+)
+test(
+    "[22] Strategy Market Arbitrage Exit",
+    run_script(
+        "scripts/strategy/market_arbitrage_exit.py",
+        [
+            "--season",
+            "2026",
+            "--contest-format",
+            "CIRCA",
+            "--rating-week",
+            "1",
+            "--hfa-source",
+            "SEMISHARP_2026",
+        ],
+    ),
+)
+
+# Core API endpoints
+test("[23] API Health", api_get("/health"))
+test("[24] API Teams", api_get("/teams"))
+test(
+    "[25] API Schedule",
+    api_get("/schedule/2026/1"),
+)
+test(
+    "[26] API Projections",
+    api_get("/projections/2026/1"),
+)
+test("[27] API Risk", api_get("/risk/2026/1"))
+test(
+    "[28] API Market Consensus",
+    api_get("/market/consensus/2026/1"),
+)
+test(
+    "[29] API Projection Edge",
+    api_get("/market/projection-edge/2026/1"),
+)
+test(
+    "[30] API SIC",
+    api_get("/injuries/sic/2026/1"),
+)
+test(
+    "[31] API Strategy Registry",
+    api_get("/strategies"),
+)
+test(
+    "[32] API Context GET",
+    api_get("/context/current"),
+)
+
+# Shared Strategy Context
+test(
+    "[33] Strategy Context CIRCA",
+    validate_circa_strategy_context,
+)
+test(
+    "[34] Strategy Context STANDARD",
+    validate_standard_strategy_context,
+)
+
+# Strategy APIs
+test(
+    "[35] API Strategy Current Week Highest Win",
+    api_get(
+        "/strategies/current-week-highest-win/2026/CIRCA",
+        {
+            "rating_week": 1,
+            "hfa_source": "SEMISHARP_2026",
+            "entry_id": 1,
+        },
+    ),
+)
+test(
+    "[39] API Strategy Monte Carlo",
+    api_get(
+        "/strategies/monte-carlo/2026/CIRCA"
+    ),
+)
+test(
+    "[40] API Strategy Dynamic Programming",
+    api_get(
+        "/strategies/dynamic-programming/2026/CIRCA"
+    ),
+)
+test(
+    "[41] API Strategy Bottom Six Road Fade",
+    api_get(
+        "/strategies/bottom-six-road-fade/2026/CIRCA"
+    ),
+)
+test(
+    "[42] API Strategy Market Arbitrage Exit",
+    api_get(
+        "/strategies/market-arbitrage-exit/2026/CIRCA"
+    ),
+)
+
+# Current Week Highest Win V2 correctness
+test(
+    "[43] Current Week V2 Contract",
+    validate_current_week_v2_contract,
+)
+test(
+    "[44] Current Week V2 Ordering",
+    validate_current_week_v2_ordering,
+)
+test(
+    "[45] Current Week V2 Active Leg",
+    validate_current_week_active_leg_only,
+)
+test(
+    "[46] Current Week V2 Primary and Alternatives",
+    validate_current_week_primary_consistency,
+)
+test(
+    "[47] Current Week V2 Model Versions",
+    validate_current_week_models,
+)
+test(
+    "[48] Current Week V2 Used Teams Excluded",
+    validate_current_week_used_teams_excluded,
+)
+
+
+# Compare Strategies correctness
+test(
+    "[49] Compare Strategies Contract",
+    validate_compare_contract,
+)
+test(
+    "[50] Compare Strategies Leg Count",
+    validate_compare_leg_count,
+)
+test(
+    "[51] Compare Strategies Probability Horizons",
+    validate_compare_probability_horizons,
+)
+test(
+    "[52] Compare Strategies Current Consensus",
+    validate_compare_current_consensus,
+)
+test(
+    "[53] Compare Strategies Late-Leg Horizon",
+    validate_compare_late_leg_horizon,
+)
+
+# Authentication
+test(
+    "[54] API Auth Login Valid",
+    api_post(
+        "/auth/login",
+        {
+            "username": "SAS",
+            "password": "SAS",
+        },
+        expected_status=200,
+    ),
+)
+test(
+    "[55] API Auth Login Invalid",
+    api_post(
+        "/auth/login",
+        {
+            "username": "SAS",
+            "password": "WRONG",
+        },
+        expected_status=401,
+    ),
+)
+
+passed = sum(
+    1
+    for result in results
+    if result[1]
+)
+
+print(
+    f"\nTOTAL SCORE: {passed}/{len(results)} PASSED"
+)
+
+for name, succeeded, message in results:
+    if not succeeded:
+        print(
+            f"FAILED: {name} - {message}"
+        )
+
+if passed != len(results):
+    raise SystemExit(1)

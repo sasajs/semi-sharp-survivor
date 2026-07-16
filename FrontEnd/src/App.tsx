@@ -18,6 +18,9 @@ import { RecommendationWorkspace } from './components/RecommendationWorkspace';
 import { SeasonManagement } from './components/SeasonManagement';
 import { WeeklyGameAnalysis } from './components/WeeklyGameAnalysis';
 import { ScholarsGuideLogo } from './components/ScholarsGuideLogo';
+import { WhySemiSharp } from './components/WhySemiSharp';
+import { TeamHealth } from './components/TeamHealth';
+import { AdminConsole } from './components/AdminConsole';
 import { Card, Button, Input, Alert, LoadingSpinner } from './components/ui';
 import { SemiSharpApi, ApiError } from './api';
 import { SemiSharpContext } from './types';
@@ -36,7 +39,9 @@ import {
   ArrowRight,
   Award,
   Brain,
-  ClipboardList
+  ClipboardList,
+  Heart,
+  Activity
 } from 'lucide-react';
 
 function LoginScreen() {
@@ -308,6 +313,7 @@ function AppContent() {
   const [context, setContext] = useState<SemiSharpContext | null>(null);
   const [contextLoading, setContextLoading] = useState<boolean>(false);
   const [contextError, setContextError] = useState<string | null>(null);
+  const [isTeamHealthLive, setIsTeamHealthLive] = useState<boolean>(false);
 
   const fetchContext = async () => {
     setContextLoading(true);
@@ -324,6 +330,7 @@ function AppContent() {
 
   useEffect(() => {
     if (isAuthenticated) {
+      setIsTeamHealthLive(false);
       fetchContext();
     } else {
       setEntryConfirmed(false);
@@ -391,6 +398,7 @@ function AppContent() {
       setActiveTab={setActiveTab} 
       context={context}
       onRefreshContext={fetchContext}
+      isTeamHealthLive={isTeamHealthLive}
     >
       {/* 1. DASHBOARD VIEW */}
       {activeTab === 'dashboard' && (
@@ -505,14 +513,14 @@ function AppContent() {
       {activeTab === 'strategies' && (
         <div className="space-y-6 animate-fade-in">
           {renderScreenHeader(
-            'Survivor Strategy Engine', 
-            'Generate optimal survivor recommendations tailored to your selected entry and contest format.', 
+            'Strategy Lab', 
+            'Explore one survivor strategy at a time and inspect how it evaluates your selected entry.', 
             <Award className="w-5 h-5" />,
             'LIVE'
           )}
 
           {context ? (
-            <SurvivorStrategies season={context.season} week={context.current_week ?? context.week} />
+            <SurvivorStrategies season={context.season} week={context.current_week ?? context.week} onNavigate={setActiveTab} />
           ) : (
             <Card className="p-12 text-center space-y-4">
               <LoadingSpinner size="md" message="Waiting for active session context parameters..." />
@@ -546,14 +554,62 @@ function AppContent() {
         <SeasonManagement />
       )}
 
+      {/* Why SemiSharp View */}
+      {activeTab === 'why_semisharp' && (
+        <WhySemiSharp />
+      )}
+
+      {/* Team Health View */}
+      {activeTab === 'placeholder_thealth' && (
+        <div className="space-y-6 animate-fade-in">
+          {renderScreenHeader(
+            'Team Health', 
+            'Team-level health scores from Sports Injury Central used alongside core model predictions.', 
+            <Heart className="w-5 h-5" />,
+            'IN_DEVELOPMENT'
+          )}
+
+          {context ? (
+            <TeamHealth 
+              season={context.season} 
+              week={context.current_week ?? context.week} 
+              onLoaded={setIsTeamHealthLive} 
+            />
+          ) : (
+            <Card className="p-12 text-center space-y-4">
+              <LoadingSpinner size="md" message="Waiting for active session context parameters..." />
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* Admin Console View */}
+      {activeTab === 'placeholder_sstatus' && (
+        <div className="space-y-6 animate-fade-in">
+          {renderScreenHeader(
+            'Administration Console', 
+            'Run approved backend data operations and monitor background job execution.', 
+            <Activity className="w-5 h-5" />,
+            'IN_DEVELOPMENT'
+          )}
+
+          {context ? (
+            <AdminConsole season={context.season} />
+          ) : (
+            <Card className="p-12 text-center space-y-4">
+              <LoadingSpinner size="md" message="Waiting for active session context parameters..." />
+            </Card>
+          )}
+        </div>
+      )}
+
       {/* 7. ROADMAP PLACEHOLDERS */}
-      {activeTab.startsWith('placeholder_') && (
+      {activeTab.startsWith('placeholder_') && activeTab !== 'placeholder_thealth' && activeTab !== 'placeholder_sstatus' && (
         <div className="space-y-6 animate-fade-in">
           {renderScreenHeader(
             activeTab === 'placeholder_mcarlo' ? 'Monte Carlo Simulations' :
             activeTab === 'placeholder_dprog' ? 'Dynamic Programming Optimizer' :
             activeTab === 'placeholder_fval' ? 'Future Value Calculations' :
-            activeTab === 'placeholder_thealth' ? 'NFL Team Health Dashboard' :
             activeTab === 'placeholder_hanalysis' ? 'Historical Analysis Database' :
             activeTab === 'placeholder_wreports' ? 'Weekly Analytics Reports' :
             activeTab === 'placeholder_ssummary' ? 'Season Performance Summary' :

@@ -2,12 +2,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import (
+    admin_jobs,
     auth,
     context,
     health,
     injuries,
     market,
     projections,
+    ratings,
+    reference,
     risk,
     schedule,
     season_management,
@@ -33,10 +36,13 @@ app.add_middleware(
 
 
 routers = [
+    admin_jobs.router,
     health.router,
     teams.router,
     schedule.router,
     projections.router,
+    ratings.router,
+    reference.router,
     risk.router,
     market.router,
     injuries.router,

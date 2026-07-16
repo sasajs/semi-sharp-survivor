@@ -112,6 +112,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsAuthenticated(true);
       localStorage.setItem(SESSION_KEY_USER, JSON.stringify(userProfile));
 
+      // Store basic auth string in sessionStorage for the duration of the current frontend session
+      try {
+        const authString = btoa(`${username.trim()}:${password.trim()}`);
+        sessionStorage.setItem('semisharp_admin_auth', authString);
+      } catch (e) {
+        console.error('Failed to store session credentials:', e);
+      }
+
       // Auto-select first active entry if available
       const defaultEntry = userProfile.entries.find(e => e.is_active) || userProfile.entries[0] || null;
       setSelectedEntry(defaultEntry);
@@ -138,6 +146,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setError(null);
     localStorage.removeItem(SESSION_KEY_USER);
     localStorage.removeItem(SESSION_KEY_ENTRY);
+    sessionStorage.removeItem('semisharp_admin_auth');
   };
 
   const selectEntry = (entry: SurvivorEntry | null) => {

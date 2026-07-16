@@ -98,6 +98,8 @@ export interface SicHealthScore {
   sic_score: number;
   source: string;
   import_date: string;
+  team_name?: string;
+  imported_at?: string;
 }
 
 // Projections

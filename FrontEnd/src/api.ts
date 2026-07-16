@@ -275,4 +275,40 @@ export const SemiSharpApi = {
       body: JSON.stringify(payload),
     });
   },
+
+  // --- Admin Jobs ---
+  async getAdminJobTypes(authString: string): Promise<string[]> {
+    return request<string[]>('/admin/jobs/types', {
+      headers: {
+        'Authorization': `Basic ${authString}`
+      }
+    });
+  },
+
+  async getAdminJobs(authString: string, limit = 25): Promise<any> {
+    return request<any>(`/admin/jobs?limit=${limit}`, {
+      headers: {
+        'Authorization': `Basic ${authString}`
+      }
+    });
+  },
+
+  async getAdminJob(authString: string, jobId: string | number): Promise<any> {
+    return request<any>(`/admin/jobs/${jobId}`, {
+      headers: {
+        'Authorization': `Basic ${authString}`
+      }
+    });
+  },
+
+  async createAdminJob(authString: string, payload: { job_type: string; request_payload: any }): Promise<any> {
+    return request<any>('/admin/jobs', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${authString}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+  },
 };

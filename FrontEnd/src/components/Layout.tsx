@@ -38,7 +38,8 @@ import {
   Users,
   LayoutDashboard,
   Radio,
-  ClipboardList
+  ClipboardList,
+  Info
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -47,6 +48,7 @@ interface LayoutProps {
   setActiveTab: (tab: string) => void;
   context: SemiSharpContext | null;
   onRefreshContext: () => void;
+  isTeamHealthLive?: boolean;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ 
@@ -54,7 +56,8 @@ export const Layout: React.FC<LayoutProps> = ({
   activeTab, 
   setActiveTab, 
   context,
-  onRefreshContext 
+  onRefreshContext,
+  isTeamHealthLive = false
 }) => {
   const { user, selectedEntry, selectEntry, logout, backendUrl, updateBackendUrl, customHeaders, updateCustomHeaders } = useAuth();
   
@@ -140,14 +143,14 @@ export const Layout: React.FC<LayoutProps> = ({
     {
       title: 'Strategies',
       items: [
-        { id: 'strategies', name: 'Survivor Tools', icon: Award, status: 'LIVE' },
+        { id: 'strategies', name: 'Strategy Lab', icon: Award, status: 'LIVE' },
         { id: 'recommendation_workspace', name: 'Recommendation Workspace', icon: Brain, status: 'IN_DEVELOPMENT' },
       ]
     },
     {
       title: 'Data',
       items: [
-        { id: 'placeholder_thealth', name: 'Team Health', icon: Heart, status: 'PLACEHOLDER' },
+        { id: 'placeholder_thealth', name: 'Team Health', icon: Heart, status: 'IN_DEVELOPMENT' },
         { id: 'placeholder_hanalysis', name: 'Historical Analysis', icon: History, status: 'PLACEHOLDER' },
       ]
     },
@@ -161,9 +164,15 @@ export const Layout: React.FC<LayoutProps> = ({
     {
       title: 'Administration',
       items: [
-        { id: 'placeholder_sstatus', name: 'System Status', icon: Activity, status: 'PLACEHOLDER' },
+        { id: 'placeholder_sstatus', name: 'Administration Console', icon: Activity, status: 'IN_DEVELOPMENT' },
         { id: 'placeholder_usermgt', name: 'User Management', icon: Users, status: 'PLACEHOLDER' },
         { id: 'placeholder_config', name: 'Configuration', icon: Settings, status: 'PLACEHOLDER' },
+      ]
+    },
+    {
+      title: 'ABOUT',
+      items: [
+        { id: 'why_semisharp', name: 'Why SemiSharp', icon: Info, status: 'LIVE' },
       ]
     }
   ];
