@@ -366,7 +366,7 @@ def current_week_v2_payload() -> dict[str, Any]:
         "/strategies/current-week-highest-win/2026/CIRCA",
         {
             "rating_week": 1,
-            "hfa_source": "SEMISHARP_2026",
+            "hfa_source": "SEMISHARP_2026_RECAL_V1",
             "entry_id": 1,
         },
     )
@@ -483,7 +483,7 @@ def validate_current_week_models() -> None:
 
     expected = {
         "projection_model": "SEMISHARP_PROJECTION_V2",
-        "hfa_source": "SEMISHARP_2026",
+        "hfa_source": "SEMISHARP_2026_RECAL_V1",
         "risk_model": "SEMISHARP_RISK_V3",
         "probability_model": "SEMISHARP_WP_V2",
     }
@@ -544,7 +544,7 @@ def compare_strategies_payload() -> dict[str, Any]:
         "/strategies/compare/2026/CIRCA",
         {
             "rating_week": 1,
-            "hfa_source": "SEMISHARP_2026",
+            "hfa_source": "SEMISHARP_2026_RECAL_V1",
             "entry_id": 1,
         },
     )
@@ -787,7 +787,7 @@ test(
             "--rating-week",
             "1",
             "--hfa-source",
-            "SEMISHARP_2026",
+            "SEMISHARP_2026_RECAL_V1",
             "--entry-id",
             "1",
         ],
@@ -805,7 +805,7 @@ test(
             "--rating-week",
             "1",
             "--hfa-source",
-            "SEMISHARP_2026",
+            "SEMISHARP_2026_RECAL_V1",
             "--entry-id",
             "1",
         ],
@@ -823,7 +823,7 @@ test(
             "--rating-week",
             "1",
             "--hfa-source",
-            "SEMISHARP_2026",
+            "SEMISHARP_2026_RECAL_V1",
         ],
     ),
 )
@@ -839,7 +839,7 @@ test(
             "--rating-week",
             "1",
             "--hfa-source",
-            "SEMISHARP_2026",
+            "SEMISHARP_2026_RECAL_V1",
         ],
     ),
 )
@@ -855,7 +855,7 @@ test(
             "--rating-week",
             "1",
             "--hfa-source",
-            "SEMISHARP_2026",
+            "SEMISHARP_2026_RECAL_V1",
         ],
     ),
 )
@@ -871,7 +871,7 @@ test(
             "--rating-week",
             "1",
             "--hfa-source",
-            "SEMISHARP_2026",
+            "SEMISHARP_2026_RECAL_V1",
         ],
     ),
 )
@@ -926,7 +926,7 @@ test(
         "/strategies/current-week-highest-win/2026/CIRCA",
         {
             "rating_week": 1,
-            "hfa_source": "SEMISHARP_2026",
+            "hfa_source": "SEMISHARP_2026_RECAL_V1",
             "entry_id": 1,
         },
     ),

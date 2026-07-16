@@ -28,6 +28,13 @@ def get_projections(season: int, week: int):
         WHERE p.season = %s
           AND g.week = %s
           AND p.source_system = 'SEMISHARP_PROJECTION_V2'
+          AND p.hfa_source_system = (
+              SELECT hfa_source
+              FROM system.application_context
+              WHERE is_active = true
+                AND season = %s
+              LIMIT 1
+          )
         ORDER BY g.gameday, g.gametime;
     """
 
@@ -35,7 +42,7 @@ def get_projections(season: int, week: int):
 
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(sql, (season, week))
+            cur.execute(sql, (season, week, season))
 
             for row in cur.fetchall():
                 projections.append({

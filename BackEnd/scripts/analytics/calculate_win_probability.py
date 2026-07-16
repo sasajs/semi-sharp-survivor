@@ -107,6 +107,13 @@ def main():
                  AND r.source_system = %s
                 WHERE p.season = %s
                   AND p.source_system = 'SEMISHARP_PROJECTION_V2'
+                  AND p.hfa_source_system = (
+                      SELECT hfa_source
+                      FROM system.application_context
+                      WHERE is_active = true
+                        AND season = p.season
+                      LIMIT 1
+                  )
                 ORDER BY p.week, p.game_id;
                 """,
                 (

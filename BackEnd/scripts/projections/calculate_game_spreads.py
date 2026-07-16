@@ -82,7 +82,7 @@ def main():
                         projected_spread,
                         source_system
                     )
-                    VALUES (%s, %s, %s, 1, 'SEMISHARP_2026', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'SEMISHARP_PROJECTION_V2')
+                    VALUES (%s, %s, %s, 1, 'SEMISHARP_2026_RECAL_V1', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'SEMISHARP_PROJECTION_V2')
                     ON CONFLICT (season, week, game_id, rating_week, hfa_source_system)
                     DO UPDATE SET
                         home_power_rating = EXCLUDED.home_power_rating,

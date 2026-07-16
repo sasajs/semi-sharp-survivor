@@ -56,7 +56,7 @@ def current_week_highest_win(
     season: int,
     contest_format: str,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026"),
+    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
     entry_id: int = Query(1),
 ):
     return strategy_service.current_week_highest_win(
@@ -73,7 +73,7 @@ def future_value(
     season: int,
     contest_format: str,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026"),
+    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
     entry_id: int = Query(1),
 ):
     return strategy_service.future_value(
@@ -90,7 +90,7 @@ def multiple_entry(
     season: int,
     contest_format: str,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026"),
+    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
     user_id: int = Query(1),
 ):
     return strategy_service.multiple_entry(
@@ -106,7 +106,7 @@ def multiple_entry(
 def circa_holiday(
     season: int,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026"),
+    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
 ):
     return strategy_service.circa_holiday(
         season,
@@ -131,7 +131,7 @@ def monte_carlo(
     season: int,
     contest_format: str,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026"),
+    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
     entry_id: int | None = Query(None, ge=1),
 ):
     return strategy_service.monte_carlo(
@@ -150,7 +150,7 @@ def dynamic_programming(
     season: int,
     contest_format: str,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026"),
+    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
     entry_id: int | None = Query(None, ge=1),
 ):
     return strategy_service.dynamic_programming(
@@ -169,7 +169,7 @@ def bottom_six_road_fade(
     season: int,
     contest_format: str,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026"),
+    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
 ):
     return strategy_service.bottom_six_road_fade(
         season,
@@ -186,7 +186,7 @@ def market_arbitrage_exit(
     season: int,
     contest_format: str,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026"),
+    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
 ):
     return strategy_service.market_arbitrage_exit(
         season,
@@ -201,7 +201,7 @@ def compare_strategy_paths(
     season: int,
     contest_format: str,
     rating_week: int = Query(1, ge=1, le=22),
-    hfa_source: str = Query("SEMISHARP_2026"),
+    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
     entry_id: int = Query(1, ge=1),
 ):
     """
