@@ -19,3 +19,8 @@ Archive_Delete_Later_*
 BackEnd_backup_*/
 FrontEnd_backup_*/
 *_backup_before_*/
+.env
+
+# Weekly PFF input and archive files
+Input/pff/power_ratings/nfl-power-ratings.csv
+Input/pff/power_ratings/Archive/*.csv

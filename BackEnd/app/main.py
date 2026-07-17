@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import (
     admin_jobs,
+    admin_ratings,
     auth,
     context,
     health,
@@ -38,6 +39,7 @@ app.add_middleware(
 
 routers = [
     admin_jobs.router,
+    admin_ratings.router,
     health.router,
     teams.router,
     team_aliases.router,
