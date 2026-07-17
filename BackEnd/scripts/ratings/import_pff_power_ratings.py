@@ -1,9 +1,25 @@
 import argparse
 import csv
+import os
+import sys
 from pathlib import Path
+
+BACKEND_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = BACKEND_ROOT.parent
+
+if str(BACKEND_ROOT) not in sys.path:
+    sys.path.insert(0, str(BACKEND_ROOT))
 
 from app.db import get_connection
 from app.repositories.team_repository import get_team_lookup
+
+DEFAULT_INPUT_FILE = (
+    PROJECT_ROOT
+    / "Input"
+    / "pff"
+    / "power_ratings"
+    / "nfl-power-ratings.csv"
+)
 
 
 def clean(value):
@@ -20,14 +36,32 @@ def to_float(value):
 def parse_args():
     parser = argparse.ArgumentParser(description="Import PFF power ratings CSV.")
     parser.add_argument("--season", type=int, required=True)
-    parser.add_argument("--week", type=int, required=True)
-    parser.add_argument("--file", required=True)
+    parser.add_argument(
+        "--week",
+        type=int,
+        required=True,
+        choices=range(1, 23),
+        metavar="1-22",
+    )
+    parser.add_argument(
+        "--file",
+        default=os.getenv(
+            "PFF_POWER_RATINGS_INPUT_FILE",
+            str(DEFAULT_INPUT_FILE),
+        ),
+        help="Optional override for the fixed PFF input file.",
+    )
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
-    csv_path = Path(args.file)
+    csv_path = Path(args.file).expanduser()
+
+    if not csv_path.is_absolute():
+        csv_path = PROJECT_ROOT / csv_path
+
+    csv_path = csv_path.resolve()
 
     if not csv_path.exists():
         raise FileNotFoundError(f"File not found: {csv_path}")
