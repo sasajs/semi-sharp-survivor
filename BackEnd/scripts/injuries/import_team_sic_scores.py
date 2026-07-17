@@ -1,55 +1,70 @@
-import csv
+from __future__ import annotations
+
+import argparse
+import sys
 from pathlib import Path
 
-from app.db import get_connection
-from app.repositories.team_repository import get_team_lookup
+BACKEND_ROOT = Path(__file__).resolve().parents[2]
 
-CSV_PATH = Path("../Input/sic/team_sic_scores.csv")
+if str(BACKEND_ROOT) not in sys.path:
+    sys.path.insert(0, str(BACKEND_ROOT))
+
+from app.services.sic_scores_import_service import (
+    SicScoresImportError,
+    import_sic_scores,
+)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Import the current Sports Injury Central CSV."
+    )
+    parser.add_argument(
+        "--season",
+        type=int,
+        required=True,
+    )
+    parser.add_argument(
+        "--week",
+        type=int,
+        required=True,
+        choices=range(1, 23),
+        metavar="1-22",
+    )
+    parser.add_argument(
+        "--replace-existing",
+        action="store_true",
+        help="Replace an existing season/week SIC import.",
+    )
+
+    return parser.parse_args()
 
 
 def main():
-    lookup = get_team_lookup()
-    imported = 0
+    args = parse_args()
 
-    with CSV_PATH.open(newline="", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
+    try:
+        result = import_sic_scores(
+            season=args.season,
+            week=args.week,
+            replace_existing=args.replace_existing,
+        )
+    except SicScoresImportError as exc:
+        raise SystemExit(
+            f"Import failed: {exc}"
+        ) from exc
 
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                for row in reader:
-                    team_abbr = row["team_abbr"].strip().upper()
-                    team_id = lookup.get(team_abbr)
-
-                    if team_id is None:
-                        raise ValueError(f"Missing team alias: {team_abbr}")
-
-                    cur.execute("""
-                        INSERT INTO injuries.team_sic_scores (
-                            season,
-                            week,
-                            team_id,
-                            sic_score,
-                            source_note
-                        )
-                        VALUES (%s, %s, %s, %s, %s)
-                        ON CONFLICT (season, week, team_id, source_system)
-                        DO UPDATE SET
-                            sic_score = EXCLUDED.sic_score,
-                            source_note = EXCLUDED.source_note,
-                            imported_at = now();
-                    """, (
-                        int(row["season"]),
-                        int(row["week"]),
-                        team_id,
-                        float(row["sic_score"]),
-                        row.get("source_note") or "Sports Injury Central"
-                    ))
-
-                    imported += 1
-
-            conn.commit()
-
-    print(f"Imported SIC scores: {imported}")
+    print(
+        f"Imported SIC scores: "
+        f"{result['teams_imported']}"
+    )
+    print(f"Season: {result['season']}")
+    print(f"Week: {result['week']}")
+    print(f"File: {result['source_file']}")
+    print(
+        f"Replaced existing: "
+        f"{result['replaced_existing']}"
+    )
 
 
 if __name__ == "__main__":

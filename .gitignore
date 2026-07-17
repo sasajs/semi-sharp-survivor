@@ -24,3 +24,7 @@ FrontEnd_backup_*/
 # Weekly PFF input and archive files
 Input/pff/power_ratings/nfl-power-ratings.csv
 Input/pff/power_ratings/Archive/*.csv
+
+# Weekly SIC input and archive files
+Input/sic/team_sic_scores.csv
+Input/sic/Archive/*.csv
