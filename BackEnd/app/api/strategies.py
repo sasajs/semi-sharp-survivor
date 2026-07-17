@@ -6,10 +6,32 @@ from app.services.compare_strategies_service import (
     CompareStrategiesError,
     compare_strategies,
 )
+from app.services.home_field_advantage_service import (
+    HomeFieldAdvantageError,
+    get_current_hfa_source,
+)
 
 
 # main.py supplies the /strategies prefix.
 router = APIRouter(tags=["Strategies"])
+
+
+def resolve_hfa_source(
+    season: int,
+    requested_source: str | None,
+) -> str:
+    """Use an explicit source or resolve the season's active source."""
+    if requested_source:
+        return requested_source.strip()
+
+    try:
+        return get_current_hfa_source(season)
+
+    except HomeFieldAdvantageError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+        ) from exc
 
 
 @router.get("")
@@ -56,9 +78,14 @@ def current_week_highest_win(
     season: int,
     contest_format: str,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
+    hfa_source: str | None = Query(None),
     entry_id: int = Query(1),
 ):
+    hfa_source = resolve_hfa_source(
+        season,
+        hfa_source,
+    )
+
     return strategy_service.current_week_highest_win(
         season,
         contest_format,
@@ -73,9 +100,14 @@ def future_value(
     season: int,
     contest_format: str,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
+    hfa_source: str | None = Query(None),
     entry_id: int = Query(1),
 ):
+    hfa_source = resolve_hfa_source(
+        season,
+        hfa_source,
+    )
+
     return strategy_service.future_value(
         season,
         contest_format,
@@ -90,9 +122,14 @@ def multiple_entry(
     season: int,
     contest_format: str,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
+    hfa_source: str | None = Query(None),
     user_id: int = Query(1),
 ):
+    hfa_source = resolve_hfa_source(
+        season,
+        hfa_source,
+    )
+
     return strategy_service.multiple_entry(
         season,
         contest_format,
@@ -106,8 +143,13 @@ def multiple_entry(
 def circa_holiday(
     season: int,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
+    hfa_source: str | None = Query(None),
 ):
+    hfa_source = resolve_hfa_source(
+        season,
+        hfa_source,
+    )
+
     return strategy_service.circa_holiday(
         season,
         rating_week,
@@ -131,9 +173,14 @@ def monte_carlo(
     season: int,
     contest_format: str,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
+    hfa_source: str | None = Query(None),
     entry_id: int | None = Query(None, ge=1),
 ):
+    hfa_source = resolve_hfa_source(
+        season,
+        hfa_source,
+    )
+
     return strategy_service.monte_carlo(
         season,
         contest_format,
@@ -150,9 +197,14 @@ def dynamic_programming(
     season: int,
     contest_format: str,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
+    hfa_source: str | None = Query(None),
     entry_id: int | None = Query(None, ge=1),
 ):
+    hfa_source = resolve_hfa_source(
+        season,
+        hfa_source,
+    )
+
     return strategy_service.dynamic_programming(
         season,
         contest_format,
@@ -169,8 +221,13 @@ def bottom_six_road_fade(
     season: int,
     contest_format: str,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
+    hfa_source: str | None = Query(None),
 ):
+    hfa_source = resolve_hfa_source(
+        season,
+        hfa_source,
+    )
+
     return strategy_service.bottom_six_road_fade(
         season,
         contest_format,
@@ -186,8 +243,13 @@ def market_arbitrage_exit(
     season: int,
     contest_format: str,
     rating_week: int = Query(1),
-    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
+    hfa_source: str | None = Query(None),
 ):
+    hfa_source = resolve_hfa_source(
+        season,
+        hfa_source,
+    )
+
     return strategy_service.market_arbitrage_exit(
         season,
         contest_format,
@@ -201,7 +263,7 @@ def compare_strategy_paths(
     season: int,
     contest_format: str,
     rating_week: int = Query(1, ge=1, le=22),
-    hfa_source: str = Query("SEMISHARP_2026_RECAL_V1"),
+    hfa_source: str | None = Query(None),
     entry_id: int = Query(1, ge=1),
 ):
     """
@@ -212,6 +274,11 @@ def compare_strategy_paths(
     must display the returned backend result without recalculating
     agreement, probabilities, rankings, or consensus.
     """
+    hfa_source = resolve_hfa_source(
+        season,
+        hfa_source,
+    )
+
     try:
         return compare_strategies(
             season=season,

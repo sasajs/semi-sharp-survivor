@@ -21,6 +21,8 @@ import { ScholarsGuideLogo } from './components/ScholarsGuideLogo';
 import { WhySemiSharp } from './components/WhySemiSharp';
 import { TeamHealth } from './components/TeamHealth';
 import { AdminConsole } from './components/AdminConsole';
+import { PowerRankings } from './components/PowerRankings';
+import { HomeFieldAdvantage } from './components/HomeFieldAdvantage';
 import { Card, Button, Input, Alert, LoadingSpinner } from './components/ui';
 import { SemiSharpApi, ApiError } from './api';
 import { SemiSharpContext } from './types';
@@ -41,7 +43,9 @@ import {
   Brain,
   ClipboardList,
   Heart,
-  Activity
+  Activity,
+  TrendingUp,
+  Sliders
 } from 'lucide-react';
 
 function LoginScreen() {
@@ -314,6 +318,8 @@ function AppContent() {
   const [contextLoading, setContextLoading] = useState<boolean>(false);
   const [contextError, setContextError] = useState<string | null>(null);
   const [isTeamHealthLive, setIsTeamHealthLive] = useState<boolean>(false);
+  const [isPowerRankingsLive, setIsPowerRankingsLive] = useState<boolean>(false);
+  const [isHomeFieldAdvantageLive, setIsHomeFieldAdvantageLive] = useState<boolean>(false);
 
   const fetchContext = async () => {
     setContextLoading(true);
@@ -331,6 +337,8 @@ function AppContent() {
   useEffect(() => {
     if (isAuthenticated) {
       setIsTeamHealthLive(false);
+      setIsPowerRankingsLive(false);
+      setIsHomeFieldAdvantageLive(false);
       fetchContext();
     } else {
       setEntryConfirmed(false);
@@ -399,6 +407,8 @@ function AppContent() {
       context={context}
       onRefreshContext={fetchContext}
       isTeamHealthLive={isTeamHealthLive}
+      isPowerRankingsLive={isPowerRankingsLive}
+      isHomeFieldAdvantageLive={isHomeFieldAdvantageLive}
     >
       {/* 1. DASHBOARD VIEW */}
       {activeTab === 'dashboard' && (
@@ -574,6 +584,53 @@ function AppContent() {
               season={context.season} 
               week={context.current_week ?? context.week} 
               onLoaded={setIsTeamHealthLive} 
+            />
+          ) : (
+            <Card className="p-12 text-center space-y-4">
+              <LoadingSpinner size="md" message="Waiting for active session context parameters..." />
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* Power Rankings View */}
+      {activeTab === 'power_rankings' && (
+        <div className="space-y-6 animate-fade-in">
+          {renderScreenHeader(
+            'Power Rankings', 
+            'Review current PFF team ratings, quarterback ratings, and season outlook metrics used by SemiSharp.', 
+            <TrendingUp className="w-5 h-5" />,
+            isPowerRankingsLive ? 'LIVE' : 'IN_DEVELOPMENT'
+          )}
+
+          {context ? (
+            <PowerRankings 
+              season={context.season} 
+              week={context.current_week ?? context.week} 
+              onLoaded={setIsPowerRankingsLive} 
+            />
+          ) : (
+            <Card className="p-12 text-center space-y-4">
+              <LoadingSpinner size="md" message="Waiting for active session context parameters..." />
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* Home Field Advantage View */}
+      {activeTab === 'home_field_advantage' && (
+        <div className="space-y-6 animate-fade-in">
+          {renderScreenHeader(
+            'Home Field Advantage', 
+            'Review the team-level home-field point adjustments used by SemiSharp’s projection models.', 
+            <Sliders className="w-5 h-5" />,
+            isHomeFieldAdvantageLive ? 'LIVE' : 'IN_DEVELOPMENT'
+          )}
+
+          {context ? (
+            <HomeFieldAdvantage 
+              season={context.season} 
+              onLoaded={setIsHomeFieldAdvantageLive} 
             />
           ) : (
             <Card className="p-12 text-center space-y-4">

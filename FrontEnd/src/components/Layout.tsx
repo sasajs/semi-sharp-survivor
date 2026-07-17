@@ -49,6 +49,8 @@ interface LayoutProps {
   context: SemiSharpContext | null;
   onRefreshContext: () => void;
   isTeamHealthLive?: boolean;
+  isPowerRankingsLive?: boolean;
+  isHomeFieldAdvantageLive?: boolean;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ 
@@ -57,7 +59,9 @@ export const Layout: React.FC<LayoutProps> = ({
   setActiveTab, 
   context,
   onRefreshContext,
-  isTeamHealthLive = false
+  isTeamHealthLive = false,
+  isPowerRankingsLive = false,
+  isHomeFieldAdvantageLive = false
 }) => {
   const { user, selectedEntry, selectEntry, logout, backendUrl, updateBackendUrl, customHeaders, updateCustomHeaders } = useAuth();
   
@@ -151,6 +155,8 @@ export const Layout: React.FC<LayoutProps> = ({
       title: 'Data',
       items: [
         { id: 'placeholder_thealth', name: 'Team Health', icon: Heart, status: 'IN_DEVELOPMENT' },
+        { id: 'power_rankings', name: 'Power Rankings', icon: TrendingUp, status: isPowerRankingsLive ? 'LIVE' : 'IN_DEVELOPMENT' },
+        { id: 'home_field_advantage', name: 'Home Field Advantage', icon: Sliders, status: isHomeFieldAdvantageLive ? 'LIVE' : 'IN_DEVELOPMENT' },
         { id: 'placeholder_hanalysis', name: 'Historical Analysis', icon: History, status: 'PLACEHOLDER' },
       ]
     },

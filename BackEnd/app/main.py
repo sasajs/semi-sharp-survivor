@@ -18,6 +18,7 @@ from app.api import (
     strategy_context,
     strategy_registry,
     teams,
+    team_aliases,
 )
 
 
@@ -39,6 +40,7 @@ routers = [
     admin_jobs.router,
     health.router,
     teams.router,
+    team_aliases.router,
     schedule.router,
     projections.router,
     ratings.router,

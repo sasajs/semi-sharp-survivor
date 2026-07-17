@@ -255,3 +255,67 @@ export interface AppEnvironment {
   ENVIRONMENT: string;
   AUTH_HEADER_KEY: string;
 }
+
+// PFF Power Rankings Types
+export interface PffRankingRecord {
+  rank: number;
+  pff_power_rating_id?: string | number;
+  season: number;
+  week: number;
+  contest_leg_id?: string | number;
+  team_id?: string | number;
+  pff_team_code?: string;
+  team: string; // canonical team abbreviation
+  team_name?: string;
+  team_nick?: string;
+  conference?: string;
+  division?: string;
+  point_spread_rating?: number;
+  qb_rating?: number;
+  sos_to_date?: number | null;
+  sos_remaining?: number | null;
+  projected_wins?: number | null;
+  make_playoffs_pct?: number | null;
+  win_division_pct?: number | null;
+  win_conference_pct?: number | null;
+  win_super_bowl_pct?: number | null;
+  source_file?: string;
+  imported_at?: string;
+}
+
+export interface PffPowerRankingsResponse {
+  season: number;
+  week: number;
+  count: number;
+  source?: string;
+  latest_imported_at?: string;
+  rankings: PffRankingRecord[];
+}
+
+// Home Field Advantage Types
+export interface HomeFieldAdvantageRecord {
+  rank: number;
+  home_field_advantage_id: string | number;
+  season: number;
+  team_id: string | number;
+  team: string; // canonical team abbreviation
+  team_name: string | null;
+  team_nick: string | null;
+  conference: string | null;
+  division: string | null;
+  home_field_points: number;
+  source_system: string;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface HomeFieldAdvantageResponse {
+  season: number;
+  count: number;
+  source_systems: string[];
+  minimum_home_field_points: number;
+  maximum_home_field_points: number;
+  advantages: HomeFieldAdvantageRecord[];
+}
+

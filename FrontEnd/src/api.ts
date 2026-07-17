@@ -22,6 +22,10 @@ import {
   RiskItem,
   RiskResponse,
   StrategyRecommendation,
+  PffPowerRankingsResponse,
+  PffRankingRecord,
+  HomeFieldAdvantageResponse,
+  HomeFieldAdvantageRecord,
 } from './types';
 
 export class ApiError extends Error {
@@ -310,5 +314,13 @@ export const SemiSharpApi = {
       },
       body: JSON.stringify(payload)
     });
+  },
+
+  async getPffPowerRankings(season: number, week: number): Promise<PffPowerRankingsResponse> {
+    return request<PffPowerRankingsResponse>(`/ratings/pff/${season}/${week}`);
+  },
+
+  async getHomeFieldAdvantage(season: number): Promise<HomeFieldAdvantageResponse> {
+    return request<HomeFieldAdvantageResponse>(`/reference/home-field-advantage/${season}`);
   },
 };

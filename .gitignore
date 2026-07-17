@@ -1,2 +1,21 @@
 Documentation/Secrets
 FrontEnd_backup_*/
+
+# SemiSharp generated archives and logs
+Archive/
+
+# LibreOffice/editor lock files
+.~lock.*#
+Documentation/.~lock.*#
+
+# Local development backup files
+*.before_*
+*.backup_*
+*.placeholder_backup.py
+*_backup_before_*.py
+Archive_Delete_Later_*
+
+# Whole-project local backup directories
+BackEnd_backup_*/
+FrontEnd_backup_*/
+*_backup_before_*/

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-14 15:55:48.427796",
+  "generated": "2026-07-17 16:49:29.497326",
   "database": "semisharp",
   "tables": [
     {
@@ -433,7 +433,7 @@
     {
       "schema": "jobs",
       "table": "job_queue",
-      "row_count": 4,
+      "row_count": 10,
       "columns": [
         {
           "name": "job_id",
@@ -674,7 +674,7 @@
     {
       "schema": "market",
       "table": "projection_edges",
-      "row_count": 75,
+      "row_count": 0,
       "columns": [
         {
           "name": "game_id",
@@ -1091,7 +1091,7 @@
     {
       "schema": "reference",
       "table": "home_field_advantage",
-      "row_count": 64,
+      "row_count": 32,
       "columns": [
         {
           "name": "home_field_advantage_id",
@@ -1132,6 +1132,11 @@
           "name": "created_at",
           "type": "timestamp with time zone",
           "nullable": "NO"
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
         }
       ],
       "primary_keys": [
@@ -1146,7 +1151,7 @@
     {
       "schema": "reference",
       "table": "team_aliases",
-      "row_count": 104,
+      "row_count": 107,
       "columns": [
         {
           "name": "alias_id",
@@ -2030,6 +2035,11 @@
           "name": "eliminated_reason",
           "type": "text",
           "nullable": "YES"
+        },
+        {
+          "name": "contest_format_id",
+          "type": "integer",
+          "nullable": "NO"
         }
       ],
       "primary_keys": [
@@ -2044,7 +2054,7 @@
     {
       "schema": "survivor",
       "table": "entry_pick_history",
-      "row_count": 0,
+      "row_count": 1,
       "columns": [
         {
           "name": "entry_pick_history_id",
@@ -2135,7 +2145,7 @@
     {
       "schema": "survivor",
       "table": "entry_picks",
-      "row_count": 0,
+      "row_count": 1,
       "columns": [
         {
           "name": "entry_pick_id",
@@ -2251,6 +2261,21 @@
         {
           "name": "entry_is_active",
           "type": "boolean",
+          "nullable": "YES"
+        },
+        {
+          "name": "contest_format_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "format_code",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "format_name",
+          "type": "text",
           "nullable": "YES"
         }
       ],

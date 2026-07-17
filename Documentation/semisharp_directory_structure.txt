@@ -7,6 +7,8 @@
 │   └── Tests
 ├── app
 │   ├── api
+│   │   ├── admin_auth.py
+│   │   ├── admin_jobs.py
 │   │   ├── auth.py
 │   │   ├── context.py
 │   │   ├── health.py
@@ -14,13 +16,15 @@
 │   │   ├── injuries.py
 │   │   ├── market.py
 │   │   ├── projections.py
-│   │   ├── risk.before_methodology.py
+│   │   ├── ratings.py
+│   │   ├── reference.py
 │   │   ├── risk.py
 │   │   ├── schedule.py
 │   │   ├── season_management.py
 │   │   ├── strategies.py
 │   │   ├── strategy_context.py
 │   │   ├── strategy_registry.py
+│   │   ├── team_aliases.py
 │   │   └── teams.py
 │   ├── db.py
 │   ├── features
@@ -40,13 +44,16 @@
 │   │   ├── team_repository.py
 │   │   └── user_repository.py
 │   └── services
+│       ├── admin_jobs_service.py
 │       ├── analytics_service.py
 │       ├── auth_service.py
-│       ├── candidate_builder_backup_before_context_used_teams.py
 │       ├── candidate_builder.py
 │       ├── compare_strategies_service.py
+│       ├── home_field_advantage_service.py
 │       ├── __init__.py
 │       ├── path_optimizer.py
+│       ├── ratings_service.py
+│       ├── reference_service.py
 │       ├── season_management_service.py
 │       ├── strategy_context_service.py
 │       └── strategy_service.py
@@ -70,6 +77,7 @@
 ├── Python
 ├── r
 │   ├── export_nflverse_schedule.R
+│   ├── export_nflverse_schedule.R.before_admin_jobs
 │   └── export_nflverse_teams.R
 ├── R
 ├── .RData
@@ -87,6 +95,8 @@
 │   ├── database
 │   │   └── generate_database_dictionary.py
 │   ├── deploy_semisharp.sh
+│   ├── dev
+│   │   └── refresh_documentation_and_test.sh
 │   ├── documentation
 │   │   ├── generate_api_catalog.py
 │   │   └── generate_system_snapshot.py
@@ -107,7 +117,6 @@
 │   │   ├── generate_game_risks.py
 │   │   └── import_historical_upsets.py
 │   ├── schedule
-│   │   ├── import_schedule.before_history.py
 │   │   └── import_schedule.py
 │   ├── strategy
 │   │   ├── bottom_six_road_fade.py
@@ -119,7 +128,6 @@
 │   ├── test_connection.py
 │   ├── test_feature_builder.py
 │   ├── tests
-│   │   ├── regression_test_backup_before_season_management.py
 │   │   ├── regression_test.py
 │   │   ├── season_management_smoke_test_before_permission_fix.py
 │   │   ├── season_management_smoke_test.py
@@ -4280,4 +4288,4 @@
     ├── lib64 -> lib
     └── pyvenv.cfg
 
-493 directories, 3788 files
+494 directories, 3795 files

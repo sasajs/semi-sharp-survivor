@@ -1,6 +1,6 @@
 SemiSharp Database Dictionary V3.0
 ================================================================================
-Generated: 2026-07-14 15:55:48.427796
+Generated: 2026-07-17 16:49:29.497326
 Database: semisharp
 
 
@@ -205,7 +205,7 @@ SCHEMA: jobs
 TABLE: job_queue
 ================================================================================
 
-Rows: 4
+Rows: 10
 
 Columns:
   job_id                        integer             nullable=NO
@@ -316,7 +316,7 @@ SCHEMA: market
 TABLE: projection_edges
 ================================================================================
 
-Rows: 75
+Rows: 0
 
 Columns:
   game_id                       text                nullable=YES
@@ -477,7 +477,7 @@ SCHEMA: reference
 TABLE: home_field_advantage
 ================================================================================
 
-Rows: 64
+Rows: 32
 
 Columns:
   home_field_advantage_id       integer             nullable=NO
@@ -488,6 +488,7 @@ Columns:
   notes                         text                nullable=YES
   is_active                     boolean             nullable=NO
   created_at                    timestamp with time zonenullable=NO
+  updated_at                    timestamp with time zonenullable=NO
 
 Primary Keys:
   home_field_advantage_id
@@ -504,7 +505,7 @@ SCHEMA: reference
 TABLE: team_aliases
 ================================================================================
 
-Rows: 104
+Rows: 107
 
 Columns:
   alias_id                      integer             nullable=NO
@@ -870,6 +871,7 @@ Columns:
   eliminated_leg_id             integer             nullable=YES
   eliminated_at                 timestamp with time zonenullable=YES
   eliminated_reason             text                nullable=YES
+  contest_format_id             integer             nullable=NO
 
 Primary Keys:
   entry_id
@@ -886,7 +888,7 @@ SCHEMA: survivor
 TABLE: entry_pick_history
 ================================================================================
 
-Rows: 0
+Rows: 1
 
 Columns:
   entry_pick_history_id         bigint              nullable=NO
@@ -921,7 +923,7 @@ SCHEMA: survivor
 TABLE: entry_picks
 ================================================================================
 
-Rows: 0
+Rows: 1
 
 Columns:
   entry_pick_id                 integer             nullable=NO
@@ -964,6 +966,9 @@ Columns:
   survivor_sweat_name           text                nullable=YES
   entry_label                   text                nullable=YES
   entry_is_active               boolean             nullable=YES
+  contest_format_id             integer             nullable=YES
+  format_code                   text                nullable=YES
+  format_name                   text                nullable=YES
 
 Primary Keys:
 

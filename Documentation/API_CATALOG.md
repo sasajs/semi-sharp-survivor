@@ -1,8 +1,8 @@
 # SemiSharp API Catalog
 
-Generated: 2026-07-14 15:55:49.131474
+Generated: 2026-07-17 16:49:30.254377
 
-Total API Routes: 32
+Total API Routes: 41
 
 ---
 
@@ -15,6 +15,77 @@ Total API Routes: 32
 ### Responses
 
 - `200` Successful Response
+
+---
+
+## POST /admin/jobs
+
+**Tags:** Administration
+
+**Summary:** Create Admin Job
+
+**Operation ID:** `create_admin_job_admin_jobs_post`
+
+### Request Body
+
+- application/json
+
+### Responses
+
+- `202` Successful Response
+- `422` Validation Error
+
+---
+
+## GET /admin/jobs
+
+**Tags:** Administration
+
+**Summary:** Admin Job History
+
+**Operation ID:** `admin_job_history_admin_jobs_get`
+
+### Parameters
+
+- `limit` (query)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## GET /admin/jobs/types
+
+**Tags:** Administration
+
+**Summary:** Allowed Job Types
+
+**Operation ID:** `allowed_job_types_admin_jobs_types_get`
+
+### Responses
+
+- `200` Successful Response
+
+---
+
+## GET /admin/jobs/{job_id}
+
+**Tags:** Administration
+
+**Summary:** Admin Job Detail
+
+**Operation ID:** `admin_job_detail_admin_jobs__job_id__get`
+
+### Parameters
+
+- `job_id` (path)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
 
 ---
 
@@ -162,6 +233,69 @@ Total API Routes: 32
 
 ---
 
+## GET /ratings/pff/{season}/{week}
+
+**Tags:** Ratings
+
+**Summary:** Pff Power Rankings
+
+**Operation ID:** `pff_power_rankings_ratings_pff__season___week__get`
+
+### Parameters
+
+- `season` (path)
+- `week` (path)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## GET /reference/home-field-advantage/{season}
+
+**Tags:** Reference Data
+
+**Summary:** Home Field Advantage
+
+**Operation ID:** `home_field_advantage_reference_home_field_advantage__season__get`
+
+### Parameters
+
+- `season` (path)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## PATCH /reference/home-field-advantage/{season}/{team_id}
+
+**Tags:** Reference Data
+
+**Summary:** Patch Home Field Advantage
+
+**Operation ID:** `patch_home_field_advantage_reference_home_field_advantage__season___team_id__patch`
+
+### Parameters
+
+- `season` (path)
+- `team_id` (path)
+
+### Request Body
+
+- application/json
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
 ## GET /risk/game/{game_id}
 
 **Tags:** Risk
@@ -192,26 +326,6 @@ Total API Routes: 32
 ### Responses
 
 - `200` Successful Response
-
----
-
-## GET /risk/probabilities/{season}/{week}
-
-**Tags:** Risk
-
-**Summary:** Get Probabilities
-
-**Operation ID:** `get_probabilities_risk_probabilities__season___week__get`
-
-### Parameters
-
-- `season` (path)
-- `week` (path)
-
-### Responses
-
-- `200` Successful Response
-- `422` Validation Error
 
 ---
 
@@ -535,6 +649,7 @@ Total API Routes: 32
 - `contest_format` (path)
 - `rating_week` (query)
 - `hfa_source` (query)
+- `entry_id` (query)
 
 ### Responses
 
@@ -602,6 +717,7 @@ Total API Routes: 32
 - `contest_format` (path)
 - `rating_week` (query)
 - `hfa_source` (query)
+- `entry_id` (query)
 
 ### Responses
 
@@ -666,6 +782,104 @@ Total API Routes: 32
 - `entry_id` (path)
 - `contest_format` (query)
 - `contest_leg_id` (query)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## GET /team-aliases
+
+**Tags:** Team Aliases
+
+**Summary:** Get Team Aliases
+
+**Operation ID:** `get_team_aliases_team_aliases_get`
+
+### Parameters
+
+- `team_id` (query)
+- `source_system` (query)
+- `active_only` (query)
+- `search` (query)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## POST /team-aliases
+
+**Tags:** Team Aliases
+
+**Summary:** Create Team Alias
+
+**Operation ID:** `create_team_alias_team_aliases_post`
+
+### Request Body
+
+- application/json
+
+### Responses
+
+- `201` Successful Response
+- `422` Validation Error
+
+---
+
+## GET /team-aliases/resolve
+
+**Tags:** Team Aliases
+
+**Summary:** Resolve Team Alias
+
+**Operation ID:** `resolve_team_alias_team_aliases_resolve_get`
+
+### Parameters
+
+- `alias_value` (query)
+- `source_system` (query)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## GET /team-aliases/sources
+
+**Tags:** Team Aliases
+
+**Summary:** Get Team Alias Sources
+
+**Operation ID:** `get_team_alias_sources_team_aliases_sources_get`
+
+### Responses
+
+- `200` Successful Response
+
+---
+
+## PATCH /team-aliases/{alias_id}/status
+
+**Tags:** Team Aliases
+
+**Summary:** Update Team Alias Status
+
+**Operation ID:** `update_team_alias_status_team_aliases__alias_id__status_patch`
+
+### Parameters
+
+- `alias_id` (path)
+
+### Request Body
+
+- application/json
 
 ### Responses
 
