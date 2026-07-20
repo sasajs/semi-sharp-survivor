@@ -260,8 +260,8 @@ export const RecommendationWorkspace: React.FC<RecommendationWorkspaceProps> = (
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-black uppercase tracking-wider font-mono bg-amber-50 text-amber-700 border border-amber-200">
-            IN DEVELOPMENT
+          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-black uppercase tracking-wider font-mono bg-emerald-50 text-emerald-700 border border-emerald-200">
+            LIVE
           </span>
           {comparisonData && (
             <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-black uppercase tracking-wider font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 animate-fade-in">

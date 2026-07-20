@@ -208,3 +208,10 @@ def nflverse_schedule_refresh(payload):
             timezone.utc
         ).isoformat(),
     }
+
+import subprocess
+
+def refresh_market_odds(season: int, week: int):
+    subprocess.run(["python3", "scripts/market/download_odds_snapshot.py", "--season", str(season), "--week", str(week)], check=True)
+    subprocess.run(["python3", "scripts/market/import_odds_snapshot.py", "--season", str(season), "--week", str(week)], check=True)
+    return "Market odds refresh complete."

@@ -373,8 +373,8 @@ export const WeeklyGameAnalysis: React.FC<WeeklyGameAnalysisProps> = ({ season, 
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-black tracking-widest text-indigo-400 uppercase font-mono">ACTIVE BACKEND CONTEXT</span>
-            <span className="text-[9px] font-black bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-md uppercase tracking-wider font-mono">
-              IN DEVELOPMENT
+            <span className="text-[9px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-md uppercase tracking-wider font-mono">
+              LIVE
             </span>
           </div>
           <h3 className="text-xs font-semibold text-slate-400">Review every current-week matchup in one unified analytical workspace.</h3>

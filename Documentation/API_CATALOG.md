@@ -1,16 +1,18 @@
 # SemiSharp API Catalog
 
-Generated: 2026-07-17 16:49:30.254377
+Generated: 2026-07-20 18:00:02.165686
 
-Total API Routes: 41
+Total API Routes: 51
 
 ---
 
-## GET /
+## GET /admin/accounts/
 
-**Summary:** Read Root
+**Tags:** admin_accounts
 
-**Operation ID:** `read_root__get`
+**Summary:** List Accounts
+
+**Operation ID:** `list_accounts_admin_accounts__get`
 
 ### Responses
 
@@ -18,13 +20,80 @@ Total API Routes: 41
 
 ---
 
-## POST /admin/jobs
+## POST /admin/accounts/
 
-**Tags:** Administration
+**Tags:** admin_accounts
 
-**Summary:** Create Admin Job
+**Summary:** Create Account
 
-**Operation ID:** `create_admin_job_admin_jobs_post`
+**Operation ID:** `create_account_admin_accounts__post`
+
+### Parameters
+
+- `user_id` (query)
+- `account_name` (query)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## DELETE /admin/accounts/{account_id}
+
+**Tags:** admin_accounts
+
+**Summary:** Delete Account
+
+**Operation ID:** `delete_account_admin_accounts__account_id__delete`
+
+### Parameters
+
+- `account_id` (path)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## GET /admin/auth/
+
+**Tags:** Admin Auth
+
+**Summary:** Health
+
+**Operation ID:** `health_admin_auth__get`
+
+### Responses
+
+- `200` Successful Response
+
+---
+
+## GET /admin/entries/
+
+**Tags:** Admin Entries
+
+**Summary:** List Entries
+
+**Operation ID:** `list_entries_admin_entries__get`
+
+### Responses
+
+- `200` Successful Response
+
+---
+
+## POST /admin/entries/
+
+**Tags:** Admin Entries
+
+**Summary:** Create Entry
+
+**Operation ID:** `create_entry_admin_entries__post`
 
 ### Request Body
 
@@ -32,22 +101,111 @@ Total API Routes: 41
 
 ### Responses
 
-- `202` Successful Response
+- `201` Successful Response
 - `422` Validation Error
+
+---
+
+## PATCH /admin/entries/{entry_id}
+
+**Tags:** Admin Entries
+
+**Summary:** Update Entry
+
+**Operation ID:** `update_entry_admin_entries__entry_id__patch`
+
+### Parameters
+
+- `entry_id` (path)
+
+### Request Body
+
+- application/json
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## DELETE /admin/entries/{entry_id}
+
+**Tags:** Admin Entries
+
+**Summary:** Delete Entry
+
+**Operation ID:** `delete_entry_admin_entries__entry_id__delete`
+
+### Parameters
+
+- `entry_id` (path)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## POST /admin/injuries/sic/import
+
+**Tags:** Administration
+
+**Summary:** Import Sic Input
+
+**Operation ID:** `import_sic_input_admin_injuries_sic_import_post`
+
+### Request Body
+
+- application/json
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## GET /admin/injuries/sic/validate
+
+**Tags:** Administration
+
+**Summary:** Validate Sic Input
+
+**Operation ID:** `validate_sic_input_admin_injuries_sic_validate_get`
+
+### Responses
+
+- `200` Successful Response
 
 ---
 
 ## GET /admin/jobs
 
-**Tags:** Administration
+**Tags:** Admin Jobs
 
-**Summary:** Admin Job History
+**Summary:** Get Jobs
 
-**Operation ID:** `admin_job_history_admin_jobs_get`
+**Operation ID:** `get_jobs_admin_jobs_get`
 
-### Parameters
+### Responses
 
-- `limit` (query)
+- `200` Successful Response
+
+---
+
+## POST /admin/jobs/refresh-odds
+
+**Tags:** Admin Jobs
+
+**Summary:** Trigger Refresh
+
+**Operation ID:** `trigger_refresh_admin_jobs_refresh_odds_post`
+
+### Request Body
+
+- application/json
 
 ### Responses
 
@@ -56,13 +214,32 @@ Total API Routes: 41
 
 ---
 
-## GET /admin/jobs/types
+## POST /admin/ratings/pff/import
 
 **Tags:** Administration
 
-**Summary:** Allowed Job Types
+**Summary:** Import Pff Input
 
-**Operation ID:** `allowed_job_types_admin_jobs_types_get`
+**Operation ID:** `import_pff_input_admin_ratings_pff_import_post`
+
+### Request Body
+
+- application/json
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## GET /admin/ratings/pff/validate
+
+**Tags:** Administration
+
+**Summary:** Validate Pff Input
+
+**Operation ID:** `validate_pff_input_admin_ratings_pff_validate_get`
 
 ### Responses
 
@@ -70,17 +247,90 @@ Total API Routes: 41
 
 ---
 
-## GET /admin/jobs/{job_id}
+## GET /admin/users/
 
-**Tags:** Administration
+**Tags:** Admin Users
 
-**Summary:** Admin Job Detail
+**Summary:** List Users
 
-**Operation ID:** `admin_job_detail_admin_jobs__job_id__get`
+**Operation ID:** `list_users_admin_users__get`
+
+### Responses
+
+- `200` Successful Response
+
+---
+
+## POST /admin/users/
+
+**Tags:** Admin Users
+
+**Summary:** Add User
+
+**Operation ID:** `add_user_admin_users__post`
+
+### Request Body
+
+- application/json
+
+### Responses
+
+- `201` Successful Response
+- `422` Validation Error
+
+---
+
+## DELETE /admin/users/{user_id}
+
+**Tags:** Admin Users
+
+**Summary:** Remove User
+
+**Operation ID:** `remove_user_admin_users__user_id__delete`
 
 ### Parameters
 
-- `job_id` (path)
+- `user_id` (path)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## PATCH /admin/users/{user_id}/role
+
+**Tags:** Admin Users
+
+**Summary:** Change Role
+
+**Operation ID:** `change_role_admin_users__user_id__role_patch`
+
+### Parameters
+
+- `user_id` (path)
+- `role` (query)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## GET /analysis/week/{season}/{week}
+
+**Tags:** Weekly Game Analysis
+
+**Summary:** Get Weekly Game Analysis
+
+**Operation ID:** `get_weekly_game_analysis_analysis_week__season___week__get`
+
+### Parameters
+
+- `season` (path)
+- `week` (path)
 
 ### Responses
 
@@ -534,7 +784,7 @@ Total API Routes: 41
 
 ## GET /strategies
 
-**Tags:** Strategies
+**Tags:** Strategy Registry
 
 **Summary:** Get Strategies
 
@@ -794,16 +1044,13 @@ Total API Routes: 41
 
 **Tags:** Team Aliases
 
-**Summary:** Get Team Aliases
+**Summary:** Get Aliases
 
-**Operation ID:** `get_team_aliases_team_aliases_get`
+**Operation ID:** `get_aliases_team_aliases_get`
 
 ### Parameters
 
-- `team_id` (query)
-- `source_system` (query)
 - `active_only` (query)
-- `search` (query)
 
 ### Responses
 
@@ -812,32 +1059,13 @@ Total API Routes: 41
 
 ---
 
-## POST /team-aliases
-
-**Tags:** Team Aliases
-
-**Summary:** Create Team Alias
-
-**Operation ID:** `create_team_alias_team_aliases_post`
-
-### Request Body
-
-- application/json
-
-### Responses
-
-- `201` Successful Response
-- `422` Validation Error
-
----
-
 ## GET /team-aliases/resolve
 
 **Tags:** Team Aliases
 
-**Summary:** Resolve Team Alias
+**Summary:** Resolve Alias
 
-**Operation ID:** `resolve_team_alias_team_aliases_resolve_get`
+**Operation ID:** `resolve_alias_team_aliases_resolve_get`
 
 ### Parameters
 
@@ -855,36 +1083,13 @@ Total API Routes: 41
 
 **Tags:** Team Aliases
 
-**Summary:** Get Team Alias Sources
+**Summary:** Get Sources
 
-**Operation ID:** `get_team_alias_sources_team_aliases_sources_get`
-
-### Responses
-
-- `200` Successful Response
-
----
-
-## PATCH /team-aliases/{alias_id}/status
-
-**Tags:** Team Aliases
-
-**Summary:** Update Team Alias Status
-
-**Operation ID:** `update_team_alias_status_team_aliases__alias_id__status_patch`
-
-### Parameters
-
-- `alias_id` (path)
-
-### Request Body
-
-- application/json
+**Operation ID:** `get_sources_team_aliases_sources_get`
 
 ### Responses
 
 - `200` Successful Response
-- `422` Validation Error
 
 ---
 

@@ -24,7 +24,7 @@ python3 scripts/documentation/generate_system_snapshot.py
 
 # 6. Run Regression Tests
 echo "Running regression tests..."
-python3 scripts/tests/regression_test.py
+PYTHONPATH="$(pwd)" python3 scripts/tests/regression_test_full.py
 TEST_RESULT=$?
 
 # 7. Validate and Restart

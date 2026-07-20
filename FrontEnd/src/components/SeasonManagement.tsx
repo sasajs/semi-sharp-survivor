@@ -717,8 +717,8 @@ export const SeasonManagement: React.FC = () => {
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-xl font-bold text-slate-950 tracking-tight leading-none">My Survivor Season</h2>
-              <span className="text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
-                🚧 IN DEVELOPMENT
+              <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                🟢 LIVE
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-1.5 font-medium">

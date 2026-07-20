@@ -21,3 +21,4 @@ def get_handler(job_type):
         )
 
     return handler
+JOB_REGISTRY['market_odds_sync'] = refresh_market_odds

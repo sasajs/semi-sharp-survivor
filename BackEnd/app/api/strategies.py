@@ -13,7 +13,7 @@ from app.services.home_field_advantage_service import (
 
 
 # main.py supplies the /strategies prefix.
-router = APIRouter(tags=["Strategies"])
+router = APIRouter(prefix="/strategies", tags=["Strategies"])
 
 
 def resolve_hfa_source(

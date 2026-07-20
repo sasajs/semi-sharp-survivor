@@ -1,99 +1,48 @@
+from app.api import analysis
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from app.api import (
-    admin_jobs,
-    admin_injuries,
-    admin_ratings,
-    auth,
-    context,
-    health,
-    injuries,
-    market,
-    projections,
-    ratings,
-    reference,
-    risk,
-    schedule,
-    season_management,
-    strategies,
-    strategy_context,
-    strategy_registry,
-    teams,
-    team_aliases,
+    admin_auth, admin_jobs, admin_injuries, admin_ratings, 
+    admin_users, admin_accounts, admin_entries, auth, context, health, injuries, market, 
+    projections, ratings, reference, risk, schedule, 
+    season_management, strategies, strategy_context, 
+    strategy_registry, team_aliases, teams
 )
 
+app = FastAPI()
 
-app = FastAPI(
-    title="SemiSharp API",
-    version="1.0",
-)
-
-
+# Add CORS middleware if needed
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-routers = [
-    admin_jobs.router,
-    admin_injuries.router,
-    admin_ratings.router,
-    health.router,
-    teams.router,
-    team_aliases.router,
-    schedule.router,
-    projections.router,
-    ratings.router,
-    reference.router,
-    risk.router,
-    market.router,
-    injuries.router,
-    context.router,
-    strategy_context.router,
-    season_management.router,
-    strategy_registry.router,
-    auth.router,
-]
-
-
-for router in routers:
-    app.include_router(router)
-
-
-app.include_router(
-    strategies.router,
-    prefix="/strategies",
-)
-
-
-@app.on_event("startup")
-async def startup_event():
-    """
-    Print registered routes during service startup.
-    """
-    for route in app.routes:
-        path = getattr(
-            route,
-            "path",
-            "N/A",
-        )
-        methods = getattr(
-            route,
-            "methods",
-            "",
-        )
-
-        print(
-            f"Registered route: {path} {methods}"
-        )
-
-
-@app.get("/")
-def read_root():
-    return {
-        "message": "SemiSharp Backend Running"
-    }
+app.include_router(admin_auth.router)
+app.include_router(admin_jobs.router)
+app.include_router(admin_injuries.router)
+app.include_router(admin_ratings.router)
+app.include_router(admin_users.router)
+app.include_router(admin_accounts.router)
+app.include_router(admin_entries.router)
+app.include_router(auth.router)
+app.include_router(context.router)
+app.include_router(health.router)
+app.include_router(injuries.router)
+app.include_router(market.router)
+app.include_router(projections.router)
+app.include_router(ratings.router)
+app.include_router(reference.router)
+app.include_router(risk.router)
+app.include_router(schedule.router)
+app.include_router(season_management.router)
+app.include_router(strategies.router)
+app.include_router(strategy_context.router)
+app.include_router(strategy_registry.router)
+app.include_router(team_aliases.router)
+app.include_router(teams.router)
+from app.api import admin_jobs
+app.include_router(admin_jobs.router)
+app.include_router(analysis.router)

@@ -21,6 +21,7 @@ import { ScholarsGuideLogo } from './components/ScholarsGuideLogo';
 import { WhySemiSharp } from './components/WhySemiSharp';
 import { TeamHealth } from './components/TeamHealth';
 import { AdminConsole } from './components/AdminConsole';
+import { AdminUserManagement } from './components/AdminUserManagement';
 import { PowerRankings } from './components/PowerRankings';
 import { HomeFieldAdvantage } from './components/HomeFieldAdvantage';
 import { Card, Button, Input, Alert, LoadingSpinner } from './components/ui';
@@ -45,7 +46,8 @@ import {
   Heart,
   Activity,
   TrendingUp,
-  Sliders
+  Sliders,
+  Users
 } from 'lucide-react';
 
 function LoginScreen() {
@@ -81,7 +83,7 @@ function LoginScreen() {
           Analytical Portal Sign-In
         </h2>
         <p className="mt-2 text-center text-xs text-slate-500 font-medium font-mono uppercase tracking-widest">
-          v3.0 | LIVE API
+          v3.1 | LIVE API
         </p>
       </div>
 
@@ -370,14 +372,9 @@ function AppContent() {
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-bold text-slate-950 tracking-tight leading-none">{title}</h2>
-            {status === 'LIVE' && (
+            {(status === 'LIVE' || status === 'IN_DEVELOPMENT') && (
               <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
                 🟢 LIVE
-              </span>
-            )}
-            {status === 'IN_DEVELOPMENT' && (
-              <span className="text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
-                🟡 IN DEVELOPMENT
               </span>
             )}
             {status === 'PLACEHOLDER' && (
@@ -392,7 +389,7 @@ function AppContent() {
       {context && (
         <div className="flex items-center gap-2 bg-white border border-slate-200/80 rounded-lg px-3 py-1.5 shadow-3xs self-start md:self-auto font-mono text-xs text-slate-600">
           <Database className="w-3.5 h-3.5 text-slate-400" />
-          <span>v3.0</span>
+          <span>v3.1</span>
           <span className="text-slate-300">|</span>
           <span className="uppercase font-bold text-emerald-600">LIVE API</span>
         </div>
@@ -506,7 +503,7 @@ function AppContent() {
             'Weekly Game Analysis', 
             'Review every current-week matchup in one unified analytical workspace.', 
             <ClipboardList className="w-5 h-5" />,
-            'IN_DEVELOPMENT'
+            'LIVE'
           )}
 
           {context ? (
@@ -546,7 +543,7 @@ function AppContent() {
             'Recommendation Workspace', 
             'Review backend-generated survivor recommendations before recording an official pick.', 
             <Brain className="w-5 h-5" />,
-            'IN_DEVELOPMENT'
+            'LIVE'
           )}
 
           {context ? (
@@ -576,7 +573,7 @@ function AppContent() {
             'Team Health', 
             'Team-level health scores from Sports Injury Central used alongside core model predictions.', 
             <Heart className="w-5 h-5" />,
-            'IN_DEVELOPMENT'
+            'LIVE'
           )}
 
           {context ? (
@@ -600,7 +597,7 @@ function AppContent() {
             'Power Rankings', 
             'Review current PFF team ratings, quarterback ratings, and season outlook metrics used by SemiSharp.', 
             <TrendingUp className="w-5 h-5" />,
-            isPowerRankingsLive ? 'LIVE' : 'IN_DEVELOPMENT'
+            'LIVE'
           )}
 
           {context ? (
@@ -624,7 +621,7 @@ function AppContent() {
             'Home Field Advantage', 
             'Review the team-level home-field point adjustments used by SemiSharp’s projection models.', 
             <Sliders className="w-5 h-5" />,
-            isHomeFieldAdvantageLive ? 'LIVE' : 'IN_DEVELOPMENT'
+            'LIVE'
           )}
 
           {context ? (
@@ -647,7 +644,7 @@ function AppContent() {
             'Administration Console', 
             'Run approved backend data operations and monitor background job execution.', 
             <Activity className="w-5 h-5" />,
-            'IN_DEVELOPMENT'
+            'LIVE'
           )}
 
           {context ? (
@@ -657,6 +654,20 @@ function AppContent() {
               <LoadingSpinner size="md" message="Waiting for active session context parameters..." />
             </Card>
           )}
+        </div>
+      )}
+
+      {/* Admin User Management View */}
+      {activeTab === 'admin_user_management' && (
+        <div className="space-y-6 animate-fade-in">
+          {renderScreenHeader(
+            'User Administration', 
+            'Manage administrative users and account integrations for the SemiSharp platform.', 
+            <Users className="w-5 h-5" />,
+            'LIVE'
+          )}
+
+          <AdminUserManagement />
         </div>
       )}
 

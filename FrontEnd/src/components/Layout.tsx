@@ -135,7 +135,7 @@ export const Layout: React.FC<LayoutProps> = ({
       title: 'General',
       items: [
         { id: 'dashboard', name: 'Dashboard', icon: Compass, status: 'LIVE' },
-        { id: 'season_management', name: 'My Survivor Season', icon: Calendar, status: 'IN_DEVELOPMENT' },
+        { id: 'season_management', name: 'My Survivor Season', icon: Calendar, status: 'LIVE' },
       ]
     },
     {
@@ -148,15 +148,15 @@ export const Layout: React.FC<LayoutProps> = ({
       title: 'Strategies',
       items: [
         { id: 'strategies', name: 'Strategy Lab', icon: Award, status: 'LIVE' },
-        { id: 'recommendation_workspace', name: 'Recommendation Workspace', icon: Brain, status: 'IN_DEVELOPMENT' },
+        { id: 'recommendation_workspace', name: 'Recommendation Workspace', icon: Brain, status: 'LIVE' },
       ]
     },
     {
       title: 'Data',
       items: [
-        { id: 'placeholder_thealth', name: 'Team Health', icon: Heart, status: 'IN_DEVELOPMENT' },
-        { id: 'power_rankings', name: 'Power Rankings', icon: TrendingUp, status: isPowerRankingsLive ? 'LIVE' : 'IN_DEVELOPMENT' },
-        { id: 'home_field_advantage', name: 'Home Field Advantage', icon: Sliders, status: isHomeFieldAdvantageLive ? 'LIVE' : 'IN_DEVELOPMENT' },
+        { id: 'placeholder_thealth', name: 'Team Health', icon: Heart, status: 'LIVE' },
+        { id: 'power_rankings', name: 'Power Rankings', icon: TrendingUp, status: 'LIVE' },
+        { id: 'home_field_advantage', name: 'Home Field Advantage', icon: Sliders, status: 'LIVE' },
         { id: 'placeholder_hanalysis', name: 'Historical Analysis', icon: History, status: 'PLACEHOLDER' },
       ]
     },
@@ -170,8 +170,8 @@ export const Layout: React.FC<LayoutProps> = ({
     {
       title: 'Administration',
       items: [
-        { id: 'placeholder_sstatus', name: 'Administration Console', icon: Activity, status: 'IN_DEVELOPMENT' },
-        { id: 'placeholder_usermgt', name: 'User Management', icon: Users, status: 'PLACEHOLDER' },
+        { id: 'placeholder_sstatus', name: 'Administration Console', icon: Activity, status: 'LIVE' },
+        { id: 'admin_user_management', name: 'User Management', icon: Users, status: 'LIVE' },
         { id: 'placeholder_config', name: 'Configuration', icon: Settings, status: 'PLACEHOLDER' },
       ]
     },
@@ -187,9 +187,8 @@ export const Layout: React.FC<LayoutProps> = ({
     if (compact) {
       switch (status) {
         case 'LIVE':
-          return <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" title="LIVE" />;
         case 'IN_DEVELOPMENT':
-          return <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" title="IN DEVELOPMENT" />;
+          return <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" title="LIVE" />;
         case 'PLACEHOLDER':
         default:
           return <span className="w-1.5 h-1.5 rounded-full bg-slate-300 inline-block" title="Coming Soon" />;
@@ -198,15 +197,10 @@ export const Layout: React.FC<LayoutProps> = ({
 
     switch (status) {
       case 'LIVE':
+      case 'IN_DEVELOPMENT':
         return (
           <span className="text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200/80 px-1 py-0.5 rounded-sm uppercase tracking-wider scale-90 shrink-0">
             LIVE
-          </span>
-        );
-      case 'IN_DEVELOPMENT':
-        return (
-          <span className="text-[9px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200/80 px-1 py-0.5 rounded-sm uppercase tracking-wider scale-90 shrink-0">
-            IN DEVELOPMENT
           </span>
         );
       case 'PLACEHOLDER':

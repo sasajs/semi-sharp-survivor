@@ -7,8 +7,14 @@
 │   └── Tests
 ├── app
 │   ├── api
+│   │   ├── admin_accounts.py
 │   │   ├── admin_auth.py
+│   │   ├── admin_entries.py
+│   │   ├── admin_injuries.py
 │   │   ├── admin_jobs.py
+│   │   ├── admin_ratings.py
+│   │   ├── admin_users.py
+│   │   ├── analysis.py
 │   │   ├── auth.py
 │   │   ├── context.py
 │   │   ├── health.py
@@ -52,21 +58,52 @@
 │       ├── home_field_advantage_service.py
 │       ├── __init__.py
 │       ├── path_optimizer.py
+│       ├── pff_power_ratings_import_service.py
 │       ├── ratings_service.py
 │       ├── reference_service.py
 │       ├── season_management_service.py
+│       ├── sic_scores_import_service.py
 │       ├── strategy_context_service.py
 │       └── strategy_service.py
+├── artifacts
+│   └── validation
+│       ├── analysis_api_response.json
+│       ├── analysis_api_validation.md
+│       ├── backend_validation_20260718_175257.txt
+│       ├── backend_validation.txt
+│       ├── database_validation.txt
+│       ├── full_pipeline_2026_week_1.log
+│       ├── public_api_response.json
+│       └── public_api_validation.md
 ├── Configuration
 ├── Database
 ├── docs
-│   └── API.md
+│   ├── API.md
+│   ├── generated
+│   └── weekly_game_analysis.md
 ├── .env
 ├── .env.example
+├── .env.pipeline
 ├── filename.md
 ├── .gitignore
 ├── GOOGLE_AI_STUDIO_HANDOFF.md
 ├── Logs
+│   ├── refresh__20260718_153950.log
+│   ├── refresh__20260718_154037.log
+│   ├── refresh__20260718_175804.log
+│   ├── refresh__20260720_175036.log
+│   ├── refresh_fast_20260718_154630.log
+│   ├── refresh_fast_20260718_154818.log
+│   ├── refresh_fast_20260718_154932.log
+│   ├── refresh_fast_20260718_155151.log
+│   ├── refresh_fast_20260718_180021.log
+│   ├── refresh_fast_20260720_175453.log
+│   ├── refresh_fast_20260720_175554.log
+│   ├── refresh_fast_20260720_175848.log
+│   ├── refresh_fast_20260720_180000.log
+│   ├── refresh_full_20260718_133718.log
+│   └── refresh_full_20260718_140216.log
+├── main.py
 ├── Output
 │   ├── v3_bottom_six_road_fade.json
 │   ├── v3_current_week_highest_win.json
@@ -74,6 +111,13 @@
 │   ├── v3_market_arbitrage_exit.json
 │   ├── v3_monte_carlo_survivor.json
 │   └── v3_projection_edge.json
+├── .pytest_cache
+│   ├── CACHEDIR.TAG
+│   ├── .gitignore
+│   ├── README.md
+│   └── v
+│       └── cache
+│           └── nodeids
 ├── Python
 ├── r
 │   ├── export_nflverse_schedule.R
@@ -82,7 +126,7 @@
 ├── R
 ├── .RData
 ├── README.md
-├── Regression
+├── requirements-dev.txt
 ├── requirements.txt
 ├── .Rhistory
 ├── run_tests.sh
@@ -116,6 +160,7 @@
 │   │   ├── calculate_risk_scores.py
 │   │   ├── generate_game_risks.py
 │   │   └── import_historical_upsets.py
+│   ├── run_full_pipeline.sh
 │   ├── schedule
 │   │   └── import_schedule.py
 │   ├── strategy
@@ -128,13 +173,19 @@
 │   ├── test_connection.py
 │   ├── test_feature_builder.py
 │   ├── tests
-│   │   ├── regression_test.py
+│   │   ├── regression_test_base.py
+│   │   ├── regression_test_fast.py
+│   │   ├── regression_test_full.py
 │   │   ├── season_management_smoke_test_before_permission_fix.py
 │   │   ├── season_management_smoke_test.py
 │   │   └── week3_recalculation_test.py
 │   ├── test_team_lookup.py
 │   ├── test_users.py
-│   └── test_worker_registry.py
+│   ├── test_worker_registry.py
+│   └── validation
+│       ├── validate_analysis_api.py
+│       ├── validate_backend.sh
+│       └── validate_database.sql
 ├── SQL
 │   └── migrations
 │       ├── 002_job_audit_fields.sql
@@ -161,6 +212,9 @@
     │   ├── pip
     │   ├── pip3
     │   ├── pip3.12
+    │   ├── pygmentize
+    │   ├── py.test
+    │   ├── pytest
     │   ├── python -> python3.12
     │   ├── python3 -> python3.12
     │   ├── python3.12 -> /usr/bin/python3.12
@@ -560,6 +614,20 @@
     │           │   │   └── LICENSE.md
     │           │   ├── METADATA
     │           │   ├── RECORD
+    │           │   └── WHEEL
+    │           ├── iniconfig
+    │           │   ├── exceptions.py
+    │           │   ├── __init__.py
+    │           │   ├── _parse.py
+    │           │   ├── py.typed
+    │           │   └── _version.py
+    │           ├── iniconfig-2.3.0.dist-info
+    │           │   ├── INSTALLER
+    │           │   ├── licenses
+    │           │   │   └── LICENSE
+    │           │   ├── METADATA
+    │           │   ├── RECORD
+    │           │   ├── top_level.txt
     │           │   └── WHEEL
     │           ├── jwt
     │           │   ├── algorithms.py
@@ -1622,6 +1690,38 @@
     │           │   ├── libgfortran-83c28eba-b4027c22.so.5.0.0
     │           │   ├── libquadmath-2284e583-a9307bba.so.0.0.0
     │           │   └── libscipy_openblas64_-017048f4.so
+    │           ├── packaging
+    │           │   ├── dependency_groups.py
+    │           │   ├── direct_url.py
+    │           │   ├── _elffile.py
+    │           │   ├── errors.py
+    │           │   ├── __init__.py
+    │           │   ├── licenses
+    │           │   │   ├── __init__.py
+    │           │   │   └── _spdx.py
+    │           │   ├── _manylinux.py
+    │           │   ├── markers.py
+    │           │   ├── metadata.py
+    │           │   ├── _musllinux.py
+    │           │   ├── _parser.py
+    │           │   ├── pylock.py
+    │           │   ├── py.typed
+    │           │   ├── requirements.py
+    │           │   ├── specifiers.py
+    │           │   ├── _structures.py
+    │           │   ├── tags.py
+    │           │   ├── _tokenizer.py
+    │           │   ├── utils.py
+    │           │   └── version.py
+    │           ├── packaging-26.2.dist-info
+    │           │   ├── INSTALLER
+    │           │   ├── licenses
+    │           │   │   ├── LICENSE
+    │           │   │   ├── LICENSE.APACHE
+    │           │   │   └── LICENSE.BSD
+    │           │   ├── METADATA
+    │           │   ├── RECORD
+    │           │   └── WHEEL
     │           ├── pandas
     │           │   ├── api
     │           │   │   ├── executors
@@ -3869,6 +3969,24 @@
     │           │   ├── REQUESTED
     │           │   ├── top_level.txt
     │           │   └── WHEEL
+    │           ├── pluggy
+    │           │   ├── _callers.py
+    │           │   ├── _hooks.py
+    │           │   ├── __init__.py
+    │           │   ├── _manager.py
+    │           │   ├── py.typed
+    │           │   ├── _result.py
+    │           │   ├── _tracing.py
+    │           │   ├── _version.py
+    │           │   └── _warnings.py
+    │           ├── pluggy-1.6.0.dist-info
+    │           │   ├── INSTALLER
+    │           │   ├── licenses
+    │           │   │   └── LICENSE
+    │           │   ├── METADATA
+    │           │   ├── RECORD
+    │           │   ├── top_level.txt
+    │           │   └── WHEEL
     │           ├── psycopg2
     │           │   ├── errorcodes.py
     │           │   ├── errors.py
@@ -4044,10 +4162,478 @@
     │           │   ├── sboms
     │           │   │   └── pydantic-core.cyclonedx.json
     │           │   └── WHEEL
+    │           ├── pygments
+    │           │   ├── cmdline.py
+    │           │   ├── console.py
+    │           │   ├── filter.py
+    │           │   ├── filters
+    │           │   │   └── __init__.py
+    │           │   ├── formatter.py
+    │           │   ├── formatters
+    │           │   │   ├── bbcode.py
+    │           │   │   ├── groff.py
+    │           │   │   ├── html.py
+    │           │   │   ├── img.py
+    │           │   │   ├── __init__.py
+    │           │   │   ├── irc.py
+    │           │   │   ├── latex.py
+    │           │   │   ├── _mapping.py
+    │           │   │   ├── other.py
+    │           │   │   ├── pangomarkup.py
+    │           │   │   ├── rtf.py
+    │           │   │   ├── svg.py
+    │           │   │   ├── terminal256.py
+    │           │   │   └── terminal.py
+    │           │   ├── __init__.py
+    │           │   ├── lexer.py
+    │           │   ├── lexers
+    │           │   │   ├── actionscript.py
+    │           │   │   ├── _ada_builtins.py
+    │           │   │   ├── ada.py
+    │           │   │   ├── agile.py
+    │           │   │   ├── algebra.py
+    │           │   │   ├── ambient.py
+    │           │   │   ├── amdgpu.py
+    │           │   │   ├── ampl.py
+    │           │   │   ├── apdlexer.py
+    │           │   │   ├── apl.py
+    │           │   │   ├── archetype.py
+    │           │   │   ├── arrow.py
+    │           │   │   ├── arturo.py
+    │           │   │   ├── asc.py
+    │           │   │   ├── asm.py
+    │           │   │   ├── asn1.py
+    │           │   │   ├── _asy_builtins.py
+    │           │   │   ├── automation.py
+    │           │   │   ├── bare.py
+    │           │   │   ├── basic.py
+    │           │   │   ├── bdd.py
+    │           │   │   ├── berry.py
+    │           │   │   ├── bibtex.py
+    │           │   │   ├── blueprint.py
+    │           │   │   ├── boa.py
+    │           │   │   ├── bqn.py
+    │           │   │   ├── business.py
+    │           │   │   ├── capnproto.py
+    │           │   │   ├── carbon.py
+    │           │   │   ├── c_cpp.py
+    │           │   │   ├── cddl.py
+    │           │   │   ├── chapel.py
+    │           │   │   ├── _cl_builtins.py
+    │           │   │   ├── clean.py
+    │           │   │   ├── c_like.py
+    │           │   │   ├── _cocoa_builtins.py
+    │           │   │   ├── codeql.py
+    │           │   │   ├── comal.py
+    │           │   │   ├── compiled.py
+    │           │   │   ├── configs.py
+    │           │   │   ├── console.py
+    │           │   │   ├── cplint.py
+    │           │   │   ├── crystal.py
+    │           │   │   ├── _csound_builtins.py
+    │           │   │   ├── csound.py
+    │           │   │   ├── _css_builtins.py
+    │           │   │   ├── css.py
+    │           │   │   ├── dalvik.py
+    │           │   │   ├── data.py
+    │           │   │   ├── dax.py
+    │           │   │   ├── devicetree.py
+    │           │   │   ├── diff.py
+    │           │   │   ├── dns.py
+    │           │   │   ├── dotnet.py
+    │           │   │   ├── d.py
+    │           │   │   ├── dsls.py
+    │           │   │   ├── dylan.py
+    │           │   │   ├── ecl.py
+    │           │   │   ├── eiffel.py
+    │           │   │   ├── elm.py
+    │           │   │   ├── elpi.py
+    │           │   │   ├── email.py
+    │           │   │   ├── erlang.py
+    │           │   │   ├── esoteric.py
+    │           │   │   ├── ezhil.py
+    │           │   │   ├── factor.py
+    │           │   │   ├── fantom.py
+    │           │   │   ├── felix.py
+    │           │   │   ├── fift.py
+    │           │   │   ├── floscript.py
+    │           │   │   ├── forth.py
+    │           │   │   ├── fortran.py
+    │           │   │   ├── foxpro.py
+    │           │   │   ├── freefem.py
+    │           │   │   ├── func.py
+    │           │   │   ├── functional.py
+    │           │   │   ├── futhark.py
+    │           │   │   ├── gcodelexer.py
+    │           │   │   ├── gdscript.py
+    │           │   │   ├── gleam.py
+    │           │   │   ├── _googlesql_builtins.py
+    │           │   │   ├── go.py
+    │           │   │   ├── grammar_notation.py
+    │           │   │   ├── graphics.py
+    │           │   │   ├── graph.py
+    │           │   │   ├── graphql.py
+    │           │   │   ├── graphviz.py
+    │           │   │   ├── gsql.py
+    │           │   │   ├── hare.py
+    │           │   │   ├── haskell.py
+    │           │   │   ├── haxe.py
+    │           │   │   ├── hdl.py
+    │           │   │   ├── hexdump.py
+    │           │   │   ├── html.py
+    │           │   │   ├── idl.py
+    │           │   │   ├── igor.py
+    │           │   │   ├── inferno.py
+    │           │   │   ├── __init__.py
+    │           │   │   ├── installers.py
+    │           │   │   ├── int_fiction.py
+    │           │   │   ├── iolang.py
+    │           │   │   ├── javascript.py
+    │           │   │   ├── jmespath.py
+    │           │   │   ├── j.py
+    │           │   │   ├── jslt.py
+    │           │   │   ├── json5.py
+    │           │   │   ├── jsonnet.py
+    │           │   │   ├── jsx.py
+    │           │   │   ├── _julia_builtins.py
+    │           │   │   ├── julia.py
+    │           │   │   ├── jvm.py
+    │           │   │   ├── kuin.py
+    │           │   │   ├── kusto.py
+    │           │   │   ├── _lasso_builtins.py
+    │           │   │   ├── ldap.py
+    │           │   │   ├── lean.py
+    │           │   │   ├── _lilypond_builtins.py
+    │           │   │   ├── lilypond.py
+    │           │   │   ├── lisp.py
+    │           │   │   ├── _lua_builtins.py
+    │           │   │   ├── _luau_builtins.py
+    │           │   │   ├── macaulay2.py
+    │           │   │   ├── make.py
+    │           │   │   ├── maple.py
+    │           │   │   ├── _mapping.py
+    │           │   │   ├── markup.py
+    │           │   │   ├── math.py
+    │           │   │   ├── matlab.py
+    │           │   │   ├── maxima.py
+    │           │   │   ├── meson.py
+    │           │   │   ├── mime.py
+    │           │   │   ├── minecraft.py
+    │           │   │   ├── mips.py
+    │           │   │   ├── ml.py
+    │           │   │   ├── modeling.py
+    │           │   │   ├── modula2.py
+    │           │   │   ├── mojo.py
+    │           │   │   ├── monte.py
+    │           │   │   ├── mosel.py
+    │           │   │   ├── _mql_builtins.py
+    │           │   │   ├── _mysql_builtins.py
+    │           │   │   ├── ncl.py
+    │           │   │   ├── nimrod.py
+    │           │   │   ├── nit.py
+    │           │   │   ├── nix.py
+    │           │   │   ├── numbair.py
+    │           │   │   ├── oberon.py
+    │           │   │   ├── objective.py
+    │           │   │   ├── ooc.py
+    │           │   │   ├── _openedge_builtins.py
+    │           │   │   ├── openscad.py
+    │           │   │   ├── other.py
+    │           │   │   ├── parasail.py
+    │           │   │   ├── parsers.py
+    │           │   │   ├── pascal.py
+    │           │   │   ├── pawn.py
+    │           │   │   ├── pddl.py
+    │           │   │   ├── perl.py
+    │           │   │   ├── phix.py
+    │           │   │   ├── _php_builtins.py
+    │           │   │   ├── php.py
+    │           │   │   ├── pointless.py
+    │           │   │   ├── pony.py
+    │           │   │   ├── _postgres_builtins.py
+    │           │   │   ├── praat.py
+    │           │   │   ├── procfile.py
+    │           │   │   ├── prolog.py
+    │           │   │   ├── promql.py
+    │           │   │   ├── prql.py
+    │           │   │   ├── ptx.py
+    │           │   │   ├── python.py
+    │           │   │   ├── _qlik_builtins.py
+    │           │   │   ├── qlik.py
+    │           │   │   ├── q.py
+    │           │   │   ├── qvt.py
+    │           │   │   ├── rdf.py
+    │           │   │   ├── rebol.py
+    │           │   │   ├── rego.py
+    │           │   │   ├── rell.py
+    │           │   │   ├── resource.py
+    │           │   │   ├── ride.py
+    │           │   │   ├── rita.py
+    │           │   │   ├── rnc.py
+    │           │   │   ├── roboconf.py
+    │           │   │   ├── robotframework.py
+    │           │   │   ├── r.py
+    │           │   │   ├── ruby.py
+    │           │   │   ├── rust.py
+    │           │   │   ├── sas.py
+    │           │   │   ├── savi.py
+    │           │   │   ├── scdoc.py
+    │           │   │   ├── _scheme_builtins.py
+    │           │   │   ├── _scilab_builtins.py
+    │           │   │   ├── scripting.py
+    │           │   │   ├── sgf.py
+    │           │   │   ├── shell.py
+    │           │   │   ├── sieve.py
+    │           │   │   ├── slash.py
+    │           │   │   ├── smalltalk.py
+    │           │   │   ├── smithy.py
+    │           │   │   ├── smv.py
+    │           │   │   ├── snobol.py
+    │           │   │   ├── solidity.py
+    │           │   │   ├── soong.py
+    │           │   │   ├── sophia.py
+    │           │   │   ├── _sourcemod_builtins.py
+    │           │   │   ├── special.py
+    │           │   │   ├── spice.py
+    │           │   │   ├── _sql_builtins.py
+    │           │   │   ├── sql.py
+    │           │   │   ├── srcinfo.py
+    │           │   │   ├── _stan_builtins.py
+    │           │   │   ├── _stata_builtins.py
+    │           │   │   ├── stata.py
+    │           │   │   ├── supercollider.py
+    │           │   │   ├── tablegen.py
+    │           │   │   ├── tact.py
+    │           │   │   ├── tal.py
+    │           │   │   ├── tcl.py
+    │           │   │   ├── teal.py
+    │           │   │   ├── templates.py
+    │           │   │   ├── teraterm.py
+    │           │   │   ├── testing.py
+    │           │   │   ├── textedit.py
+    │           │   │   ├── textfmts.py
+    │           │   │   ├── text.py
+    │           │   │   ├── theorem.py
+    │           │   │   ├── thingsdb.py
+    │           │   │   ├── tlb.py
+    │           │   │   ├── tls.py
+    │           │   │   ├── tnt.py
+    │           │   │   ├── trafficscript.py
+    │           │   │   ├── _tsql_builtins.py
+    │           │   │   ├── typoscript.py
+    │           │   │   ├── typst.py
+    │           │   │   ├── ul4.py
+    │           │   │   ├── unicon.py
+    │           │   │   ├── urbi.py
+    │           │   │   ├── _usd_builtins.py
+    │           │   │   ├── usd.py
+    │           │   │   ├── varnish.py
+    │           │   │   ├── _vbscript_builtins.py
+    │           │   │   ├── verification.py
+    │           │   │   ├── verifpal.py
+    │           │   │   ├── _vim_builtins.py
+    │           │   │   ├── vip.py
+    │           │   │   ├── vyper.py
+    │           │   │   ├── webassembly.py
+    │           │   │   ├── webidl.py
+    │           │   │   ├── webmisc.py
+    │           │   │   ├── web.py
+    │           │   │   ├── wgsl.py
+    │           │   │   ├── whiley.py
+    │           │   │   ├── wowtoc.py
+    │           │   │   ├── wren.py
+    │           │   │   ├── x10.py
+    │           │   │   ├── xorg.py
+    │           │   │   ├── yang.py
+    │           │   │   ├── yara.py
+    │           │   │   └── zig.py
+    │           │   ├── __main__.py
+    │           │   ├── modeline.py
+    │           │   ├── plugin.py
+    │           │   ├── regexopt.py
+    │           │   ├── scanner.py
+    │           │   ├── sphinxext.py
+    │           │   ├── style.py
+    │           │   ├── styles
+    │           │   │   ├── abap.py
+    │           │   │   ├── algol_nu.py
+    │           │   │   ├── algol.py
+    │           │   │   ├── arduino.py
+    │           │   │   ├── autumn.py
+    │           │   │   ├── borland.py
+    │           │   │   ├── bw.py
+    │           │   │   ├── coffee.py
+    │           │   │   ├── colorful.py
+    │           │   │   ├── default.py
+    │           │   │   ├── dracula.py
+    │           │   │   ├── emacs.py
+    │           │   │   ├── friendly_grayscale.py
+    │           │   │   ├── friendly.py
+    │           │   │   ├── fruity.py
+    │           │   │   ├── gh_dark.py
+    │           │   │   ├── gruvbox.py
+    │           │   │   ├── igor.py
+    │           │   │   ├── __init__.py
+    │           │   │   ├── inkpot.py
+    │           │   │   ├── lightbulb.py
+    │           │   │   ├── lilypond.py
+    │           │   │   ├── lovelace.py
+    │           │   │   ├── manni.py
+    │           │   │   ├── _mapping.py
+    │           │   │   ├── material.py
+    │           │   │   ├── monokai.py
+    │           │   │   ├── murphy.py
+    │           │   │   ├── native.py
+    │           │   │   ├── nord.py
+    │           │   │   ├── onedark.py
+    │           │   │   ├── paraiso_dark.py
+    │           │   │   ├── paraiso_light.py
+    │           │   │   ├── pastie.py
+    │           │   │   ├── perldoc.py
+    │           │   │   ├── rainbow_dash.py
+    │           │   │   ├── rrt.py
+    │           │   │   ├── sas.py
+    │           │   │   ├── solarized.py
+    │           │   │   ├── staroffice.py
+    │           │   │   ├── stata_dark.py
+    │           │   │   ├── stata_light.py
+    │           │   │   ├── tango.py
+    │           │   │   ├── trac.py
+    │           │   │   ├── vim.py
+    │           │   │   ├── vs.py
+    │           │   │   ├── xcode.py
+    │           │   │   └── zenburn.py
+    │           │   ├── token.py
+    │           │   ├── unistring.py
+    │           │   └── util.py
+    │           ├── pygments-2.20.0.dist-info
+    │           │   ├── entry_points.txt
+    │           │   ├── INSTALLER
+    │           │   ├── licenses
+    │           │   │   ├── AUTHORS
+    │           │   │   └── LICENSE
+    │           │   ├── METADATA
+    │           │   ├── RECORD
+    │           │   └── WHEEL
     │           ├── pyjwt-2.13.0.dist-info
     │           │   ├── INSTALLER
     │           │   ├── licenses
     │           │   │   ├── AUTHORS.rst
+    │           │   │   └── LICENSE
+    │           │   ├── METADATA
+    │           │   ├── RECORD
+    │           │   ├── REQUESTED
+    │           │   ├── top_level.txt
+    │           │   └── WHEEL
+    │           ├── py.py
+    │           ├── _pytest
+    │           │   ├── _argcomplete.py
+    │           │   ├── assertion
+    │           │   │   ├── _compare_any.py
+    │           │   │   ├── _compare_mapping.py
+    │           │   │   ├── _compare_sequence.py
+    │           │   │   ├── _compare_set.py
+    │           │   │   ├── compare_text.py
+    │           │   │   ├── _guards.py
+    │           │   │   ├── highlight.py
+    │           │   │   ├── __init__.py
+    │           │   │   ├── rewrite.py
+    │           │   │   ├── truncate.py
+    │           │   │   ├── _typing.py
+    │           │   │   └── util.py
+    │           │   ├── cacheprovider.py
+    │           │   ├── capture.py
+    │           │   ├── _code
+    │           │   │   ├── code.py
+    │           │   │   ├── __init__.py
+    │           │   │   └── source.py
+    │           │   ├── compat.py
+    │           │   ├── config
+    │           │   │   ├── argparsing.py
+    │           │   │   ├── exceptions.py
+    │           │   │   ├── findpaths.py
+    │           │   │   └── __init__.py
+    │           │   ├── debugging.py
+    │           │   ├── deprecated.py
+    │           │   ├── doctest.py
+    │           │   ├── faulthandler.py
+    │           │   ├── fixtures.py
+    │           │   ├── freeze_support.py
+    │           │   ├── helpconfig.py
+    │           │   ├── hookspec.py
+    │           │   ├── __init__.py
+    │           │   ├── _io
+    │           │   │   ├── __init__.py
+    │           │   │   ├── pprint.py
+    │           │   │   ├── saferepr.py
+    │           │   │   ├── terminalwriter.py
+    │           │   │   └── wcwidth.py
+    │           │   ├── junitxml.py
+    │           │   ├── legacypath.py
+    │           │   ├── logging.py
+    │           │   ├── main.py
+    │           │   ├── mark
+    │           │   │   ├── expression.py
+    │           │   │   ├── __init__.py
+    │           │   │   └── structures.py
+    │           │   ├── monkeypatch.py
+    │           │   ├── nodes.py
+    │           │   ├── outcomes.py
+    │           │   ├── pastebin.py
+    │           │   ├── pathlib.py
+    │           │   ├── _py
+    │           │   │   ├── error.py
+    │           │   │   ├── __init__.py
+    │           │   │   └── path.py
+    │           │   ├── pytester_assertions.py
+    │           │   ├── pytester.py
+    │           │   ├── python_api.py
+    │           │   ├── python.py
+    │           │   ├── py.typed
+    │           │   ├── raises.py
+    │           │   ├── recwarn.py
+    │           │   ├── reports.py
+    │           │   ├── runner.py
+    │           │   ├── scope.py
+    │           │   ├── setuponly.py
+    │           │   ├── setupplan.py
+    │           │   ├── skipping.py
+    │           │   ├── stash.py
+    │           │   ├── stepwise.py
+    │           │   ├── subtests.py
+    │           │   ├── terminalprogress.py
+    │           │   ├── terminal.py
+    │           │   ├── threadexception.py
+    │           │   ├── timing.py
+    │           │   ├── tmpdir.py
+    │           │   ├── tracemalloc.py
+    │           │   ├── unittest.py
+    │           │   ├── unraisableexception.py
+    │           │   ├── _version.py
+    │           │   ├── warnings.py
+    │           │   └── warning_types.py
+    │           ├── pytest
+    │           │   ├── __init__.py
+    │           │   ├── __main__.py
+    │           │   └── py.typed
+    │           ├── pytest-9.1.1.dist-info
+    │           │   ├── entry_points.txt
+    │           │   ├── INSTALLER
+    │           │   ├── licenses
+    │           │   │   └── LICENSE
+    │           │   ├── METADATA
+    │           │   ├── RECORD
+    │           │   ├── REQUESTED
+    │           │   ├── top_level.txt
+    │           │   └── WHEEL
+    │           ├── pytest_asyncio
+    │           │   ├── __init__.py
+    │           │   ├── plugin.py
+    │           │   └── py.typed
+    │           ├── pytest_asyncio-1.4.0.dist-info
+    │           │   ├── entry_points.txt
+    │           │   ├── INSTALLER
+    │           │   ├── licenses
     │           │   │   └── LICENSE
     │           │   ├── METADATA
     │           │   ├── RECORD
@@ -4288,4 +4874,4 @@
     ├── lib64 -> lib
     └── pyvenv.cfg
 
-494 directories, 3795 files
+530 directories, 4345 files

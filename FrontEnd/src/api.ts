@@ -316,11 +316,74 @@ export const SemiSharpApi = {
     });
   },
 
+  async validatePffRatings(authString: string, season: number, week: number): Promise<any> {
+    return request<any>(`/admin/ratings/pff/validate?season=${season}&week=${week}`, {
+      headers: {
+        'Authorization': `Basic ${authString}`
+      }
+    });
+  },
+
+  async importPffRatings(authString: string, payload: { season: number; week: number; replace_existing: boolean }): Promise<any> {
+    return request<any>('/admin/ratings/pff/import', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${authString}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+  },
+
+  async validateSicInjuries(authString: string, season: number, week: number): Promise<any> {
+    return request<any>(`/admin/injuries/sic/validate?season=${season}&week=${week}`, {
+      headers: {
+        'Authorization': `Basic ${authString}`
+      }
+    });
+  },
+
+  async importSicInjuries(authString: string, payload: { season: number; week: number; replace_existing: boolean }): Promise<any> {
+    return request<any>('/admin/injuries/sic/import', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${authString}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+  },
+
+  async refreshMarketOdds(authString: string | null, payload: { season: number; week: number }): Promise<any> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (authString) {
+      headers['Authorization'] = `Basic ${authString}`;
+    }
+    return request<any>('/market/refresh-odds', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    });
+  },
+
   async getPffPowerRankings(season: number, week: number): Promise<PffPowerRankingsResponse> {
     return request<PffPowerRankingsResponse>(`/ratings/pff/${season}/${week}`);
   },
 
   async getHomeFieldAdvantage(season: number): Promise<HomeFieldAdvantageResponse> {
     return request<HomeFieldAdvantageResponse>(`/reference/home-field-advantage/${season}`);
+  },
+
+  async updateHomeFieldAdvantage(authString: string, season: number, teamId: string | number, payload: { home_field_points: number; notes: string | null }): Promise<any> {
+    return request<any>(`/reference/home-field-advantage/${season}/${teamId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Basic ${authString}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
   },
 };

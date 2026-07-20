@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-17 16:49:29.497326",
+  "generated": "2026-07-20 18:00:01.373727",
   "database": "semisharp",
   "tables": [
     {
@@ -433,7 +433,7 @@
     {
       "schema": "jobs",
       "table": "job_queue",
-      "row_count": 10,
+      "row_count": 15,
       "columns": [
         {
           "name": "job_id",
@@ -543,7 +543,7 @@
     {
       "schema": "market",
       "table": "consensus_spreads",
-      "row_count": 150,
+      "row_count": 174,
       "columns": [
         {
           "name": "game_id",
@@ -598,7 +598,7 @@
     {
       "schema": "market",
       "table": "events",
-      "row_count": 75,
+      "row_count": 87,
       "columns": [
         {
           "name": "market_event_id",
@@ -674,7 +674,7 @@
     {
       "schema": "market",
       "table": "projection_edges",
-      "row_count": 0,
+      "row_count": 174,
       "columns": [
         {
           "name": "game_id",
@@ -734,7 +734,7 @@
     {
       "schema": "market",
       "table": "spreads",
-      "row_count": 504,
+      "row_count": 1020,
       "columns": [
         {
           "name": "market_spread_id",
@@ -911,6 +911,111 @@
       "indexes": [
         "game_spreads_pkey",
         "game_spreads_season_week_game_id_rating_week_hfa_source_sys_key"
+      ]
+    },
+    {
+      "schema": "projections",
+      "table": "game_spreads_archive",
+      "row_count": 272,
+      "columns": [
+        {
+          "name": "projection_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "week",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "game_id",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "rating_week",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "hfa_source_system",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "home_team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "away_team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "home_power_rating",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "away_power_rating",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "power_rating_diff",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "home_field_points",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "projected_home_margin",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "projected_favorite_team_id",
+          "type": "integer",
+          "nullable": "YES"
+        },
+        {
+          "name": "projected_favorite_abbr",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "projected_spread",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "source_system",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "projection_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "game_spreads_archive_pkey",
+        "game_spreads_archive_season_week_game_id_rating_week_hfa_so_key"
       ]
     },
     {
@@ -1150,6 +1255,61 @@
     },
     {
       "schema": "reference",
+      "table": "home_field_advantage_archive",
+      "row_count": 64,
+      "columns": [
+        {
+          "name": "home_field_advantage_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "season",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "team_id",
+          "type": "integer",
+          "nullable": "NO"
+        },
+        {
+          "name": "home_field_points",
+          "type": "numeric",
+          "nullable": "NO"
+        },
+        {
+          "name": "source_system",
+          "type": "text",
+          "nullable": "NO"
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "nullable": "YES"
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": "NO"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": "NO"
+        }
+      ],
+      "primary_keys": [
+        "home_field_advantage_id"
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        "home_field_advantage_archive_pkey",
+        "home_field_advantage_archive_season_team_id_source_system_key"
+      ]
+    },
+    {
+      "schema": "reference",
       "table": "team_aliases",
       "row_count": 107,
       "columns": [
@@ -1297,7 +1457,7 @@
     {
       "schema": "risk",
       "table": "game_risk_factors",
-      "row_count": 348,
+      "row_count": 346,
       "columns": [
         {
           "name": "game_risk_factor_id",
@@ -1367,7 +1527,7 @@
     {
       "schema": "risk",
       "table": "game_risk_scores",
-      "row_count": 264,
+      "row_count": 268,
       "columns": [
         {
           "name": "game_risk_score_id",
@@ -1442,7 +1602,7 @@
     {
       "schema": "risk",
       "table": "game_risk_summary",
-      "row_count": 264,
+      "row_count": 268,
       "columns": [
         {
           "name": "season",
@@ -1989,7 +2149,7 @@
     {
       "schema": "survivor",
       "table": "entries",
-      "row_count": 4,
+      "row_count": 5,
       "columns": [
         {
           "name": "entry_id",
@@ -2221,7 +2381,7 @@
     {
       "schema": "survivor",
       "table": "user_entries",
-      "row_count": 5,
+      "row_count": 6,
       "columns": [
         {
           "name": "user_id",
