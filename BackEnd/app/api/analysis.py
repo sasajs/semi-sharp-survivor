@@ -436,3 +436,64 @@ def get_weekly_game_analysis(
 
     finally:
         db.close()
+
+
+@router.get("/game/{game_id}")
+def get_game_analysis(
+    game_id: str,
+    db=Depends(get_connection),
+):
+    """
+    Return the consolidated analysis payload for one scheduled game.
+
+    This reuses the validated weekly-analysis builder so the weekly and
+    single-game contracts cannot drift apart.
+    """
+    try:
+        with db.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT season, week
+                FROM schedule.games
+                WHERE game_id = %s
+                LIMIT 1;
+                """,
+                (game_id,),
+            )
+            schedule_row = cursor.fetchone()
+
+        if schedule_row is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Game not found: {game_id}",
+            )
+
+        season = int(schedule_row[0])
+        week = int(schedule_row[1])
+
+        weekly_payload = get_weekly_game_analysis(
+            season=season,
+            week=week,
+            db=db,
+        )
+
+        game = next(
+            (
+                item
+                for item in weekly_payload["games"]
+                if item["game_id"] == game_id
+            ),
+            None,
+        )
+
+        if game is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Analysis not found for game: {game_id}",
+            )
+
+        return game
+
+    finally:
+        if not db.closed:
+            db.close()
