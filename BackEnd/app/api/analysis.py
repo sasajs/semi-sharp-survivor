@@ -198,6 +198,28 @@ def get_weekly_game_analysis(
             g.game_id;
     """
 
+    risk_factors_sql = """
+        SELECT
+            game_id,
+            team_id,
+            game_risk_factor_id,
+            risk_type,
+            severity,
+            risk_points,
+            description,
+            source_system,
+            created_at
+        FROM risk.game_risk_factors
+        WHERE season = %s
+          AND week = %s
+        ORDER BY
+            game_id,
+            team_id,
+            risk_points DESC,
+            risk_type,
+            game_risk_factor_id;
+    """
+
     sportsbooks_sql = """
         WITH latest_team_lines AS (
             SELECT DISTINCT ON (
@@ -294,6 +316,15 @@ def get_weekly_game_analysis(
                 for row in cursor.fetchall()
             ]
 
+            cursor.execute(
+                risk_factors_sql,
+                (season, week),
+            )
+            risk_factor_rows = [
+                row_to_dict(cursor, row)
+                for row in cursor.fetchall()
+            ]
+
         sportsbooks_by_game: dict[str, list[dict[str, Any]]] = defaultdict(list)
 
         for row in sportsbook_rows:
@@ -310,6 +341,29 @@ def get_weekly_game_analysis(
                 "last_update": row["last_update"],
                 "pulled_at": row["pulled_at"],
                 "commence_time": row["commence_time"],
+            })
+
+        risk_factors_by_game_team: dict[
+            tuple[str, int],
+            list[dict[str, Any]],
+        ] = defaultdict(list)
+
+        for row in risk_factor_rows:
+            key = (
+                row["game_id"],
+                int(row["team_id"]),
+            )
+
+            risk_factors_by_game_team[key].append({
+                "game_risk_factor_id": (
+                    row["game_risk_factor_id"]
+                ),
+                "risk_type": row["risk_type"],
+                "severity": row["severity"],
+                "risk_points": row["risk_points"],
+                "description": row["description"],
+                "source_system": row["source_system"],
+                "created_at": row["created_at"],
             })
 
         games = []
@@ -413,6 +467,13 @@ def get_weekly_game_analysis(
                             "away_risk_factor_count"
                         ],
                         "summary": row["away_risk_summary"],
+                        "factors": risk_factors_by_game_team.get(
+                            (
+                                row["game_id"],
+                                int(row["away_team_id"]),
+                            ),
+                            [],
+                        ),
                     },
 
                     "home": {
@@ -423,6 +484,13 @@ def get_weekly_game_analysis(
                             "home_risk_factor_count"
                         ],
                         "summary": row["home_risk_summary"],
+                        "factors": risk_factors_by_game_team.get(
+                            (
+                                row["game_id"],
+                                int(row["home_team_id"]),
+                            ),
+                            [],
+                        ),
                     },
                 },
             })
