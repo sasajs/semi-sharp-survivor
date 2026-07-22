@@ -9,6 +9,7 @@ import { Button, Card, Input } from './ui';
 import { SemiSharpApi } from '../api';
 import { SemiSharpContext } from '../types';
 import { ScholarsGuideLogo } from './ScholarsGuideLogo';
+import { GlobalContextBar } from './GlobalContextBar';
 import { 
   ShieldCheck, 
   Settings, 
@@ -39,7 +40,8 @@ import {
   LayoutDashboard,
   Radio,
   ClipboardList,
-  Info
+  Info,
+  Lock
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -130,84 +132,86 @@ export const Layout: React.FC<LayoutProps> = ({
   };
 
   // Structured left navigation sections
+  const isAdmin = user?.role === 'ADMIN';
+
   const navSections = [
     {
-      title: 'General',
+      title: 'Reference Data',
       items: [
-        { id: 'dashboard', name: 'Dashboard', icon: Compass, status: 'LIVE' },
-        { id: 'season_management', name: 'My Survivor Season', icon: Calendar, status: 'LIVE' },
+        { id: 'game_analysis', name: 'Weekly Game Analysis', icon: ClipboardList, status: 'IN_PROGRESS' },
+        { id: 'market', name: 'Market Lines & Consensus', icon: Database, status: 'IN_PROGRESS' },
+        { id: 'power_rankings', name: 'Power Rankings', icon: TrendingUp, status: 'IN_PROGRESS' },
+        { id: 'placeholder_thealth', name: 'Team Health', icon: Heart, status: 'IN_PROGRESS' },
+        { id: 'home_field_advantage', name: 'Home Field Advantage', icon: Sliders, status: 'IN_PROGRESS' },
+        { id: 'placeholder_hanalysis', name: 'Historical Analysis', icon: History, status: 'COMING_SOON' },
       ]
     },
     {
-      title: 'Analysis',
+      title: 'Decision Support',
       items: [
-        { id: 'game_analysis', name: 'Weekly Game Analysis', icon: ClipboardList, status: 'LIVE' },
-      ]
-    },
-    {
-      title: 'Strategies',
-      items: [
-        { id: 'strategies', name: 'Strategy Lab', icon: Award, status: 'LIVE' },
-        { id: 'recommendation_workspace', name: 'Recommendation Workspace', icon: Brain, status: 'LIVE' },
-      ]
-    },
-    {
-      title: 'Data',
-      items: [
-        { id: 'placeholder_thealth', name: 'Team Health', icon: Heart, status: 'LIVE' },
-        { id: 'power_rankings', name: 'Power Rankings', icon: TrendingUp, status: 'LIVE' },
-        { id: 'home_field_advantage', name: 'Home Field Advantage', icon: Sliders, status: 'LIVE' },
-        { id: 'placeholder_hanalysis', name: 'Historical Analysis', icon: History, status: 'PLACEHOLDER' },
+        { id: 'season_management', name: 'My Entries', icon: Calendar, status: 'IN_PROGRESS' },
+        { id: 'dashboard', name: "This Week's Decision", icon: Compass, status: 'LIVE' },
+        { id: 'strategies', name: 'Season Path', icon: Award, status: 'IN_PROGRESS' },
+        { id: 'recommendation_workspace', name: 'Advanced Strategy Analysis', icon: Brain, status: 'IN_PROGRESS' },
       ]
     },
     {
       title: 'Reports',
       items: [
-        { id: 'placeholder_wreports', name: 'Weekly Reports', icon: FileText, status: 'PLACEHOLDER' },
-        { id: 'placeholder_ssummary', name: 'Season Summary', icon: BarChart3, status: 'PLACEHOLDER' },
+        { id: 'placeholder_wreports', name: 'Weekly Reports', icon: FileText, status: 'COMING_SOON' },
+        { id: 'placeholder_ssummary', name: 'Season Summary', icon: BarChart3, status: 'COMING_SOON' },
       ]
     },
     {
-      title: 'Administration',
+      title: 'About',
       items: [
-        { id: 'placeholder_sstatus', name: 'Administration Console', icon: Activity, status: 'LIVE' },
-        { id: 'admin_user_management', name: 'User Management', icon: Users, status: 'LIVE' },
-        { id: 'placeholder_config', name: 'Configuration', icon: Settings, status: 'PLACEHOLDER' },
+        { id: 'why_semisharp', name: 'Why SemiSharp', icon: Info, status: 'IN_PROGRESS' },
       ]
     },
-    {
-      title: 'ABOUT',
-      items: [
-        { id: 'why_semisharp', name: 'Why SemiSharp', icon: Info, status: 'LIVE' },
-      ]
-    }
+    ...(isAdmin ? [
+      {
+        title: 'Administration',
+        items: [
+          { id: 'placeholder_sstatus', name: 'Operations Console', icon: Activity, status: 'IN_PROGRESS' },
+          { id: 'admin_user_management', name: 'User Administration', icon: Users, status: 'IN_PROGRESS' },
+          { id: 'placeholder_config', name: 'Configuration', icon: Settings, status: 'COMING_SOON' },
+        ]
+      }
+    ] : [])
   ];
 
   const getStatusBadge = (status: string, compact = false) => {
     if (compact) {
       switch (status) {
         case 'LIVE':
-        case 'IN_DEVELOPMENT':
           return <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" title="LIVE" />;
-        case 'PLACEHOLDER':
+        case 'IN_PROGRESS':
+          return <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" title="IN PROGRESS" />;
+        case 'COMING_SOON':
         default:
-          return <span className="w-1.5 h-1.5 rounded-full bg-slate-300 inline-block" title="Coming Soon" />;
+          return <span className="w-1.5 h-1.5 rounded-full bg-slate-400 inline-block" title="COMING SOON" />;
       }
     }
 
     switch (status) {
       case 'LIVE':
-      case 'IN_DEVELOPMENT':
         return (
           <span className="text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200/80 px-1 py-0.5 rounded-sm uppercase tracking-wider scale-90 shrink-0">
             LIVE
           </span>
         );
-      case 'PLACEHOLDER':
+      case 'IN_PROGRESS':
+        return (
+          <span className="text-[9px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200/80 px-1 py-0.5 rounded-sm uppercase tracking-wider scale-90 shrink-0 whitespace-nowrap">
+            IN PROGRESS
+          </span>
+        );
+      case 'COMING_SOON':
       default:
         return (
-          <span className="text-[9px] font-extrabold bg-slate-100 text-slate-500 border border-slate-200 px-1 py-0.5 rounded-sm uppercase tracking-wider scale-90 shrink-0 whitespace-nowrap">
-            Coming Soon
+          <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold bg-slate-100 text-slate-500 border border-slate-200 px-1 py-0.5 rounded-sm uppercase tracking-wider scale-90 shrink-0 whitespace-nowrap">
+            <Lock className="w-2.5 h-2.5 text-slate-400 shrink-0" />
+            COMING SOON
           </span>
         );
     }
@@ -304,6 +308,9 @@ export const Layout: React.FC<LayoutProps> = ({
           </div>
         </div>
       </header>
+
+      {/* Persistent Global Context Bar */}
+      <GlobalContextBar context={context} onRefreshContext={onRefreshContext} />
 
       {/* 2. PERSISTENT LEFT SIDEBAR & MAIN BODY ROW */}
       <div className="flex-1 flex flex-row relative min-h-0 overflow-hidden">

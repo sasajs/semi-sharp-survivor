@@ -4,1412 +4,423 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { SemiSharpApi, ApiError } from '../api';
 import { Card, Button, Alert, LoadingSpinner } from './ui';
-import { 
-  Calendar, 
-  ShieldCheck, 
-  Award, 
-  Activity, 
-  Sliders, 
-  Database, 
-  RefreshCw, 
-  AlertOctagon, 
-  Info, 
-  Clock, 
-  User, 
-  CheckCircle2, 
-  XCircle, 
-  History,
-  FileText,
-  Binary,
-  HelpCircle,
-  ChevronDown,
-  ChevronUp
+import { SurvivorEntry, Team } from '../types';
+import {
+  Calendar,
+  ShieldCheck,
+  CheckCircle2,
+  XCircle,
+  Lock,
+  Edit3,
+  Plus,
+  Trash2,
+  Info,
+  RefreshCw,
+  UserCheck,
+  Award,
+  X,
+  Sliders,
+  Check,
+  ChevronRight,
+  FileText
 } from 'lucide-react';
-import { SeasonTimeline } from './SeasonTimeline';
 
 export const SeasonManagement: React.FC = () => {
   const { user, selectedEntry, selectEntry } = useAuth();
 
-  // Component state
+  // State for entries and operational context
+  const [managedEntry, setManagedEntry] = useState<SurvivorEntry | null>(selectedEntry || (user?.entries[0] || null));
   const [context, setContext] = useState<any>(null);
-  const [contextLoading, setContextLoading] = useState<boolean>(true);
-  const [contextError, setContextError] = useState<string | null>(null);
+  
+  // Picks mapping per entryId: { [entryId]: { picks: any[], loading: boolean, error: string | null } }
+  const [picksMap, setPicksMap] = useState<Record<string, { picks: any[]; loading: boolean; error: string | null }>>({});
+  
+  // Strategy context map per entryId
+  const [stratContextMap, setStratContextMap] = useState<Record<string, any>>({});
+  
+  // Teams master list
+  const [teams, setTeams] = useState<Team[]>([]);
 
-  const [statusData, setStatusData] = useState<any>(null);
-  const [statusLoading, setStatusLoading] = useState<boolean>(true);
-  const [statusError, setStatusError] = useState<string | null>(null);
+  // Main page loading & refresh
+  const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [globalError, setGlobalError] = useState<string | null>(null);
 
-  const [picksData, setPicksData] = useState<any>(null);
-  const [picksLoading, setPicksLoading] = useState<boolean>(true);
-  const [picksError, setPicksError] = useState<string | null>(null);
+  // Edit Used Teams modal state
+  const [editModalOpen, setEditModalOpen] = useState<boolean>(false);
+  const [selectedTeamForEdit, setSelectedTeamForEdit] = useState<Team | null>(null);
+  const [targetLegId, setTargetLegId] = useState<number>(1);
+  const [editSubmitting, setEditSubmitting] = useState<boolean>(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editSuccess, setEditSuccess] = useState<string | null>(null);
 
-  const [activeTab, setActiveTab] = useState<'timeline' | 'pick_options'>('timeline');
+  // Keep managedEntry in sync with selectedEntry if user changes top header selection
+  useEffect(() => {
+    if (selectedEntry) {
+      setManagedEntry(selectedEntry);
+    } else if (user?.entries && user.entries.length > 0 && !managedEntry) {
+      setManagedEntry(user.entries[0]);
+    }
+  }, [selectedEntry, user]);
 
-  const [comparisonData, setComparisonData] = useState<any>(null);
-  const [comparisonLoading, setComparisonLoading] = useState<boolean>(false);
-  const [comparisonError, setComparisonError] = useState<string | null>(null);
+  // Load all entries data in parallel
+  const loadAllEntriesData = async () => {
+    setLoading(true);
+    setGlobalError(null);
 
-  const [stratContext, setStratContext] = useState<any>(null);
-  const [stratContextLoading, setStratContextLoading] = useState<boolean>(false);
-  const [stratContextError, setStratContextError] = useState<string | null>(null);
-
-  const [validPicksData, setValidPicksData] = useState<any>(null);
-  const [validPicksLoading, setValidPicksLoading] = useState<boolean>(false);
-  const [validPicksError, setValidPicksError] = useState<string | null>(null);
-
-  const [tentativeSelection, setTentativeSelection] = useState<any>(null);
-  const [unavailableCollapsed, setUnavailableCollapsed] = useState<boolean>(true);
-
-  const [confirmOpen, setConfirmOpen] = useState<boolean>(false);
-  const [submitting, setSubmitting] = useState<boolean>(false);
-  const [submissionError, setSubmissionError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [hasSubmittedSuccessfully, setHasSubmittedSuccessfully] = useState<boolean>(false);
-
-  const getFormat = () => {
-    return selectedEntry?.format_code || '';
-  };
-
-  // Fetch Operational Context
-  const fetchContext = async () => {
-    setContextLoading(true);
-    setContextError(null);
     try {
-      const data = await SemiSharpApi.getContext();
-      setContext(data);
-    } catch (err) {
-      setContextError(err instanceof ApiError ? err.message : 'Failed to retrieve current operational context.');
-    } finally {
-      setContextLoading(false);
-    }
-  };
+      // 1. Fetch current context
+      const ctx = await SemiSharpApi.getContext().catch(() => null);
+      setContext(ctx);
 
-  // Fetch Season Management Status
-  const fetchStatus = async () => {
-    setStatusLoading(true);
-    setStatusError(null);
-    try {
-      const data = await SemiSharpApi.getSeasonManagementStatus();
-      setStatusData(data);
-    } catch (err) {
-      setStatusError(err instanceof ApiError ? err.message : 'Failed to retrieve season management status.');
-    } finally {
-      setStatusLoading(false);
-    }
-  };
-
-  // Fetch Pick History
-  const fetchPicks = async () => {
-    if (!selectedEntry) {
-      setPicksLoading(false);
-      return;
-    }
-    setPicksLoading(true);
-    setPicksError(null);
-    try {
-      const data = await SemiSharpApi.getEntryPicks(selectedEntry.entry_id);
-      setPicksData(data);
-    } catch (err) {
-      setPicksError(err instanceof ApiError ? err.message : `Failed to retrieve pick history for entry ${selectedEntry.entry_label}.`);
-    } finally {
-      setPicksLoading(false);
-    }
-  };
-
-  // Fetch Strategy Comparison
-  const fetchComparison = async () => {
-    if (!selectedEntry) {
-      setComparisonData(null);
-      setComparisonLoading(false);
-      return;
-    }
-    if (!selectedEntry.format_code) {
-      setComparisonData(null);
-      setComparisonLoading(false);
-      return;
-    }
-    setComparisonLoading(true);
-    setComparisonError(null);
-    try {
-      const seasonValue = context?.season || 2026;
-      const formatValue = getFormat();
-      const res = await SemiSharpApi.compareStrategies(seasonValue, formatValue, selectedEntry.entry_id);
-      setComparisonData(res);
-    } catch (err) {
-      console.error("Comparison load failure inside SeasonManagement:", err);
-      setComparisonError(err instanceof ApiError ? err.message : "Failed to load strategy comparison details.");
-    } finally {
-      setComparisonLoading(false);
-    }
-  };
-
-  const hasBackendRecommendation = (legId: number | string) => {
-    if (!comparisonData?.strategies) return false;
-    for (const strat of comparisonData.strategies) {
-      const matchedEntry = strat.entries?.find((e: any) => {
-        const backendId = e.entry_id?.toString().trim();
-        const frontendId = selectedEntry?.entry_id?.toString().trim();
-        return frontendId && backendId === frontendId;
-      }) || strat.entries?.[0];
-
-      if (matchedEntry?.picks) {
-        const matchedPick = matchedEntry.picks.find((p: any) => {
-          const pLegId = p.contest_leg?.contest_leg_id || p.contest_leg_id || p.leg_number;
-          return String(pLegId) === String(legId);
-        });
-        if (matchedPick?.team) {
-          return true;
-        }
+      // 2. Fetch master teams list
+      const teamsRes = await SemiSharpApi.getTeams().catch(() => ({ teams: [] }));
+      if (teamsRes?.teams) {
+        setTeams(teamsRes.teams);
       }
-    }
-    return false;
-  };
 
-  const getLegStatus = (legId: any, index: number, legs: any[]) => {
-    const currentLegId = stratContext?.current_contest_leg_id;
-    if (!currentLegId) return 'Future';
+      // 3. Fetch picks and strategy context for each entry
+      if (user?.entries && user.entries.length > 0) {
+        const newPicksMap: Record<string, { picks: any[]; loading: boolean; error: string | null }> = {};
+        const newStratMap: Record<string, any> = {};
 
-    if (String(legId) === String(currentLegId)) {
-      return 'Current';
-    }
+        await Promise.all(
+          user.entries.map(async (entry) => {
+            const entryKey = String(entry.entry_id);
+            try {
+              const picksRes = await SemiSharpApi.getEntryPicks(entry.entry_id).catch(() => null);
+              newPicksMap[entryKey] = {
+                picks: picksRes?.picks || [],
+                loading: false,
+                error: null
+              };
 
-    const currentIndex = legs.findIndex(p => {
-      const pLegId = p.contest_leg?.contest_leg_id || p.contest_leg_id;
-      return String(pLegId) === String(currentLegId);
-    });
+              const stratRes = await SemiSharpApi.getStrategyContext(
+                entry.entry_id,
+                entry.format_code || 'STANDARD'
+              ).catch(() => null);
+              if (stratRes) {
+                newStratMap[entryKey] = stratRes;
+              }
+            } catch (err: any) {
+              newPicksMap[entryKey] = {
+                picks: [],
+                loading: false,
+                error: err.message || 'Failed to fetch entry details'
+              };
+            }
+          })
+        );
 
-    if (currentIndex === -1) return 'Future';
-
-    return index < currentIndex ? 'Past' : 'Future';
-  };
-
-  // Fetch Strategy Context to get backend-provided contest_leg_id
-  const fetchStrategyContextAndValidPicks = async () => {
-    if (!selectedEntry) {
-      setStratContext(null);
-      setValidPicksData(null);
-      setStratContextLoading(false);
-      setValidPicksLoading(false);
-      return;
-    }
-    if (!selectedEntry.format_code) {
-      setStratContext(null);
-      setValidPicksData(null);
-      setStratContextLoading(false);
-      setValidPicksLoading(false);
-      return;
-    }
-
-    setStratContextLoading(true);
-    setStratContextError(null);
-    setValidPicksLoading(true);
-    setValidPicksError(null);
-    setTentativeSelection(null);
-    setSuccessMessage(null);
-
-    const format = getFormat();
-
-    try {
-      const contextData = await SemiSharpApi.getStrategyContext(selectedEntry.entry_id, format);
-      setStratContext(contextData);
-      setStratContextLoading(false);
-
-      const contestLegId = contextData?.current_contest_leg_id;
-      if (contestLegId !== undefined && contestLegId !== null) {
-        try {
-          const pData = await SemiSharpApi.getValidPicks(selectedEntry.entry_id, contestLegId);
-          setValidPicksData(pData);
-        } catch (err) {
-          setValidPicksError(err instanceof ApiError ? err.message : `Failed to retrieve valid pick options from GET /season-management/entries/${selectedEntry.entry_id}/valid-picks/${contestLegId}`);
-        } finally {
-          setValidPicksLoading(false);
-        }
-      } else {
-        setValidPicksLoading(false);
+        setPicksMap(newPicksMap);
+        setStratContextMap(newStratMap);
       }
-    } catch (err) {
-      setStratContextError(err instanceof ApiError ? err.message : 'Failed to retrieve strategy context.');
-      setStratContextLoading(false);
-      setValidPicksLoading(false);
-    }
-  };
-
-  const handleRefreshOptions = async () => {
-    if (!selectedEntry || !stratContext?.current_contest_leg_id) return;
-    setValidPicksLoading(true);
-    setValidPicksError(null);
-    setTentativeSelection(null);
-    setSuccessMessage(null);
-    try {
-      const pData = await SemiSharpApi.getValidPicks(selectedEntry.entry_id, stratContext.current_contest_leg_id);
-      setValidPicksData(pData);
-    } catch (err) {
-      setValidPicksError(err instanceof ApiError ? err.message : `Failed to retrieve valid pick options from GET /season-management/entries/${selectedEntry.entry_id}/valid-picks/${stratContext.current_contest_leg_id}`);
+    } catch (err: any) {
+      console.error("Error loading entries data:", err);
+      setGlobalError("Failed to initialize entry management telemetry.");
     } finally {
-      setValidPicksLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleConfirmAndRecord = async () => {
-    if (!selectedEntry || !tentativeSelection) return;
-    
-    const contextLegId = stratContext?.current_contest_leg_id;
-    const validPicksLegId = validPicksData?.contest_leg?.contest_leg_id;
-    
-    if (contextLegId !== validPicksLegId) {
-      setSubmissionError("Cannot submit pick due to contest leg mismatch.");
-      return;
-    }
-    
-    const contestLegIdToUse = validPicksLegId || contextLegId;
-    if (!contestLegIdToUse) {
-      setSubmissionError("Contest leg ID is missing.");
-      return;
-    }
+  useEffect(() => {
+    loadAllEntriesData();
+  }, [user]);
 
-    setSubmitting(true);
-    setSubmissionError(null);
-    setSuccessMessage(null);
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadAllEntriesData();
+    setRefreshing(false);
+  };
+
+  // Helper to resolve picks for an entry
+  const getEntryPicksList = (entryId: string | number) => {
+    return picksMap[String(entryId)]?.picks || [];
+  };
+
+  // Helper to resolve current leg for an entry
+  const getEntryCurrentLeg = (entry: SurvivorEntry) => {
+    const strat = stratContextMap[String(entry.entry_id)];
+    if (strat?.current_contest_leg_id) {
+      return `Leg ${strat.current_contest_leg_id}`;
+    }
+    return `Leg ${context?.current_week || context?.week || 1}`;
+  };
+
+  // Helper to resolve current recorded pick for an entry
+  const getEntryCurrentPick = (entry: SurvivorEntry) => {
+    const picks = getEntryPicksList(entry.entry_id);
+    if (!picks || picks.length === 0) return null;
+    
+    const strat = stratContextMap[String(entry.entry_id)];
+    const legId = strat?.current_contest_leg_id;
+    if (legId) {
+      const matched = picks.find((p: any) => {
+        const pLegId = p.contest_leg?.contest_leg_id || p.contest_leg_id;
+        return String(pLegId) === String(legId);
+      });
+      if (matched) return matched;
+    }
+    return picks[picks.length - 1];
+  };
+
+  // Handle Add/Edit Pick Submission in Modal
+  const handleRecordPickSubmit = async () => {
+    if (!managedEntry || !selectedTeamForEdit) return;
+
+    setEditSubmitting(true);
+    setEditError(null);
+    setEditSuccess(null);
 
     try {
+      const teamIdToUse = selectedTeamForEdit.team_id || 1;
       const payload = {
-        contest_leg_id: Number(contestLegIdToUse),
-        team_id: Number(tentativeSelection.team_id)
+        contest_leg_id: Number(targetLegId),
+        team_id: teamIdToUse
       };
 
-      const res = await SemiSharpApi.createPick(selectedEntry.entry_id, payload);
-      
-      setHasSubmittedSuccessfully(true);
-      
-      const teamLabel = res?.team_name || res?.team || tentativeSelection?.team_name || tentativeSelection?.team;
-      const legLabel = res?.contest_leg?.leg_name || res?.leg_name || validPicksData?.contest_leg?.leg_name || `Leg ${contestLegIdToUse}`;
-      
-      setSuccessMessage(`Official pick recorded successfully. Recorded ${teamLabel} for ${legLabel}.`);
-      setConfirmOpen(false);
-      setTentativeSelection(null);
+      const res = await SemiSharpApi.createPick(managedEntry.entry_id, payload);
+      const teamLabel = res?.team_name || selectedTeamForEdit.name;
 
-      // Refresh data
-      fetchPicks();
-      fetchStrategyContextAndValidPicks();
-      fetchStatus();
+      setEditSuccess(`Recorded ${teamLabel} for Leg ${targetLegId}.`);
+      
+      // Reload picks for this entry
+      const updatedPicks = await SemiSharpApi.getEntryPicks(managedEntry.entry_id);
+      setPicksMap(prev => ({
+        ...prev,
+        [String(managedEntry.entry_id)]: {
+          picks: updatedPicks?.picks || [],
+          loading: false,
+          error: null
+        }
+      }));
+
+      setTimeout(() => {
+        setEditModalOpen(false);
+        setSelectedTeamForEdit(null);
+        setEditSuccess(null);
+      }, 1200);
+
     } catch (err: any) {
-      let errorMsg = '';
-      if (err instanceof ApiError) {
-        errorMsg = err.message;
-      } else if (err instanceof Error) {
-        errorMsg = err.message;
-      } else if (err && typeof err === 'object') {
-        errorMsg = err.detail || err.message || JSON.stringify(err);
-      } else {
-        errorMsg = String(err);
-      }
-      setSubmissionError(errorMsg || 'An unknown error occurred while submitting.');
+      console.error("Error editing used teams:", err);
+      const msg = err instanceof ApiError ? err.message : err.message || "Failed to record pick.";
+      setEditError(msg);
     } finally {
-      setSubmitting(false);
+      setEditSubmitting(false);
     }
   };
 
-  // Initial loads and updates on entry change
-  useEffect(() => {
-    fetchContext();
-    fetchStatus();
-  }, []);
-
-  useEffect(() => {
-    fetchPicks();
-    fetchStrategyContextAndValidPicks();
-    fetchComparison();
-  }, [selectedEntry?.entry_id, context?.season]);
-
-  const handleRetryAll = () => {
-    fetchContext();
-    fetchStatus();
-    fetchPicks();
-    fetchStrategyContextAndValidPicks();
-    fetchComparison();
+  // Format Code Label Helper
+  const getFormatLabel = (code: string) => {
+    if (!code) return 'STANDARD';
+    const uc = code.toUpperCase();
+    if (uc.includes('CIRCA')) return 'CIRCA SURVIVOR';
+    if (uc.includes('HOLIDAY')) return 'CIRCA HOLIDAY';
+    return uc;
   };
 
-  const getFormatFromPicks = () => {
-    if (picksData?.picks && picksData.picks.length > 0) {
-      const firstPick = picksData.picks[0];
-      return firstPick.contest_leg?.contest_format || firstPick.contest_format || null;
+  // Format Notes Helper
+  const getFormatNotes = (code: string) => {
+    const uc = (code || '').toUpperCase();
+    if (uc.includes('CIRCA')) {
+      return 'Circa Survivor rules: 20 total picks required including Thanksgiving/Christmas holiday legs. No repeat team selections.';
     }
-    return null;
+    return 'Standard Survivor rules: 18 NFL regular season weeks. Single pick per week. No repeat team selections permitted.';
   };
 
-  const getActiveStatusFromPicks = () => {
-    // Return backend active/eliminated field if present in the picks payload
-    if (picksData && 'is_active' in picksData) {
-      return picksData.is_active ? 'Active' : 'Eliminated';
-    }
-    if (picksData && 'status' in picksData) {
-      return picksData.status;
-    }
-    return selectedEntry ? (selectedEntry.is_active ? 'Active' : 'Eliminated') : null;
-  };
-
-  const renderField = (label: string, value: any) => {
-    if (value === undefined || value === null || value === '') return null;
+  if (loading) {
     return (
-      <div className="text-xs">
-        <span className="text-[9px] font-bold text-slate-400 block uppercase tracking-wider">{label}</span>
-        <span className="font-semibold text-slate-800 break-all">{String(value)}</span>
+      <div className="space-y-6 animate-fade-in text-left">
+        <Card className="p-12 text-center">
+          <LoadingSpinner size="md" message="Loading survivor contest entries..." />
+        </Card>
       </div>
     );
-  };
+  }
 
-  const renderCurrentLegPickOptions = () => {
-    return (
-      <section className="space-y-4 animate-fade-in text-left">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-2">
-            <Binary className="w-4 h-4 text-slate-400" />
-            <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider font-mono">
-              Current Leg Pick Options
-            </h3>
-            {validPicksData && !validPicksLoading && !validPicksError && (
-              <span className="text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200/80 px-1.5 py-0.5 rounded-sm uppercase tracking-wider flex items-center gap-1 shrink-0">
-                <span className="w-1 h-1 rounded-full bg-emerald-500 inline-block animate-pulse" />
-                LIVE API
-              </span>
-            )}
-          </div>
-
-          {selectedEntry && stratContext?.current_contest_leg_id && (
-            <Button
-              variant="outline"
-              size="xs"
-              onClick={handleRefreshOptions}
-              disabled={validPicksLoading}
-              className="flex items-center gap-1 text-slate-500 hover:text-slate-800"
-            >
-              <RefreshCw className={`w-3 h-3 ${validPicksLoading ? 'animate-spin' : ''}`} />
-              Refresh Options
-            </Button>
-          )}
-        </div>
-
-        <p className="text-xs text-slate-500 font-medium">
-          Teams approved by the SemiSharp backend for the active entry and contest leg.
-        </p>
-
-        {!selectedEntry ? (
-          <Card className="p-8 text-center text-slate-400 border border-slate-200 bg-slate-50/10">
-            <HelpCircle className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-            <span className="text-xs font-medium">Select a survivor entry to view valid pick options.</span>
-          </Card>
-        ) : stratContextLoading ? (
-          <Card className="py-12">
-            <LoadingSpinner size="sm" message="Loading current contest leg context..." />
-          </Card>
-        ) : stratContextError ? (
-          <Card className="p-6 border-rose-100 bg-rose-50/50">
-            <Alert type="error" title="Context Retrieval Failure" message={stratContextError} />
-            <Button size="sm" variant="outline" onClick={fetchStrategyContextAndValidPicks} className="text-xs mt-3">
-              Retry Context Request
-            </Button>
-          </Card>
-        ) : !stratContext?.current_contest_leg_id ? (
-          <Card className="p-8 text-center text-slate-400 border border-dashed border-slate-200 bg-slate-50/15">
-            <AlertOctagon className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-            <span className="text-xs font-medium">The backend did not provide a current contest leg.</span>
-          </Card>
-        ) : validPicksLoading && !validPicksData ? (
-          <Card className="py-12">
-            <LoadingSpinner size="sm" message="Loading approved pick options from live database..." />
-          </Card>
-        ) : validPicksError ? (
-          <Card className="p-6 border-rose-100 bg-rose-50/50">
-            <div className="space-y-3">
-              <Alert 
-                type="error" 
-                title="Valid Picks Request Failure" 
-                message={`Endpoint: GET /season-management/entries/${selectedEntry.entry_id}/valid-picks/${stratContext.current_contest_leg_id} - ${validPicksError}`} 
-              />
-              <Button size="sm" variant="outline" onClick={handleRefreshOptions} className="text-xs">
-                Retry Valid Picks Connection
-              </Button>
-            </div>
-          </Card>
-        ) : validPicksData ? (
-          (() => {
-            const contextLegId = stratContext?.current_contest_leg_id;
-            const validPicksLegId = validPicksData?.contest_leg?.contest_leg_id;
-            const hasLegMismatch = 
-              contextLegId !== undefined && 
-              contextLegId !== null && 
-              validPicksLegId !== undefined && 
-              validPicksLegId !== null && 
-              contextLegId !== validPicksLegId;
-
-            return (
-              <div className="space-y-6">
-                
-                {hasLegMismatch && (
-                  <Alert
-                    type="error"
-                    title="Contest Leg Mismatch Detected"
-                    message={`The Strategy Context current contest leg ID (${contextLegId}) does not match the Valid Picks contest leg ID (${validPicksLegId}). Pick submission is disabled to prevent corruption.`}
-                  />
-                )}
-
-                {successMessage && (
-                  <Alert
-                    type="success"
-                    title="Official Pick Recorded"
-                    message={successMessage}
-                  />
-                )}
-
-                {/* Contest Leg Metadata Banner */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-50 border border-slate-100 rounded-xl text-xs font-medium">
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Active Entry</span>
-                    <p className="text-slate-800 font-extrabold">{selectedEntry.entry_label}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Contest Format</span>
-                    <p className="text-slate-800 font-extrabold">{validPicksData.contest_leg?.contest_format || 'STANDARD'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Contest Leg</span>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <p className="text-slate-800 font-extrabold">{validPicksData.contest_leg?.leg_name || `Leg ${validPicksData.contest_leg?.contest_leg_id}`}</p>
-                      {validPicksData.contest_leg?.is_special_leg && (
-                        <span className="text-[8px] bg-indigo-100 text-indigo-800 px-1 rounded-sm font-black uppercase tracking-wider">Special Leg</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">NFL Week</span>
-                    <p className="text-slate-800 font-extrabold">Week {validPicksData.contest_leg?.nfl_week || 'N/A'}</p>
-                  </div>
-                </div>
-
-                {/* Review Official Pick Panel */}
-                {tentativeSelection && !hasLegMismatch && (
-                  <Card className="p-6 border-2 border-indigo-500 bg-indigo-50/10 rounded-2xl shadow-sm animate-fade-in space-y-6 text-left">
-                    <div className="flex items-center justify-between border-b border-indigo-100 pb-4">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-indigo-600" />
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider font-mono">
-                          Review Official Pick
-                        </h3>
-                        {hasSubmittedSuccessfully && (
-                          <span className="text-[8px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200/80 px-1.5 py-0.5 rounded-sm uppercase tracking-wider flex items-center gap-1 shrink-0">
-                            <span className="w-1 h-1 rounded-full bg-emerald-500 inline-block animate-pulse" />
-                            LIVE API
-                          </span>
-                        )}
-                      </div>
-                      <Button
-                        size="xs"
-                        variant="ghost"
-                        onClick={() => setTentativeSelection(null)}
-                        className="text-xs text-slate-500 hover:text-slate-800 animate-none animate-none"
-                      >
-                        Clear Selection
-                      </Button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider font-mono block">Active Entry</span>
-                        <p className="font-bold text-slate-800">{selectedEntry?.entry_label || selectedEntry?.survivor_sweat_name || 'N/A'}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider font-mono block">Contest Leg</span>
-                        <p className="font-bold text-slate-800">{validPicksData.contest_leg?.leg_name || `Leg ${validPicksData.contest_leg?.contest_leg_id}`}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider font-mono block">NFL Week</span>
-                        <p className="font-bold text-slate-800">Week {validPicksData.contest_leg?.nfl_week || 'N/A'}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider font-mono block">Team</span>
-                        <p className="font-bold text-slate-800">{tentativeSelection.team_name} ({tentativeSelection.team})</p>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider font-mono block">Opponent</span>
-                        <p className="font-bold text-slate-800">{tentativeSelection.opponent}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider font-mono block">Location</span>
-                        <p className="font-bold text-slate-800">{tentativeSelection.team_location === 'HOME' ? 'Home' : 'Away'}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider font-mono block">Game Date / Time</span>
-                        <p className="font-bold text-slate-800">{tentativeSelection.game_time || tentativeSelection.time || 'N/A'}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider font-mono block">Game ID</span>
-                        <p className="font-mono font-bold text-slate-800">{tentativeSelection.game_id || 'N/A'}</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-indigo-100 text-xs">
-                      {renderField('Projected Spread', tentativeSelection.projected_spread)}
-                      {renderField('Baseline WP', tentativeSelection.baseline_win_probability)}
-                      {renderField('Risk-Adjusted WP', tentativeSelection.risk_adjusted_win_probability)}
-                      {renderField('Risk Score', tentativeSelection.risk_score)}
-                      {renderField('Risk Stars', tentativeSelection.risk_stars)}
-                      {renderField('Risk Level', tentativeSelection.risk_level)}
-                      {renderField('Risk Summary', tentativeSelection.risk_summary)}
-                      {renderField('Eligibility', tentativeSelection.eligibility_explanation || tentativeSelection.ineligible_reason)}
-                    </div>
-
-                    <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl flex items-start gap-3">
-                      <AlertOctagon className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-amber-900 uppercase tracking-wider font-mono">Warning</span>
-                        <p className="text-xs font-semibold text-slate-700 leading-relaxed">
-                          Recording this pick updates the authoritative survivor history for this entry.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end pt-2">
-                      <Button
-                        onClick={() => {
-                          setSubmissionError(null);
-                          setConfirmOpen(true);
-                        }}
-                        className="text-xs font-black uppercase tracking-wider font-mono bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs"
-                      >
-                        Record Official Pick
-                      </Button>
-                    </div>
-                  </Card>
-                )}
-
-                {/* Grid of Eligible Teams */}
-                {!validPicksData.options || validPicksData.options.filter((opt: any) => opt.eligible && !opt.already_used).length === 0 ? (
-                  <Card className="p-8 text-center text-slate-400 border border-dashed border-slate-200">
-                    No valid pick options are available for this entry and contest leg.
-                  </Card>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {validPicksData.options
-                      .filter((opt: any) => opt.eligible && !opt.already_used)
-                      .map((opt: any) => {
-                        const isTentative = tentativeSelection?.team_id === opt.team_id;
-                        const gameTime = opt.game_time || opt.time || null;
-                        const teamLoc = opt.team_location === 'HOME' ? 'vs' : '@';
-
-                        return (
-                          <div
-                            key={opt.team_id}
-                            onClick={() => {
-                              if (hasLegMismatch) return;
-                              setTentativeSelection(isTentative ? null : opt);
-                            }}
-                            className={`p-4 rounded-xl border transition-all duration-200 cursor-pointer text-left flex flex-col justify-between gap-4 ${
-                              isTentative
-                                ? 'bg-indigo-50/50 border-indigo-500 shadow-sm ring-1 ring-indigo-500'
-                                : 'bg-white border-slate-100 hover:border-slate-200 hover:bg-slate-50/40 shadow-xs'
-                            }`}
-                          >
-                            <div className="space-y-3">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-base font-black tracking-tight text-slate-900 font-mono">
-                                    {opt.team}
-                                  </span>
-                                  <span className="text-[11px] text-slate-400 font-bold">{teamLoc} {opt.opponent}</span>
-                                </div>
-                                
-                                {isTentative ? (
-                                  <span className="text-[8px] bg-indigo-600 text-white font-extrabold px-1.5 py-0.5 rounded-sm uppercase tracking-wider">
-                                    Tentative Selection
-                                  </span>
-                                ) : (
-                                  <span className="text-[8px] bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-extrabold px-1.5 py-0.5 rounded-sm uppercase tracking-wider">
-                                    Eligible
-                                  </span>
-                                )}
-                              </div>
-
-                              <div>
-                                <h4 className="text-xs font-bold text-slate-800 leading-tight">{opt.team_name}</h4>
-                                <p className="text-[10px] text-slate-400 font-semibold font-mono mt-0.5">Game ID: {opt.game_id}</p>
-                              </div>
-                            </div>
-
-                            {/* Extra Returned Fields (safe check) */}
-                            <div className="grid grid-cols-2 gap-x-2 gap-y-3 pt-3 border-t border-slate-50 text-left">
-                              {renderField('Team ID', opt.team_id)}
-                              {renderField('Game Time', gameTime)}
-                              {renderField('Proj Favorite', opt.projected_favorite)}
-                              {renderField('Proj Spread', opt.projected_spread)}
-                              {renderField('Baseline WP', opt.baseline_win_probability)}
-                              {renderField('Risk-Adjusted WP', opt.risk_adjusted_win_probability)}
-                              {renderField('Risk Score', opt.risk_score)}
-                              {renderField('Risk Stars', opt.risk_stars)}
-                              {renderField('Risk Level', opt.risk_level)}
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                )}
-
-                {/* Slashed Unavailable / Already Used Teams */}
-                {validPicksData.options && validPicksData.options.some((opt: any) => !opt.eligible || opt.already_used) && (
-                  <div className="space-y-3 border-t border-slate-200/60 pt-6 text-left">
-                    <button
-                      onClick={() => setUnavailableCollapsed(!unavailableCollapsed)}
-                      className="flex items-center gap-2 text-xs font-black uppercase tracking-wider font-mono text-slate-500 hover:text-slate-800 focus:outline-none"
-                    >
-                      {unavailableCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-                      <span>Unavailable Teams ({validPicksData.options.filter((opt: any) => !opt.eligible || opt.already_used).length})</span>
-                    </button>
-
-                    {!unavailableCollapsed && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-2 scrollbar-thin">
-                        {validPicksData.options
-                          .filter((opt: any) => !opt.eligible || opt.already_used)
-                          .map((opt: any) => (
-                            <div key={opt.team_id} className="p-3 bg-slate-50 border border-slate-200/50 rounded-xl text-left flex items-center justify-between gap-3">
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-mono text-xs font-black text-slate-400 line-through">
-                                    {opt.team}
-                                  </span>
-                                  <span className="text-[10px] text-slate-400 font-bold">{opt.team_location === 'HOME' ? 'vs' : '@'} {opt.opponent}</span>
-                                </div>
-                                <h4 className="text-xs font-bold text-slate-500 truncate leading-tight mt-0.5">{opt.team_name}</h4>
-                              </div>
-
-                              <div className="shrink-0 text-right">
-                                <span className="text-[8px] font-black uppercase tracking-wider text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded block text-center">
-                                  {opt.already_used ? 'Already Used' : 'Ineligible'}
-                                </span>
-                                Exclusion Reason: <span className="text-rose-600 font-extrabold bg-rose-50 px-2 py-0.5 rounded border border-rose-100/60 inline-block mt-0.5 sm:mt-0">{opt.ineligible_reason || 'Already used or ineligible'}</span>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-                
-              </div>
-            );
-          })()
-        ) : null}
-      </section>
-    );
-  };
+  const entriesList = user?.entries || [];
+  const currentManagedPicks = managedEntry ? getEntryPicksList(managedEntry.entry_id) : [];
+  const managedCurrentPick = managedEntry ? getEntryCurrentPick(managedEntry) : null;
+  const currentStrat = managedEntry ? stratContextMap[managedEntry.entry_id] : null;
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in text-left font-sans text-slate-900">
       
-      {/* 1. MY SURVIVOR SEASON HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200/80">
-        <div className="flex items-start gap-3">
-          <div className="p-2.5 bg-slate-900 text-white rounded-xl shadow-xs mt-0.5">
-            <Calendar className="w-5 h-5 text-indigo-400" />
-          </div>
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-xl font-bold text-slate-950 tracking-tight leading-none">My Survivor Season</h2>
-              <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
-                🟢 LIVE
-              </span>
+      {/* HEADER STRIP */}
+      <div className="bg-slate-950 text-white rounded-xl p-5 shadow-sm border border-slate-800 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 rounded-lg">
+              <Calendar className="w-5 h-5" />
             </div>
-            <p className="text-xs text-slate-500 mt-1.5 font-medium">
-              Explore your season-oriented survivor timeline, backend strategy recommendations, and official recorded picks.
-            </p>
+            <div>
+              <h1 className="text-base font-black uppercase font-mono tracking-tight text-white flex items-center gap-2">
+                My Entries
+              </h1>
+              <p className="text-xs text-slate-400 font-mono mt-0.5">
+                Central account management hub for all active survivor contest entries
+              </p>
+            </div>
           </div>
-        </div>
-        
-        <div className="flex items-center gap-2 self-start md:self-auto">
+
           <Button
             variant="outline"
             size="sm"
-            onClick={handleRetryAll}
-            className="flex items-center gap-1.5"
-            disabled={contextLoading || statusLoading || picksLoading}
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white text-xs font-mono py-1 px-3"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${(contextLoading || statusLoading || picksLoading || comparisonLoading) ? 'animate-spin' : ''}`} />
-            Refresh Season Data
+            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh Entries
           </Button>
         </div>
+
+        {globalError && (
+          <Alert type="error" title="Telemetry Alert" message={globalError} />
+        )}
       </div>
 
-      {/* 2. HEADER METRICS PANEL */}
-      <Card className="grid grid-cols-2 md:grid-cols-5 gap-6 p-5 bg-white border border-slate-100 shadow-sm">
-        <div className="space-y-1">
-          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block font-mono">Active Entry</span>
-          {selectedEntry ? (
-            <div className="space-y-1">
-              <p className="text-sm font-black text-slate-900 truncate leading-tight" title={selectedEntry.entry_label}>{selectedEntry.entry_label}</p>
-              <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm text-[9px] font-black leading-none uppercase ${
-                selectedEntry.is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
-              }`}>
-                {selectedEntry.is_active ? 'Active' : 'Eliminated'}
-              </span>
-            </div>
-          ) : (
-            <p className="text-sm font-bold text-slate-400">None Selected</p>
-          )}
+      {/* 1. ENTRY LIST SECTION */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+          <h2 className="text-xs font-black uppercase font-mono tracking-wider text-slate-800 flex items-center gap-2">
+            <UserCheck className="w-4 h-4 text-indigo-600" />
+            Contest Entries ({entriesList.length})
+          </h2>
+          <span className="text-[10px] font-mono text-slate-500">
+            Select entry to set active session context
+          </span>
         </div>
 
-        <div className="space-y-1">
-          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block font-mono">Contest Format</span>
-          <p className="text-sm font-black text-indigo-600 font-mono">
-            {getFormat()}
-          </p>
-        </div>
-
-        <div className="space-y-1">
-          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block font-mono">Season</span>
-          <p className="text-sm font-black text-slate-800 font-mono">
-            {context?.season ?? 'N/A'}
-          </p>
-        </div>
-
-        <div className="space-y-1">
-          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block font-mono">Current Leg</span>
-          <p className="text-sm font-black text-slate-800">
-            {validPicksData?.contest_leg?.leg_name || (stratContext?.current_contest_leg_id ? `Leg ${stratContext.current_contest_leg_id}` : 'N/A')}
-          </p>
-        </div>
-
-        <div className="space-y-1 col-span-2 md:col-span-1">
-          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block font-mono">NFL Week</span>
-          <p className="text-sm font-black text-slate-800 font-mono">
-            Week {context?.current_week ?? context?.week ?? 'N/A'}
-          </p>
-        </div>
-      </Card>
-
-      {/* SEASON TIMELINE WORKSPACE */}
-      {selectedEntry && !selectedEntry.format_code ? (
-        <Card className="p-8 text-center text-rose-800 border border-rose-200 bg-rose-50/50">
-          <AlertOctagon className="w-8 h-8 text-rose-600 mx-auto mb-2 animate-bounce" />
-          <h3 className="text-sm font-black text-rose-950 mb-1 uppercase tracking-wider font-mono">Missing Contest Format</h3>
-          <p className="text-xs font-semibold text-rose-800">
-            This survivor entry does not have a contest format assigned.
-          </p>
-        </Card>
-      ) : (
-        <SeasonTimeline
-          picks={picksData?.picks || []}
-          picksLoading={picksLoading}
-          picksError={picksError}
-          selectedEntry={selectedEntry}
-          hasBackendRecommendation={hasBackendRecommendation}
-          getLegStatus={getLegStatus}
-          setActiveTab={setActiveTab}
-          fetchPicks={fetchPicks}
-          comparisonData={comparisonData}
-          comparisonLoading={comparisonLoading}
-          comparisonError={comparisonError}
-          onRetryTimeline={handleRetryAll}
-          currentValidPicksData={validPicksData}
-          currentLegPickOptionsSection={renderCurrentLegPickOptions()}
-        />
-      )}
-
-      {false && (
-        /* NEW SECTION: CURRENT LEG PICK OPTIONS */
-        <section className="space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-2">
-            <Binary className="w-4 h-4 text-slate-400" />
-            <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider font-mono">
-              Current Leg Pick Options
-            </h3>
-            {validPicksData && !validPicksLoading && !validPicksError && (
-              <span className="text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200/80 px-1.5 py-0.5 rounded-sm uppercase tracking-wider flex items-center gap-1 shrink-0">
-                <span className="w-1 h-1 rounded-full bg-emerald-500 inline-block animate-pulse" />
-                LIVE API
-              </span>
-            )}
-          </div>
-
-          {selectedEntry && stratContext?.current_contest_leg_id && (
-            <Button
-              variant="outline"
-              size="xs"
-              onClick={handleRefreshOptions}
-              disabled={validPicksLoading}
-              className="flex items-center gap-1 text-slate-500 hover:text-slate-800"
-            >
-              <RefreshCw className={`w-3 h-3 ${validPicksLoading ? 'animate-spin' : ''}`} />
-              Refresh Options
-            </Button>
-          )}
-        </div>
-
-        <p className="text-xs text-slate-500 font-medium">
-          Teams approved by the SemiSharp backend for the active entry and contest leg.
-        </p>
-
-        {!selectedEntry ? (
-          <Card className="p-8 text-center text-slate-400 border border-slate-200 bg-slate-50/10">
-            <HelpCircle className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-            <span className="text-xs font-medium">Select a survivor entry to view valid pick options.</span>
+        {entriesList.length === 0 ? (
+          <Card className="p-8 text-center bg-slate-50 border-dashed border-slate-200">
+            <Info className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+            <h4 className="text-sm font-bold text-slate-800">No survivor entries found</h4>
+            <p className="text-xs text-slate-500 mt-1">Log in with an account associated with active survivor entries.</p>
           </Card>
-        ) : stratContextLoading ? (
-          <Card className="py-12">
-            <LoadingSpinner size="sm" message="Loading current contest leg context..." />
-          </Card>
-        ) : stratContextError ? (
-          <Card className="p-6 border-rose-100 bg-rose-50/50">
-            <Alert type="error" title="Context Retrieval Failure" message={stratContextError} />
-            <Button size="sm" variant="outline" onClick={fetchStrategyContextAndValidPicks} className="text-xs mt-3">
-              Retry Context Request
-            </Button>
-          </Card>
-        ) : !stratContext?.current_contest_leg_id ? (
-          <Card className="p-8 text-center text-slate-400 border border-dashed border-slate-200 bg-slate-50/15">
-            <AlertOctagon className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-            <span className="text-xs font-medium">The backend did not provide a current contest leg.</span>
-          </Card>
-        ) : validPicksLoading && !validPicksData ? (
-          <Card className="py-12">
-            <LoadingSpinner size="sm" message="Loading approved pick options from live database..." />
-          </Card>
-        ) : validPicksError ? (
-          <Card className="p-6 border-rose-100 bg-rose-50/50">
-            <div className="space-y-3">
-              <Alert 
-                type="error" 
-                title="Valid Picks Request Failure" 
-                message={`Endpoint: GET /season-management/entries/${selectedEntry.entry_id}/valid-picks/${stratContext.current_contest_leg_id} - ${validPicksError}`} 
-              />
-              <Button size="sm" variant="outline" onClick={handleRefreshOptions} className="text-xs">
-                Retry Valid Picks Connection
-              </Button>
-            </div>
-          </Card>
-        ) : validPicksData ? (
-          (() => {
-            const contextLegId = stratContext?.current_contest_leg_id;
-            const validPicksLegId = validPicksData?.contest_leg?.contest_leg_id;
-            const hasLegMismatch = 
-              contextLegId !== undefined && 
-              contextLegId !== null && 
-              validPicksLegId !== undefined && 
-              validPicksLegId !== null && 
-              contextLegId !== validPicksLegId;
-
-            return (
-              <div className="space-y-6">
-                
-                {hasLegMismatch && (
-                  <Alert
-                    type="error"
-                    title="Contest Leg Mismatch Detected"
-                    message={`The Strategy Context current contest leg ID (${contextLegId}) does not match the Valid Picks contest leg ID (${validPicksLegId}). Pick submission is disabled to prevent corruption.`}
-                  />
-                )}
-
-                {successMessage && (
-                  <Alert
-                    type="success"
-                    title="Official Pick Recorded"
-                    message={successMessage}
-                  />
-                )}
-
-                {/* Contest Leg Metadata Banner */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-50 border border-slate-100 rounded-xl text-xs font-medium">
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Active Entry</span>
-                    <p className="text-slate-800 font-extrabold">{selectedEntry.entry_label}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Contest Format</span>
-                    <p className="text-slate-800 font-extrabold">{validPicksData.contest_leg?.contest_format || 'STANDARD'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Contest Leg</span>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <p className="text-slate-800 font-extrabold">{validPicksData.contest_leg?.leg_name || `Leg ${validPicksData.contest_leg?.contest_leg_id}`}</p>
-                      {validPicksData.contest_leg?.is_special_leg && (
-                        <span className="text-[8px] bg-indigo-100 text-indigo-800 px-1 rounded-sm font-black uppercase tracking-wider">Special Leg</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">NFL Week</span>
-                    <p className="text-slate-800 font-extrabold">Week {validPicksData.contest_leg?.nfl_week || 'N/A'}</p>
-                  </div>
-                </div>
-
-                {/* Review Official Pick Panel */}
-                {tentativeSelection && !hasLegMismatch && (
-                  <Card className="p-6 border-2 border-indigo-500 bg-indigo-50/10 rounded-2xl shadow-sm animate-fade-in space-y-6 text-left">
-                    <div className="flex items-center justify-between border-b border-indigo-100 pb-4">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-indigo-600" />
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider font-mono">
-                          Review Official Pick
-                        </h3>
-                        {hasSubmittedSuccessfully && (
-                          <span className="text-[8px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200/80 px-1.5 py-0.5 rounded-sm uppercase tracking-wider flex items-center gap-1 shrink-0">
-                            <span className="w-1 h-1 rounded-full bg-emerald-500 inline-block animate-pulse" />
-                            LIVE API
-                          </span>
-                        )}
-                      </div>
-                      <Button
-                        size="xs"
-                        variant="ghost"
-                        onClick={() => setTentativeSelection(null)}
-                        className="text-xs text-slate-500 hover:text-slate-800 animate-none animate-none"
-                      >
-                        Clear Selection
-                      </Button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider font-mono block animate-none">Active Entry</span>
-                        <p className="font-bold text-slate-800">{selectedEntry?.entry_label || selectedEntry?.survivor_sweat_name || 'N/A'}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider font-mono block animate-none">Contest Leg</span>
-                        <p className="font-bold text-slate-800">{validPicksData.contest_leg?.leg_name || `Leg ${validPicksData.contest_leg?.contest_leg_id}`}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider font-mono block animate-none">NFL Week</span>
-                        <p className="font-bold text-slate-800">Week {validPicksData.contest_leg?.nfl_week || 'N/A'}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider font-mono block animate-none">Team</span>
-                        <p className="font-bold text-slate-800">{tentativeSelection.team_name} ({tentativeSelection.team})</p>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider font-mono block animate-none">Opponent</span>
-                        <p className="font-bold text-slate-800">{tentativeSelection.opponent}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider font-mono block animate-none">Location</span>
-                        <p className="font-bold text-slate-800">{tentativeSelection.team_location === 'HOME' ? 'Home' : 'Away'}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider font-mono block animate-none">Game Date / Time</span>
-                        <p className="font-bold text-slate-800">{tentativeSelection.game_time || tentativeSelection.time || 'N/A'}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider font-mono block animate-none">Game ID</span>
-                        <p className="font-mono font-bold text-slate-800">{tentativeSelection.game_id || 'N/A'}</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-indigo-100 text-xs">
-                      {renderField('Projected Spread', tentativeSelection.projected_spread)}
-                      {renderField('Baseline WP', tentativeSelection.baseline_win_probability)}
-                      {renderField('Risk-Adjusted WP', tentativeSelection.risk_adjusted_win_probability)}
-                      {renderField('Risk Score', tentativeSelection.risk_score)}
-                      {renderField('Risk Stars', tentativeSelection.risk_stars)}
-                      {renderField('Risk Level', tentativeSelection.risk_level)}
-                      {renderField('Risk Summary', tentativeSelection.risk_summary)}
-                      {renderField('Eligibility', tentativeSelection.eligibility_explanation || tentativeSelection.ineligible_reason)}
-                    </div>
-
-                    <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl flex items-start gap-3">
-                      <AlertOctagon className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-amber-900 uppercase tracking-wider font-mono">Warning</span>
-                        <p className="text-xs font-semibold text-slate-700 leading-relaxed">
-                          Recording this pick updates the authoritative survivor history for this entry.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end pt-2">
-                      <Button
-                        onClick={() => {
-                          setSubmissionError(null);
-                          setConfirmOpen(true);
-                        }}
-                        className="text-xs font-black uppercase tracking-wider font-mono bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs animate-none animate-none"
-                      >
-                        Record Official Pick
-                      </Button>
-                    </div>
-                  </Card>
-                )}
-
-                {/* Grid of Eligible Teams */}
-                {!validPicksData.options || validPicksData.options.filter((opt: any) => opt.eligible && !opt.already_used).length === 0 ? (
-                  <Card className="p-8 text-center text-slate-400 border border-dashed border-slate-200">
-                    No valid pick options are available for this entry and contest leg.
-                  </Card>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {validPicksData.options
-                      .filter((opt: any) => opt.eligible && !opt.already_used)
-                      .map((opt: any) => {
-                        const isTentative = tentativeSelection?.team_id === opt.team_id;
-                        const gameTime = opt.game_time || opt.time || null;
-                        const teamLoc = opt.team_location === 'HOME' ? 'vs' : '@';
-
-                        return (
-                          <div
-                            key={opt.team_id}
-                            onClick={() => {
-                              if (hasLegMismatch) return;
-                              setTentativeSelection(isTentative ? null : opt);
-                            }}
-                            className={`p-4 rounded-xl border transition-all duration-200 cursor-pointer text-left flex flex-col justify-between gap-4 ${
-                              isTentative
-                                ? 'bg-indigo-50/50 border-indigo-500 shadow-sm ring-1 ring-indigo-500'
-                                : 'bg-white border-slate-100 hover:border-slate-200 hover:bg-slate-50/40 shadow-xs'
-                            }`}
-                          >
-                            <div className="space-y-3">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-base font-black tracking-tight text-slate-900 font-mono">
-                                    {opt.team}
-                                  </span>
-                                  <span className="text-[11px] text-slate-400 font-bold">{teamLoc} {opt.opponent}</span>
-                                </div>
-                                
-                                {isTentative ? (
-                                  <span className="text-[8px] bg-indigo-600 text-white font-extrabold px-1.5 py-0.5 rounded-sm uppercase tracking-wider">
-                                    Tentative Selection
-                                  </span>
-                                ) : (
-                                  <span className="text-[8px] bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-extrabold px-1.5 py-0.5 rounded-sm uppercase tracking-wider">
-                                    Eligible
-                                  </span>
-                                )}
-                              </div>
-
-                              <div>
-                                <h4 className="text-xs font-bold text-slate-800 leading-tight">{opt.team_name}</h4>
-                                <p className="text-[10px] text-slate-400 font-semibold font-mono mt-0.5">Game ID: {opt.game_id}</p>
-                              </div>
-                            </div>
-
-                            {/* Extra Returned Fields (safe check) */}
-                            <div className="grid grid-cols-2 gap-x-2 gap-y-3 pt-3 border-t border-slate-50 text-left">
-                              {renderField('Team ID', opt.team_id)}
-                              {renderField('Game Time', gameTime)}
-                              {renderField('Proj Favorite', opt.projected_favorite)}
-                              {renderField('Proj Spread', opt.projected_spread)}
-                              {renderField('Baseline WP', opt.baseline_win_probability)}
-                              {renderField('Risk-Adjusted WP', opt.risk_adjusted_win_probability)}
-                              {renderField('Risk Score', opt.risk_score)}
-                              {renderField('Risk Stars', opt.risk_stars)}
-                              {renderField('Risk Level', opt.risk_level)}
-                              {renderField('Risk Summary', opt.risk_summary)}
-                              {renderField('Eligibility', opt.eligibility_explanation || opt.ineligible_reason)}
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                )}
-
-                {/* Unavailable Teams */}
-                {validPicksData.options && validPicksData.options.some((opt: any) => !opt.eligible || opt.already_used) && (
-                  <div className="space-y-2 border border-slate-100 rounded-xl overflow-hidden bg-slate-50/20 shadow-xs">
-                    <button
-                      onClick={() => setUnavailableCollapsed(!unavailableCollapsed)}
-                      className="w-full flex items-center justify-between p-4 font-bold text-xs text-slate-700 hover:bg-slate-50/60 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        <AlertOctagon className="w-4 h-4 text-amber-500 shrink-0" />
-                        <span>Unavailable Teams ({validPicksData.options.filter((opt: any) => !opt.eligible || opt.already_used).length})</span>
-                      </div>
-                      <span className="text-[11px] text-indigo-600 font-semibold">
-                        {unavailableCollapsed ? 'Show' : 'Hide'}
-                      </span>
-                    </button>
-                    {!unavailableCollapsed && (
-                      <div className="p-4 border-t border-slate-100 bg-white divide-y divide-slate-100">
-                        {validPicksData.options
-                          .filter((opt: any) => !opt.eligible || opt.already_used)
-                          .map((opt: any, idx: number) => (
-                            <div key={idx} className="py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs">
-                              <div className="flex items-center gap-2">
-                                <span className="font-mono font-black bg-slate-100 border border-slate-200/60 px-1.5 py-0.5 rounded text-slate-500">
-                                  {opt.team}
-                                </span>
-                                <span className="font-bold text-slate-700">{opt.team_name}</span>
-                              </div>
-                              <div className="text-slate-500 font-medium text-[11px]">
-                                Exclusion Reason: <span className="text-rose-600 font-extrabold bg-rose-50 px-2 py-0.5 rounded border border-rose-100/60 inline-block mt-0.5 sm:mt-0">{opt.ineligible_reason || 'Already used or ineligible'}</span>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-                
-              </div>
-            );
-          })()
-        ) : null}
-      </section>
-      )}
-
-      {/* 4. SEASON MANAGEMENT STATUS */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-slate-400" />
-          <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider font-mono">
-            Season Status Overview
-          </h3>
-        </div>
-
-        {statusLoading ? (
-          <Card className="py-8">
-            <LoadingSpinner size="sm" message="Loading season status telemetry..." />
-          </Card>
-        ) : statusError ? (
-          <Card className="p-6 border-rose-100 bg-rose-50/50">
-            <div className="space-y-3">
-              <Alert type="error" title="Status Telemetry Error" message={statusError} />
-              <Button size="sm" variant="outline" onClick={fetchStatus} className="text-xs">
-                Retry Connection
-              </Button>
-            </div>
-          </Card>
-        ) : statusData ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* Operational Status Card */}
-            <Card className="p-5 bg-white border border-slate-100 shadow-sm flex flex-col justify-between gap-4 lg:col-span-1">
-              <div className="space-y-3">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">System Eligibility State</span>
-                
-                <div className="flex items-center gap-2.5">
-                  <div className={`p-2 rounded-xl border ${
-                    statusData.all_entries_ready 
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                      : 'bg-amber-50 text-amber-700 border-amber-200'
-                  }`}>
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900">
-                      {statusData.all_entries_ready ? 'Sync Ready' : 'Sync Outstanding'}
-                    </h4>
-                    <p className="text-[11px] text-slate-500 font-medium">
-                      Authoritative entry readiness reported by FastAPI
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-slate-50 border border-slate-100 rounded-lg p-3 text-xs font-mono text-slate-500 leading-relaxed">
-                  <div className="font-bold text-slate-600 mb-1 flex items-center gap-1">
-                    <Database className="w-3.5 h-3.5" /> Backend Telemetry
-                  </div>
-                  <div>all_entries_ready: <span className="font-bold text-slate-700">{statusData.all_entries_ready ? 'true' : 'false'}</span></div>
-                  <div>total_registered: <span className="font-bold text-slate-700">{statusData.entries?.length || 0}</span></div>
-                </div>
-              </div>
-
-              <div className="text-[10px] text-slate-400 font-bold tracking-wide">
-                AUTHORITATIVE BACKEND STATUS DATA
-              </div>
-            </Card>
-
-            {/* Registered Entries Card */}
-            <Card className="p-5 bg-white border border-slate-100 shadow-sm space-y-4 lg:col-span-2 overflow-hidden">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Registered Entries Audit</span>
-                {user?.role === 'ADMIN' && (
-                  <span className="text-xs bg-slate-50 text-slate-600 px-2.5 py-0.5 rounded-full border border-slate-200 font-bold">
-                    {statusData.entries?.length || 0} Total
-                  </span>
-                )}
-              </div>
-
-              {user?.role === 'ADMIN' ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        <th className="pb-2 font-black">Entry</th>
-                        <th className="pb-2 font-black">Sweat Label</th>
-                        <th className="pb-2 text-center font-black">Picks</th>
-                        <th className="pb-2 text-center font-black">Expected Completed</th>
-                        <th className="pb-2 text-right font-black">Audit State</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50">
-                      {statusData.entries && statusData.entries.length > 0 ? (
-                        statusData.entries.map((ent: any) => {
-                          const isCurrentActive = selectedEntry?.entry_id === String(ent.entry_id);
-                          return (
-                            <tr 
-                              key={ent.entry_id} 
-                              className={`hover:bg-slate-50/50 transition-colors ${
-                                isCurrentActive ? 'bg-indigo-50/20 font-medium' : ''
-                              }`}
-                            >
-                              <td className="py-2.5">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-slate-900 font-bold">{ent.entry_label}</span>
-                                  {isCurrentActive && (
-                                    <span className="text-[8px] bg-indigo-100 text-indigo-800 px-1 rounded-sm font-bold uppercase tracking-wider">Active</span>
-                                  )}
-                                </div>
-                                <span className="text-[10px] font-mono text-slate-400">ID: {ent.entry_id}</span>
-                              </td>
-                              <td className="py-2.5 font-mono text-slate-600 font-semibold">{ent.survivor_sweat_name}</td>
-                              <td className="py-2.5 text-center font-bold text-slate-700">{ent.stored_pick_count}</td>
-                              <td className="py-2.5 text-center font-bold text-slate-700">{ent.expected_completed_week_count}</td>
-                              <td className="py-2.5 text-right">
-                                {ent.history_complete_for_regular_weeks ? (
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
-                                    <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Regular-Week History Current
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-100">
-                                    <AlertOctagon className="w-3 h-3 text-amber-500" /> Regular-Week History Outstanding
-                                  </span>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        })
-                      ) : (
-                        <tr>
-                          <td colSpan={5} className="py-4 text-center text-slate-400">No registered entries reported.</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="p-6 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/30 flex flex-col justify-center items-center py-10">
-                  <ShieldCheck className="w-8 h-8 text-indigo-600 mb-2" />
-                  <p className="text-xs font-semibold text-slate-800">
-                    Entry-level system audit is available to administrators.
-                  </p>
-                  <p className="text-[11px] text-slate-500 mt-1 max-w-sm">
-                    Your active entry and authoritative pick history timeline are displayed securely in the sections below.
-                  </p>
-                </div>
-              )}
-            </Card>
-
-          </div>
-        ) : null}
-      </section>
-
-      {/* 5. PICK HISTORY SECTION */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <History className="w-4 h-4 text-slate-400" />
-          <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider font-mono">
-            Authoritative Pick History
-          </h3>
-        </div>
-
-        {!selectedEntry ? (
-          <Card className="p-12 text-center text-slate-400 border border-slate-200 shadow-sm">
-            Select a survivor entry to retrieve the authoritative pick history timeline.
-          </Card>
-        ) : picksLoading ? (
-          <Card className="py-12">
-            <LoadingSpinner size="md" message="Connecting to FastAPI server for official picks..." />
-          </Card>
-        ) : picksError ? (
-          <Card className="p-6 border-rose-100 bg-rose-50/50">
-            <div className="space-y-3">
-              <Alert type="error" title="Picks Request Failure" message={picksError} />
-              <Button size="sm" variant="outline" onClick={fetchPicks} className="text-xs">
-                Retry Query
-              </Button>
-            </div>
-          </Card>
-        ) : picksData?.picks && picksData.picks.length > 0 ? (
-          <Card className="p-0 overflow-hidden bg-white border border-slate-100 shadow-sm">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2 bg-slate-50/30">
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-slate-500" />
-                <h4 className="text-sm font-bold text-slate-800">Official Survivor Pick Timeline</h4>
-              </div>
-              <span className="text-xs bg-indigo-50 border border-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full font-extrabold">
-                {picksData.picks.length} Stored Picks
-              </span>
-            </div>
-
+        ) : (
+          <Card className="overflow-hidden border border-slate-200 shadow-xs bg-white rounded-xl">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
+              <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
-                    <th className="p-4 font-black">Leg / Week</th>
-                    <th className="p-4 font-black">Picked Team</th>
-                    <th className="p-4 font-black">Pick Status</th>
-                    <th className="p-4 font-black">Pick Source</th>
-                    <th className="p-4 font-black">Record Date</th>
-                    <th className="p-4 font-black">System Notes</th>
-                    <th className="p-4 font-black text-right">Audit Trails</th>
+                  <tr className="bg-slate-900 text-slate-300 font-mono text-[10px] uppercase tracking-wider border-b border-slate-800">
+                    <th className="py-3 px-4 font-bold">Entry Name</th>
+                    <th className="py-3 px-4 font-bold">Contest</th>
+                    <th className="py-3 px-4 font-bold">Format</th>
+                    <th className="py-3 px-4 font-bold">Current Leg</th>
+                    <th className="py-3 px-4 font-bold">Current Pick</th>
+                    <th className="py-3 px-4 font-bold text-center">Status</th>
+                    <th className="py-3 px-4 font-bold text-right">Used / Rem.</th>
+                    <th className="py-3 px-4 font-bold text-center">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {picksData.picks.map((pick: any, index: number) => {
-                    const legName = pick.contest_leg?.leg_name || pick.leg_name || `Leg ${pick.contest_leg_id}`;
-                    const legCode = pick.contest_leg?.leg_code || pick.leg_code || `LEG_${pick.contest_leg_id}`;
-                    const teamName = pick.team?.name || pick.team_name || pick.team_abbr || pick.team || 'Unknown';
-                    const teamAbbr = pick.team?.abbr || pick.team_abbr || pick.team || 'TBD';
-                    const status = pick.pick_status || pick.status || 'CONFIRMED';
-                    const source = pick.pick_source || pick.source || 'USER_ENTRY';
-                    const timestamp = pick.picked_timestamp || pick.updated_at || pick.timestamp || pick.created_at;
-                    const notes = pick.notes || '—';
-                    const changeReason = pick.change_reason || '—';
-                    const userId = pick.updated_by_user_id || 'System';
+                <tbody className="divide-y divide-slate-100 font-sans">
+                  {entriesList.map((entry) => {
+                    const isSelectedSession = selectedEntry?.entry_id === entry.entry_id;
+                    const isManaged = managedEntry?.entry_id === entry.entry_id;
+                    const picks = getEntryPicksList(entry.entry_id);
+                    const currentLegLabel = getEntryCurrentLeg(entry);
+                    const currentPick = getEntryCurrentPick(entry);
+                    const usedCount = picks.length;
+                    const remCount = Math.max(0, 32 - usedCount);
 
                     return (
-                      <tr key={index} className="hover:bg-slate-50/30 transition-colors">
-                        <td className="p-4 font-semibold text-slate-900">
-                          <div>{legName}</div>
-                          <span className="text-[10px] font-mono text-slate-400 block">{legCode}</span>
-                        </td>
-                        <td className="p-4">
+                      <tr
+                        key={entry.entry_id}
+                        className={`hover:bg-slate-50/80 transition-colors ${
+                          isManaged ? 'bg-indigo-50/20' : ''
+                        }`}
+                      >
+                        {/* Entry Name */}
+                        <td className="py-3.5 px-4 font-bold text-slate-950 font-sans">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono font-bold bg-slate-100 border border-slate-200/60 px-2 py-0.5 rounded text-slate-700">
-                              {teamAbbr}
-                            </span>
-                            <span className="font-bold text-slate-800">{teamName}</span>
+                            <span>{entry.entry_label}</span>
+                            {isSelectedSession && (
+                              <span className="text-[9px] font-mono font-black uppercase bg-indigo-600 text-white px-1.5 py-0.2 rounded">
+                                ACTIVE SESSION
+                              </span>
+                            )}
                           </div>
                         </td>
-                        <td className="p-4">
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                            status === 'CONFIRMED' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                            status === 'LOST' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                            status === 'PENDING' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                            'bg-slate-50 text-slate-600 border border-slate-200'
+
+                        {/* Contest */}
+                        <td className="py-3.5 px-4 font-semibold text-slate-700">
+                          {entry.contest_name || 'NFL Survivor'}
+                        </td>
+
+                        {/* Format */}
+                        <td className="py-3.5 px-4 font-mono font-bold text-indigo-700">
+                          {getFormatLabel(entry.format_code)}
+                        </td>
+
+                        {/* Current Leg */}
+                        <td className="py-3.5 px-4 font-mono text-slate-800 font-medium">
+                          {currentLegLabel}
+                        </td>
+
+                        {/* Current Pick */}
+                        <td className="py-3.5 px-4 font-mono">
+                          {currentPick ? (
+                            <span className="font-black text-emerald-600 flex items-center gap-1">
+                              ✓ {currentPick.team?.abbr || currentPick.team_abbr || currentPick.team || 'RECORDED'}
+                            </span>
+                          ) : (
+                            <span className="font-bold text-amber-500 text-[11px]">
+                              ⚠ No Pick
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Status */}
+                        <td className="py-3.5 px-4 text-center">
+                          <span className={`text-[10px] font-mono font-black px-2 py-0.5 rounded uppercase tracking-wider border ${
+                            entry.is_active
+                              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                              : 'bg-rose-50 border-rose-200 text-rose-800'
                           }`}>
-                            {status}
+                            {entry.is_active ? 'ACTIVE' : 'ELIMINATED'}
                           </span>
                         </td>
-                        <td className="p-4 font-semibold text-slate-600">{source}</td>
-                        <td className="p-4 text-slate-500 font-mono">
-                          {timestamp ? (
-                            new Date(timestamp).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })
-                          ) : '—'}
+
+                        {/* Used / Rem */}
+                        <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-800">
+                          <span className="text-slate-900">{usedCount}</span>
+                          <span className="text-slate-400 mx-1">/</span>
+                          <span className="text-emerald-600">{remCount}</span>
                         </td>
-                        <td className="p-4 text-slate-500 max-w-xs truncate font-medium" title={notes}>
-                          {notes}
-                        </td>
-                        <td className="p-4 text-right text-[10px] font-mono text-slate-400">
-                          <div>User ID: {userId}</div>
-                          <div className="truncate max-w-xs inline-block" title={changeReason}>{changeReason}</div>
+
+                        {/* Actions */}
+                        <td className="py-3.5 px-4 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            {!isSelectedSession && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  selectEntry(entry);
+                                  setManagedEntry(entry);
+                                }}
+                                className="text-[10px] font-mono font-bold uppercase py-1 px-2.5 bg-white hover:bg-slate-50"
+                              >
+                                Select
+                              </Button>
+                            )}
+
+                            <Button
+                              size="sm"
+                              onClick={() => setManagedEntry(entry)}
+                              className={`text-[10px] font-mono font-bold uppercase py-1 px-2.5 ${
+                                isManaged
+                                  ? 'bg-indigo-600 text-white'
+                                  : 'bg-slate-900 text-white hover:bg-slate-800'
+                              }`}
+                            >
+                              Manage
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -1418,75 +429,361 @@ export const SeasonManagement: React.FC = () => {
               </table>
             </div>
           </Card>
-        ) : (
-          <Card className="p-8 text-center space-y-4 border border-dashed border-slate-200 bg-slate-50/20">
-            <Info className="w-8 h-8 text-slate-400 mx-auto" />
-            <div className="space-y-1">
-              <h4 className="text-sm font-bold text-slate-800">
-                No official picks have been recorded for this entry.
-              </h4>
-              <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
-                Recorded picks will appear here and will become the authoritative used-team history for survivor strategies.
+        )}
+      </div>
+
+      {/* MANAGED ENTRY DETAILS & PICK MANAGEMENT SECTION */}
+      {managedEntry && (
+        <div className="space-y-5 pt-2">
+          
+          {/* SECTION HEADER */}
+          <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+            <div className="space-y-0.5">
+              <h2 className="text-xs font-black uppercase font-mono tracking-wider text-slate-800 flex items-center gap-2">
+                <Sliders className="w-4 h-4 text-indigo-600" />
+                Entry Details: {managedEntry.entry_label}
+              </h2>
+              <p className="text-xs text-slate-500 font-semibold">
+                Inspecting pick history and unavailable teams for selected entry
               </p>
             </div>
-          </Card>
-        )}
-      </section>
 
-      {/* Confirmation Dialog Overlay */}
-      {confirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="w-full max-w-md bg-white border-2 border-slate-950 rounded-2xl p-6 shadow-xl space-y-6 text-left"
-          >
-            <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-              <div className="p-2 bg-amber-50 text-amber-600 rounded-lg shrink-0">
-                <AlertOctagon className="w-5 h-5" />
+            {selectedEntry?.entry_id !== managedEntry.entry_id && (
+              <Button
+                size="sm"
+                onClick={() => selectEntry(managedEntry)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-mono uppercase font-bold"
+              >
+                Set as Active Session Entry
+              </Button>
+            )}
+          </div>
+
+          {/* 2. ENTRY DETAILS COMPACT CARD */}
+          <Card className="p-5 border border-slate-200 shadow-xs bg-white rounded-xl space-y-4">
+            
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 font-mono text-xs">
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Entry Name</span>
+                <span className="font-extrabold text-slate-950 block truncate">{managedEntry.entry_label}</span>
               </div>
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider font-mono">
-                Confirm Official Survivor Pick
-              </h3>
+
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Contest</span>
+                <span className="font-extrabold text-slate-800 block truncate">{managedEntry.contest_name || 'NFL Survivor'}</span>
+              </div>
+
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Format</span>
+                <span className="font-extrabold text-indigo-600 block">{getFormatLabel(managedEntry.format_code)}</span>
+              </div>
+
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Season / Week</span>
+                <span className="font-extrabold text-slate-800 block">
+                  {context?.season ?? 2026} • W{context?.current_week ?? context?.week ?? 1}
+                </span>
+              </div>
+
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Current Leg</span>
+                <span className="font-extrabold text-slate-900 block">{getEntryCurrentLeg(managedEntry)}</span>
+              </div>
+
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Current Pick</span>
+                <span className={`font-black block ${managedCurrentPick ? 'text-emerald-600' : 'text-amber-500'}`}>
+                  {managedCurrentPick ? (managedCurrentPick.team?.abbr || managedCurrentPick.team_abbr || managedCurrentPick.team) : 'None'}
+                </span>
+              </div>
+
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Used Teams</span>
+                <span className="font-extrabold text-slate-900 block">{currentManagedPicks.length}</span>
+              </div>
+
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Remaining</span>
+                <span className="font-extrabold text-emerald-600 block">{Math.max(0, 32 - currentManagedPicks.length)}</span>
+              </div>
             </div>
 
-            <p className="text-sm font-medium text-slate-700 leading-relaxed animate-none">
-              You are recording <strong className="text-slate-950">{tentativeSelection?.team_name || tentativeSelection?.team}</strong> for <strong className="text-slate-950">{selectedEntry?.entry_label}</strong> in <strong className="text-slate-950">{validPicksData?.contest_leg?.leg_name || `Leg ${validPicksData?.contest_leg?.contest_leg_id}`}</strong>. This will become part of the authoritative used-team history.
-            </p>
+            {/* CONTEST RULES & NOTES */}
+            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex items-start gap-2 text-xs text-slate-600">
+              <FileText className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <span className="font-bold font-mono text-[11px] text-slate-800 uppercase block">Contest Rules:</span>
+                <p className="font-medium text-[11px] leading-relaxed">
+                  {getFormatNotes(managedEntry.format_code)}
+                </p>
+              </div>
+            </div>
 
-            {submissionError && (
-              <Alert
-                type="error"
-                title="Failed to Record Pick"
-                message={submissionError}
-              />
-            )}
+          </Card>
 
-            <div className="flex items-center justify-end gap-3 pt-2">
+          {/* 3. USED TEAMS SECTION */}
+          <Card className="p-5 border border-slate-200 shadow-xs bg-white rounded-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-xs font-black uppercase font-mono tracking-wider text-slate-900 flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-slate-400" />
+                  Used Teams ({currentManagedPicks.length})
+                </h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Teams listed here are locked and unavailable for future picks in this entry.
+                </p>
+              </div>
+
               <Button
-                variant="outline"
                 size="sm"
                 onClick={() => {
-                  setConfirmOpen(false);
-                  setSubmissionError(null);
+                  setEditError(null);
+                  setEditSuccess(null);
+                  setSelectedTeamForEdit(null);
+                  setTargetLegId(currentStrat?.current_contest_leg_id || 1);
+                  setEditModalOpen(true);
                 }}
-                disabled={submitting}
-                className="text-xs font-extrabold uppercase tracking-wider font-mono animate-none"
+                className="bg-slate-950 hover:bg-slate-800 text-white font-mono text-xs uppercase font-bold flex items-center gap-1.5 self-start sm:self-auto"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                Edit Used Teams
+              </Button>
+            </div>
+
+            {currentManagedPicks.length === 0 ? (
+              <div className="py-6 text-center text-slate-500 text-xs font-medium bg-slate-50 border border-dashed border-slate-200 rounded-lg">
+                No teams have been used yet. All 32 NFL teams are available!
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 font-mono text-xs">
+                {currentManagedPicks.map((pick: any, idx: number) => {
+                  const teamAbbr = pick.team?.abbr || pick.team_abbr || pick.team || 'USED';
+                  const teamName = pick.team?.name || pick.team_name || pick.team || 'Team';
+                  const legLabel = pick.contest_leg?.leg_name || pick.leg_name || `Leg ${pick.contest_leg_id || (idx + 1)}`;
+
+                  return (
+                    <div
+                      key={idx}
+                      className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between gap-2 text-slate-700"
+                    >
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <span className="font-bold bg-slate-200 text-slate-800 px-1.5 py-0.5 rounded text-[10px] shrink-0">
+                          {teamAbbr}
+                        </span>
+                        <span className="font-bold text-slate-800 font-sans truncate line-through opacity-80 text-[11px]">
+                          {teamName}
+                        </span>
+                      </div>
+
+                      <span className="text-[9px] font-bold text-slate-400 shrink-0">
+                        {legLabel}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+
+          {/* 4. PICK HISTORY SECTION */}
+          <Card className="p-5 border border-slate-200 shadow-xs bg-white rounded-xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="text-xs font-black uppercase font-mono tracking-wider text-slate-900 flex items-center gap-2">
+                <Award className="w-4 h-4 text-indigo-600" />
+                Pick History & Results
+              </h3>
+              <span className="text-[10px] font-mono text-slate-500">
+                Chronological record of selections
+              </span>
+            </div>
+
+            {currentManagedPicks.length === 0 ? (
+              <div className="py-6 text-center text-slate-500 text-xs font-medium bg-slate-50 border border-dashed border-slate-200 rounded-lg">
+                No pick history recorded yet for this entry.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-slate-100 text-slate-600 font-mono text-[10px] uppercase tracking-wider border-b border-slate-200">
+                      <th className="py-2.5 px-3 font-bold">Leg / Week</th>
+                      <th className="py-2.5 px-3 font-bold">Team Selected</th>
+                      <th className="py-2.5 px-3 font-bold">Status / Result</th>
+                      <th className="py-2.5 px-3 font-bold">Recommendation Source</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-sans">
+                    {currentManagedPicks.map((pick: any, idx: number) => {
+                      const teamAbbr = pick.team?.abbr || pick.team_abbr || pick.team || 'TBD';
+                      const teamName = pick.team?.name || pick.team_name || pick.team || 'Team';
+                      const legName = pick.contest_leg?.leg_name || pick.leg_name || `Leg ${pick.contest_leg_id || (idx + 1)}`;
+                      const status = pick.pick_status || 'RECORDED';
+
+                      return (
+                        <tr key={idx} className="hover:bg-slate-50">
+                          <td className="py-2.5 px-3 font-mono font-bold text-slate-800">
+                            {legName}
+                          </td>
+                          <td className="py-2.5 px-3 font-bold text-slate-950">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono bg-slate-900 text-white px-1.5 py-0.5 rounded text-[10px]">
+                                {teamAbbr}
+                              </span>
+                              <span>{teamName}</span>
+                            </div>
+                          </td>
+                          <td className="py-2.5 px-3">
+                            <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded uppercase">
+                              {status}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 text-slate-600 font-mono text-[11px]">
+                            {pick.is_recommendation ? (
+                              <span className="text-indigo-600 font-bold">✓ SemiSharp Recommended</span>
+                            ) : (
+                              <span>Custom Pick</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+
+        </div>
+      )}
+
+      {/* EDIT USED TEAMS MODAL */}
+      {editModalOpen && managedEntry && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+          <Card className="max-w-lg w-full p-6 bg-white border border-slate-200 shadow-2xl space-y-5 text-left rounded-xl">
+            
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-indigo-600" />
+                <h3 className="text-sm font-black uppercase font-mono text-slate-900 tracking-tight">
+                  Edit Used Teams & Pick History
+                </h3>
+              </div>
+              <button
+                onClick={() => setEditModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {editError && (
+              <Alert type="error" title="Action Failed" message={editError} />
+            )}
+
+            {editSuccess && (
+              <Alert type="success" title="Success" message={editSuccess} />
+            )}
+
+            <div className="space-y-4 text-xs font-sans text-slate-700">
+              <p className="font-medium text-slate-600 leading-relaxed">
+                Manually record or update a team selection for <strong className="text-slate-900">{managedEntry.entry_label}</strong>.
+              </p>
+
+              {/* Contest Leg Selection */}
+              <div className="space-y-1.5 font-mono">
+                <label className="text-[10px] font-bold text-slate-500 uppercase block">
+                  Select Contest Leg Number
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={targetLegId}
+                  onChange={(e) => setTargetLegId(Number(e.target.value))}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 font-bold text-xs"
+                />
+              </div>
+
+              {/* Team Selection List */}
+              <div className="space-y-1.5 font-mono">
+                <label className="text-[10px] font-bold text-slate-500 uppercase block">
+                  Select NFL Team to Mark as Used
+                </label>
+                
+                <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-lg p-2 bg-slate-50 space-y-1 text-xs">
+                  {teams.length === 0 ? (
+                    <p className="text-slate-400 py-2 text-center">Loading teams...</p>
+                  ) : (
+                    teams.map((t, idx) => {
+                      const tId = t.team_id || (idx + 1);
+                      const isAlreadyUsed = currentManagedPicks.some((p: any) => {
+                        const abbr = (p.team?.abbr || p.team_abbr || p.team || '').toUpperCase();
+                        return (t.abbr || t.name || '').toUpperCase() === abbr || p.team_id === tId;
+                      });
+
+                      const isSelected = selectedTeamForEdit && (
+                        (selectedTeamForEdit.team_id && selectedTeamForEdit.team_id === tId) ||
+                        selectedTeamForEdit.abbr === t.abbr
+                      );
+
+                      return (
+                        <button
+                          key={t.abbr || idx}
+                          type="button"
+                          onClick={() => setSelectedTeamForEdit({ ...t, team_id: tId })}
+                          className={`w-full text-left px-3 py-2 rounded-md flex items-center justify-between transition-colors ${
+                            isSelected
+                              ? 'bg-indigo-600 text-white font-bold'
+                              : isAlreadyUsed
+                              ? 'bg-slate-200/60 text-slate-500 cursor-pointer'
+                              : 'bg-white hover:bg-slate-100 text-slate-800'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded font-black ${
+                              isSelected ? 'bg-indigo-800 text-white' : 'bg-slate-900 text-white'
+                            }`}>
+                              {t.abbr}
+                            </span>
+                            <span className="font-sans font-bold">{t.name}</span>
+                          </div>
+
+                          {isAlreadyUsed && !isSelected && (
+                            <span className="text-[9px] font-mono font-bold text-slate-400 uppercase">
+                              Already Used
+                            </span>
+                          )}
+
+                          {isSelected && (
+                            <Check className="w-4 h-4 text-white" />
+                          )}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => setEditModalOpen(false)}
+                className="flex-1 font-mono text-xs uppercase font-bold"
               >
                 Cancel
               </Button>
               <Button
-                variant="primary"
-                size="sm"
-                onClick={handleConfirmAndRecord}
-                isLoading={submitting}
-                disabled={submitting}
-                className="text-xs font-black uppercase tracking-wider font-mono bg-slate-900 hover:bg-slate-800 text-white animate-none"
+                onClick={handleRecordPickSubmit}
+                isLoading={editSubmitting}
+                disabled={!selectedTeamForEdit}
+                className="flex-1 bg-slate-950 hover:bg-slate-800 text-white font-mono text-xs uppercase font-bold"
               >
-                Confirm and Record Pick
+                Record Selection
               </Button>
             </div>
-          </motion.div>
+
+          </Card>
         </div>
       )}
 

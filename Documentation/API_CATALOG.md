@@ -1,8 +1,8 @@
 # SemiSharp API Catalog
 
-Generated: 2026-07-20 18:00:02.165686
+Generated: 2026-07-22 16:38:47.913647
 
-Total API Routes: 51
+Total API Routes: 52
 
 ---
 
@@ -311,6 +311,25 @@ Total API Routes: 51
 
 - `user_id` (path)
 - `role` (query)
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## GET /analysis/game/{game_id}
+
+**Tags:** Weekly Game Analysis
+
+**Summary:** Get Game Analysis
+
+**Operation ID:** `get_game_analysis_analysis_game__game_id__get`
+
+### Parameters
+
+- `game_id` (path)
 
 ### Responses
 

@@ -21,7 +21,7 @@ try {
 
 // Retrieve values from Vite's environment variables with clean fallbacks
 const getCleanDefaultUrl = (): string => {
-  const envVal = (import.meta as any).env.VITE_BACKEND_URL;
+  const envVal = (import.meta as any).env.VITE_API_BASE_URL || (import.meta as any).env.VITE_BACKEND_URL;
   if (envVal && (envVal.includes('localhost') || envVal.includes('127.0.0.1') || envVal.includes('8000'))) {
     return 'https://api.steveschilhabel.com';
   }
@@ -41,6 +41,8 @@ export const getBackendUrl = (): string => {
   }
   return stored || DEFAULT_BACKEND_URL;
 };
+
+export const API_BASE_URL = getBackendUrl();
 
 export const setBackendUrl = (url: string): void => {
   if (!url) {

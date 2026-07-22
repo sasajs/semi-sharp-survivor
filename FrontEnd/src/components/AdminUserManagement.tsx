@@ -3,25 +3,73 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component, ErrorInfo } from 'react';
 import { 
   Users, 
   Trash2, 
   RefreshCw, 
   AlertCircle, 
-  Check, 
   X, 
   ShieldAlert, 
   UserCheck, 
   UserX,
   Plus,
   Database,
-  CheckCircle2,
   Ticket,
-  Lock,
   Unlock
 } from 'lucide-react';
 import { Card, Alert, Button, Input, Select, LoadingSpinner } from './ui';
+import { API_BASE_URL } from '../config';
+
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+      return (
+        <div className="p-6 bg-rose-50 border border-rose-200 rounded-xl space-y-3 my-4" id="error_boundary_container">
+          <div className="flex items-center gap-2 text-rose-800">
+            <ShieldAlert className="w-5 h-5 shrink-0" />
+            <h3 className="font-bold font-mono text-xs uppercase tracking-wider">Tab Rendering Error Intercepted</h3>
+          </div>
+          <p className="text-xs text-rose-700 leading-relaxed">
+            A rendering error occurred inside this tab panel. The core application container remains active and functional.
+          </p>
+          {this.state.error && (
+            <pre className="p-3 bg-rose-950/5 text-rose-900 rounded-lg text-[10px] font-mono overflow-auto max-h-40">
+              {this.state.error.stack || this.state.error.message}
+            </pre>
+          )}
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 export interface ManagedUser {
   user_id: number;
@@ -31,22 +79,22 @@ export interface ManagedUser {
   is_active: boolean;
 }
 
-export interface ManagedAccount {
-  account_id: number;
-  user_id: number;
-  account_name: string;
-  provider: string;
-  status: string; // 'ACTIVE' | 'INACTIVE'
-}
-
 export interface ContestEntry {
   entry_id: number;
   user_id: number;
   username: string;
-  week: number;
-  selected_team: string;
-  status: 'SUBMITTED' | 'PENDING' | 'STUCK' | 'OVERRIDDEN';
-  submitted_at: string;
+  display_name?: string;
+  role?: string;
+  survivor_sweat_name: string;
+  entry_label: string;
+  is_active: boolean;
+  contest_format_id: number;
+  format_code?: string;
+  format_name?: string;
+  week?: number;
+  selected_team?: string;
+  status?: 'SUBMITTED' | 'PENDING' | 'STUCK' | 'OVERRIDDEN';
+  submitted_at?: string;
 }
 
 const DEFAULT_SANDBOX_USERS: ManagedUser[] = [
@@ -57,33 +105,32 @@ const DEFAULT_SANDBOX_USERS: ManagedUser[] = [
   { user_id: 105, username: 'guest_speculator', display_name: 'Robert Speculator', role: 'USER', is_active: false }
 ];
 
-const DEFAULT_SANDBOX_ACCOUNTS: ManagedAccount[] = [
-  { account_id: 201, user_id: 101, account_name: 'Steve Main Ledger', provider: 'Auth0', status: 'ACTIVE' },
-  { account_id: 202, user_id: 102, account_name: 'John Sandbox Profile', provider: 'Google', status: 'ACTIVE' },
-  { account_id: 203, user_id: 103, account_name: 'Sarah Survivor Account', provider: 'GitHub', status: 'INACTIVE' },
-  { account_id: 204, user_id: 104, account_name: 'Ana Analytics Node', provider: 'Firebase', status: 'ACTIVE' }
-];
-
 const DEFAULT_SANDBOX_ENTRIES: ContestEntry[] = [
-  { entry_id: 501, user_id: 101, username: 'steve_schilhabel', week: 1, selected_team: 'Kansas City Chiefs', status: 'SUBMITTED', submitted_at: '2026-09-10T14:30:22Z' },
-  { entry_id: 502, user_id: 102, username: 'j_doe_pro', week: 1, selected_team: 'San Francisco 49ers', status: 'STUCK', submitted_at: '2026-09-11T09:12:05Z' },
-  { entry_id: 503, user_id: 103, username: 'survivor_champ', week: 1, selected_team: 'Philadelphia Eagles', status: 'SUBMITTED', submitted_at: '2026-09-12T18:45:00Z' },
-  { entry_id: 504, user_id: 104, username: 'ana_stats', week: 1, selected_team: 'Buffalo Bills', status: 'PENDING', submitted_at: '2026-09-13T11:20:10Z' },
+  { entry_id: 501, user_id: 101, username: 'steve_schilhabel', week: 1, selected_team: 'Kansas City Chiefs', status: 'SUBMITTED', submitted_at: '2026-09-10T14:30:22Z', survivor_sweat_name: 'STEVE-1', entry_label: 'Steve Standard Run', contest_format_id: 1, is_active: true },
+  { entry_id: 502, user_id: 102, username: 'j_doe_pro', week: 1, selected_team: 'San Francisco 49ers', status: 'STUCK', submitted_at: '2026-09-11T09:12:05Z', survivor_sweat_name: 'DOE-1', entry_label: 'John Main Ticket', contest_format_id: 1, is_active: true },
+  { entry_id: 503, user_id: 103, username: 'survivor_champ', week: 1, selected_team: 'Philadelphia Eagles', status: 'SUBMITTED', submitted_at: '2026-09-12T18:45:00Z', survivor_sweat_name: 'CHAMP-1', entry_label: 'Sarah Circa Million', contest_format_id: 2, is_active: true },
+  { entry_id: 504, user_id: 104, username: 'ana_stats', week: 1, selected_team: 'Buffalo Bills', status: 'PENDING', submitted_at: '2026-09-13T11:20:10Z', survivor_sweat_name: 'ANA-1', entry_label: 'Ana Stats Entry', contest_format_id: 1, is_active: false },
 ];
 
 export const AdminUserManagement: React.FC = () => {
   // Navigation
-  const [activeTab, setActiveTab] = useState<'users' | 'accounts' | 'entries'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'entries'>('users');
 
   // Core list states
   const [users, setUsers] = useState<ManagedUser[]>([]);
-  const [accounts, setAccounts] = useState<ManagedAccount[]>([]);
   const [entries, setEntries] = useState<ContestEntry[]>([]);
   
   // Loading and error states
   const [loadingUsers, setLoadingUsers] = useState<boolean>(true);
-  const [loadingAccounts, setLoadingAccounts] = useState<boolean>(true);
   const [loadingEntries, setLoadingEntries] = useState<boolean>(true);
+  
+  // Independent error & success states for each admin panel
+  const [usersError, setUsersError] = useState<string | null>(null);
+  const [usersSuccess, setUsersSuccess] = useState<string | null>(null);
+  const [entriesError, setEntriesError] = useState<string | null>(null);
+  const [entriesSuccess, setEntriesSuccess] = useState<string | null>(null);
+  
+  // Legacy error and success states for compatibility
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
@@ -92,11 +139,6 @@ export const AdminUserManagement: React.FC = () => {
   const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
   const [userDeleteConfirmId, setUserDeleteConfirmId] = useState<number | null>(null);
   
-  // Interaction states — Accounts
-  const [updatingAccountId, setUpdatingAccountId] = useState<number | null>(null);
-  const [deletingAccountId, setDeletingAccountId] = useState<number | null>(null);
-  const [accountDeleteConfirmId, setAccountDeleteConfirmId] = useState<number | null>(null);
-
   // Interaction states — Entries
   const [updatingEntryId, setUpdatingEntryId] = useState<number | null>(null);
   const [deletingEntryId, setDeletingEntryId] = useState<number | null>(null);
@@ -110,43 +152,42 @@ export const AdminUserManagement: React.FC = () => {
   const [newUserIsActive, setNewUserIsActive] = useState<boolean>(true);
   const [submittingUser, setSubmittingUser] = useState<boolean>(false);
 
-  const [showAddAccountForm, setShowAddAccountForm] = useState<boolean>(false);
-  const [newAccountUserId, setNewAccountUserId] = useState<string>('');
-  const [newAccountName, setNewAccountName] = useState<string>('');
-  const [newProvider, setNewProvider] = useState<string>('Google');
-  const [newAccountStatus, setNewAccountStatus] = useState<string>('ACTIVE');
-  const [submittingAccount, setSubmittingAccount] = useState<boolean>(false);
-
   const [showAddEntryForm, setShowAddEntryForm] = useState<boolean>(false);
   const [newEntryUserId, setNewEntryUserId] = useState<string>('');
-  const [newEntryWeek, setNewEntryWeek] = useState<number>(1);
-  const [newEntrySelectedTeam, setNewEntrySelectedTeam] = useState<string>('');
-  const [newEntryStatus, setNewEntryStatus] = useState<'SUBMITTED' | 'PENDING' | 'STUCK' | 'OVERRIDDEN'>('SUBMITTED');
+  const [newEntrySweatName, setNewEntrySweatName] = useState<string>('');
+  const [newEntryLabel, setNewEntryLabel] = useState<string>('');
+  const [newEntryContestFormatId, setNewEntryContestFormatId] = useState<number>(1);
+  const [newEntryIsActive, setNewEntryIsActive] = useState<boolean>(true);
   const [submittingEntry, setSubmittingEntry] = useState<boolean>(false);
 
-  // Offline sandbox/simulation fallback if local host 127.0.0.1:8000 is unreachable
+  // Offline sandbox/simulation fallback if API_BASE_URL is unreachable
   const [sandboxActive, setSandboxActive] = useState<boolean>(false);
   const [connectionWarning, setConnectionWarning] = useState<boolean>(false);
+  const [connectionError, setConnectionError] = useState<boolean>(false);
 
-  const usersApiUrl = 'http://127.0.0.1:8000/admin/users/';
-  const accountsApiUrl = 'http://127.0.0.1:8000/admin/accounts/';
-  const entriesApiUrl = 'http://127.0.0.1:8000/admin/entries/';
+  const usersApiUrl = `${API_BASE_URL}/admin/users/`;
+  const entriesApiUrl = `${API_BASE_URL}/admin/entries/`;
 
   // Load everything
   const loadData = async (isManualRefresh = false) => {
     if (isManualRefresh) {
       setSuccess(null);
       setError(null);
+      setUsersError(null);
+      setEntriesError(null);
     }
     await Promise.all([
       fetchUsers(isManualRefresh),
-      fetchAccounts(isManualRefresh),
       fetchEntries(isManualRefresh)
     ]);
   };
 
   const fetchUsers = async (isManualRefresh = false) => {
     setLoadingUsers(true);
+    if (isManualRefresh) {
+      setUsersError(null);
+      setUsersSuccess(null);
+    }
     if (sandboxActive) {
       setTimeout(() => {
         const stored = localStorage.getItem('semisharp_sandbox_users');
@@ -178,75 +219,25 @@ export const AdminUserManagement: React.FC = () => {
       if (Array.isArray(data)) {
         setUsers(data);
         setConnectionWarning(false);
+        setUsersError(null);
       } else {
         throw new Error('Backend did not return a valid array of users.');
       }
     } catch (err: any) {
-      console.warn('Could not connect to local backend at 127.0.0.1:8000. Activating local sandbox mode.', err);
-      setConnectionWarning(true);
-      setSandboxActive(true);
-      
-      // Auto-fallback to local sandbox
-      const stored = localStorage.getItem('semisharp_sandbox_users');
-      const mockUsers = stored ? JSON.parse(stored) : DEFAULT_SANDBOX_USERS;
-      setUsers(mockUsers);
+      console.error('Connection failure:', err);
+      setConnectionError(true);
+      setUsersError(`Failed to fetch user list from backend: ${err.message || err}`);
     } finally {
       setLoadingUsers(false);
     }
   };
 
-  const fetchAccounts = async (isManualRefresh = false) => {
-    setLoadingAccounts(true);
-    if (sandboxActive) {
-      setTimeout(() => {
-        const stored = localStorage.getItem('semisharp_sandbox_accounts');
-        if (stored) {
-          setAccounts(JSON.parse(stored));
-        } else {
-          setAccounts(DEFAULT_SANDBOX_ACCOUNTS);
-          localStorage.setItem('semisharp_sandbox_accounts', JSON.stringify(DEFAULT_SANDBOX_ACCOUNTS));
-        }
-        setLoadingAccounts(false);
-      }, 300);
-      return;
-    }
-
-    try {
-      const response = await fetch(accountsApiUrl, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch accounts from backend (HTTP ${response.status})`);
-      }
-
-      const data = await response.json();
-      if (Array.isArray(data)) {
-        setAccounts(data);
-        setConnectionWarning(false);
-      } else {
-        throw new Error('Backend did not return a valid array of accounts.');
-      }
-    } catch (err: any) {
-      console.warn('Could not connect to local accounts backend at 127.0.0.1:8000. Activating local sandbox mode.', err);
-      setConnectionWarning(true);
-      setSandboxActive(true);
-
-      // Auto-fallback to local sandbox
-      const stored = localStorage.getItem('semisharp_sandbox_accounts');
-      const mockAccounts = stored ? JSON.parse(stored) : DEFAULT_SANDBOX_ACCOUNTS;
-      setAccounts(mockAccounts);
-    } finally {
-      setLoadingAccounts(false);
-    }
-  };
-
   const fetchEntries = async (isManualRefresh = false) => {
     setLoadingEntries(true);
+    if (isManualRefresh) {
+      setEntriesError(null);
+      setEntriesSuccess(null);
+    }
     if (sandboxActive) {
       setTimeout(() => {
         const stored = localStorage.getItem('semisharp_sandbox_entries');
@@ -278,18 +269,14 @@ export const AdminUserManagement: React.FC = () => {
       if (Array.isArray(data)) {
         setEntries(data);
         setConnectionWarning(false);
+        setEntriesError(null);
       } else {
         throw new Error('Backend did not return a valid array of entries.');
       }
     } catch (err: any) {
-      console.warn('Could not connect to local entries backend at 127.0.0.1:8000. Activating local sandbox mode.', err);
-      setConnectionWarning(true);
-      setSandboxActive(true);
-
-      // Auto-fallback to local sandbox
-      const stored = localStorage.getItem('semisharp_sandbox_entries');
-      const mockEntries = stored ? JSON.parse(stored) : DEFAULT_SANDBOX_ENTRIES;
-      setEntries(mockEntries);
+      console.error('Connection failure:', err);
+      // Independent state error - specifically do not setConnectionError(true) here
+      setEntriesError(`Failed to fetch entries from backend: ${err.message || err}`);
     } finally {
       setLoadingEntries(false);
     }
@@ -305,20 +292,20 @@ export const AdminUserManagement: React.FC = () => {
   // Create Entry (POST)
   const handleCreateEntry = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newEntryUserId || !newEntrySelectedTeam.trim()) {
-      setError('User ID and Selected Team are required.');
+    if (!newEntryUserId || !newEntrySweatName.trim() || !newEntryLabel.trim()) {
+      setEntriesError('User ID, Sweat Name, and Entry Label are required.');
       return;
     }
 
     const userIdNum = parseInt(newEntryUserId, 10);
     if (isNaN(userIdNum)) {
-      setError('User ID must be a number.');
+      setEntriesError('User ID must be a number.');
       return;
     }
 
     setSubmittingEntry(true);
-    setError(null);
-    setSuccess(null);
+    setEntriesError(null);
+    setEntriesSuccess(null);
 
     // Find username from users
     const associatedUser = users.find(u => u.user_id === userIdNum);
@@ -326,25 +313,33 @@ export const AdminUserManagement: React.FC = () => {
 
     const newEntryPayload = {
       user_id: userIdNum,
-      username,
-      week: newEntryWeek,
-      selected_team: newEntrySelectedTeam.trim(),
-      status: newEntryStatus,
-      submitted_at: new Date().toISOString()
+      survivor_sweat_name: newEntrySweatName.trim(),
+      entry_label: newEntryLabel.trim(),
+      contest_format_id: newEntryContestFormatId,
+      is_active: newEntryIsActive
     };
 
     if (sandboxActive) {
       setTimeout(() => {
-        const nextId = entries.length > 0 ? Math.max(...entries.map(ent => ent.entry_id)) + 1 : 501;
-        const created: ContestEntry = { entry_id: nextId, ...newEntryPayload };
-        const updated = [...entries, created];
+        const nextId = (entries || []).length > 0 ? Math.max(...(entries || []).map(ent => ent.entry_id)) + 1 : 501;
+        const created: ContestEntry = {
+          entry_id: nextId,
+          username,
+          format_code: newEntryContestFormatId === 1 ? 'STANDARD' : 'CIRCA',
+          format_name: newEntryContestFormatId === 1 ? 'Standard Survivor' : 'Circa Survivor',
+          ...newEntryPayload
+        };
+        const updated = [...(entries || []), created];
         setEntries(updated);
         localStorage.setItem('semisharp_sandbox_entries', JSON.stringify(updated));
         
-        setSuccess(`Entry ID ${nextId} created successfully for ${username} (Simulation).`);
+        setEntriesSuccess(`Entry ID ${nextId} created successfully for ${username} (Simulation).`);
         setShowAddEntryForm(false);
         setNewEntryUserId('');
-        setNewEntrySelectedTeam('');
+        setNewEntrySweatName('');
+        setNewEntryLabel('');
+        setNewEntryContestFormatId(1);
+        setNewEntryIsActive(true);
         setSubmittingEntry(false);
       }, 500);
       return;
@@ -361,16 +356,26 @@ export const AdminUserManagement: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`POST request failed with status ${response.status}`);
+        let errMsg = `POST request failed with status ${response.status}`;
+        try {
+          const errData = await response.json();
+          errMsg = errData.message || errData.detail || errMsg;
+        } catch (e) {
+          // ignore parsing error
+        }
+        throw new Error(errMsg);
       }
 
-      setSuccess(`Entry created successfully for ${username}.`);
+      setEntriesSuccess(`Entry created successfully for ${username}.`);
       setShowAddEntryForm(false);
       setNewEntryUserId('');
-      setNewEntrySelectedTeam('');
+      setNewEntrySweatName('');
+      setNewEntryLabel('');
+      setNewEntryContestFormatId(1);
+      setNewEntryIsActive(true);
       await fetchEntries();
     } catch (err: any) {
-      setError(err.message || 'Failed to complete create entry request.');
+      setEntriesError(err.message || 'Failed to complete create entry request.');
     } finally {
       setSubmittingEntry(false);
     }
@@ -379,8 +384,8 @@ export const AdminUserManagement: React.FC = () => {
   // Delete Entry (DELETE)
   const handleDeleteEntry = async (entryId: number) => {
     setLoadingEntries(true);
-    setError(null);
-    setSuccess(null);
+    setEntriesError(null);
+    setEntriesSuccess(null);
     setDeletingEntryId(entryId);
     setEntryDeleteConfirmId(null);
 
@@ -389,7 +394,7 @@ export const AdminUserManagement: React.FC = () => {
         const currentEntries = entries.filter(ent => ent.entry_id !== entryId);
         setEntries(currentEntries);
         localStorage.setItem('semisharp_sandbox_entries', JSON.stringify(currentEntries));
-        setSuccess(`Deleted entry ID ${entryId} (Simulation).`);
+        setEntriesSuccess(`Deleted entry ID ${entryId} (Simulation).`);
         setDeletingEntryId(null);
         setLoadingEntries(false);
       }, 500);
@@ -405,28 +410,110 @@ export const AdminUserManagement: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`DELETE request failed with status ${response.status}`);
+        let errMsg = `DELETE request failed with status ${response.status}`;
+        try {
+          const errData = await response.json();
+          errMsg = errData.message || errData.detail || errMsg;
+        } catch (e) {
+          // ignore
+        }
+        throw new Error(errMsg);
       }
 
-      setSuccess(`Entry ID ${entryId} deleted successfully.`);
+      setEntriesSuccess(`Entry ID ${entryId} deleted successfully.`);
       await fetchEntries();
     } catch (err: any) {
-      setError(err.message || 'Failed to complete delete entry request.');
+      setEntriesError(err.message || 'Failed to complete delete entry request.');
     } finally {
       setDeletingEntryId(null);
       setLoadingEntries(false);
     }
   };
 
-  // Override Entry Status (PATCH)
-  const handleOverrideEntryStatus = async (entryId: number, nextStatus: 'SUBMITTED' | 'PENDING' | 'STUCK' | 'OVERRIDDEN') => {
-    setError(null);
-    setSuccess(null);
+  // Update Entry Contest Format (PATCH)
+  const handleUpdateContestFormat = async (entryId: number, newFormatId: number) => {
+    // Save previous state for reversion
+    const previousEntries = [...entries];
+    const targetEntry = entries.find(e => e.entry_id === entryId);
+    if (!targetEntry) return;
+    
+    // Optimistically update the row in-place
+    setEntries(prev => prev.map(ent => {
+      if (ent.entry_id === entryId) {
+        return {
+          ...ent,
+          contest_format_id: newFormatId,
+          format_name: newFormatId === 1 ? 'Standard Survivor' : 'Circa Survivor',
+          format_code: newFormatId === 1 ? 'STANDARD' : 'CIRCA'
+        };
+      }
+      return ent;
+    }));
+
+    setEntriesError(null);
+    setEntriesSuccess(null);
     setUpdatingEntryId(entryId);
 
     if (sandboxActive) {
       setTimeout(() => {
-        const updated = entries.map(ent => {
+        const updated = (entries || []).map(ent => {
+          if (ent.entry_id === entryId) {
+            return {
+              ...ent,
+              contest_format_id: newFormatId,
+              format_name: newFormatId === 1 ? 'Standard Survivor' : 'Circa Survivor',
+              format_code: newFormatId === 1 ? 'STANDARD' : 'CIRCA'
+            };
+          }
+          return ent;
+        });
+        localStorage.setItem('semisharp_sandbox_entries', JSON.stringify(updated));
+        setEntriesSuccess(`Contest Format updated to ${newFormatId === 1 ? 'Standard Survivor' : 'Circa Survivor'} successfully for Entry #${entryId} (Simulation).`);
+        setUpdatingEntryId(null);
+      }, 400);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${entriesApiUrl}${entryId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ contest_format_id: newFormatId }),
+      });
+
+      if (!response.ok) {
+        let errMsg = `PATCH request failed with status ${response.status}`;
+        try {
+          const errData = await response.json();
+          errMsg = errData.message || errData.detail || errMsg;
+        } catch (e) {
+          // ignore parsing error
+        }
+        throw new Error(errMsg);
+      }
+
+      setEntriesSuccess(`Contest Format updated to ${newFormatId === 1 ? 'Standard Survivor' : 'Circa Survivor'} successfully for Entry #${entryId}.`);
+    } catch (err: any) {
+      // Revert on failure
+      setEntries(previousEntries);
+      setEntriesError(err.message || 'Failed to update contest format.');
+    } finally {
+      setUpdatingEntryId(null);
+    }
+  };
+
+  // Override Entry Status (PATCH)
+  const handleOverrideEntryStatus = async (entryId: number, nextStatus: 'SUBMITTED' | 'PENDING' | 'STUCK' | 'OVERRIDDEN') => {
+    setEntriesError(null);
+    setEntriesSuccess(null);
+    setUpdatingEntryId(entryId);
+
+    if (sandboxActive) {
+      setTimeout(() => {
+        const updated = (entries || []).map(ent => {
           if (ent.entry_id === entryId) {
             return { ...ent, status: nextStatus };
           }
@@ -434,7 +521,7 @@ export const AdminUserManagement: React.FC = () => {
         });
         setEntries(updated);
         localStorage.setItem('semisharp_sandbox_entries', JSON.stringify(updated));
-        setSuccess(`Overrode status of entry ID ${entryId} to ${nextStatus}.`);
+        setEntriesSuccess(`Overrode status of entry ID ${entryId} to ${nextStatus}.`);
         setUpdatingEntryId(null);
       }, 400);
       return;
@@ -451,13 +538,20 @@ export const AdminUserManagement: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`PATCH status request failed with status ${response.status}`);
+        let errMsg = `PATCH status request failed with status ${response.status}`;
+        try {
+          const errData = await response.json();
+          errMsg = errData.message || errData.detail || errMsg;
+        } catch (e) {
+          // ignore
+        }
+        throw new Error(errMsg);
       }
 
-      setSuccess(`Entry status updated to ${nextStatus} successfully.`);
+      setEntriesSuccess(`Entry status updated to ${nextStatus} successfully.`);
       await fetchEntries();
     } catch (err: any) {
-      setError(err.message || 'Failed to override entry status.');
+      setEntriesError(err.message || 'Failed to override entry status.');
     } finally {
       setUpdatingEntryId(null);
     }
@@ -465,8 +559,8 @@ export const AdminUserManagement: React.FC = () => {
 
   // Unlock Stuck Submission
   const handleUnlockEntry = async (entryId: number) => {
-    setError(null);
-    setSuccess(null);
+    setEntriesError(null);
+    setEntriesSuccess(null);
     setUpdatingEntryId(entryId);
 
     if (sandboxActive) {
@@ -479,7 +573,7 @@ export const AdminUserManagement: React.FC = () => {
         });
         setEntries(updated);
         localStorage.setItem('semisharp_sandbox_entries', JSON.stringify(updated));
-        setSuccess(`Unlocked submission for entry ID ${entryId} (State changed from STUCK to SUBMITTED).`);
+        setEntriesSuccess(`Unlocked submission for entry ID ${entryId} (State changed from STUCK to SUBMITTED).`);
         setUpdatingEntryId(null);
       }, 400);
       return;
@@ -494,13 +588,20 @@ export const AdminUserManagement: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`POST unlock request failed with status ${response.status}`);
+        let errMsg = `POST unlock request failed with status ${response.status}`;
+        try {
+          const errData = await response.json();
+          errMsg = errData.message || errData.detail || errMsg;
+        } catch (e) {
+          // ignore
+        }
+        throw new Error(errMsg);
       }
 
-      setSuccess(`Unlocked submission for entry ID ${entryId} successfully.`);
+      setEntriesSuccess(`Unlocked submission for entry ID ${entryId} successfully.`);
       await fetchEntries();
     } catch (err: any) {
-      setError(err.message || 'Failed to unlock entry submission.');
+      setEntriesError(err.message || 'Failed to unlock entry submission.');
     } finally {
       setUpdatingEntryId(null);
     }
@@ -508,8 +609,8 @@ export const AdminUserManagement: React.FC = () => {
 
   // Clear Entry Cache
   const handleClearEntryCache = () => {
-    setError(null);
-    setSuccess('Contestant entry ticket cache cleared successfully. All client-side edge indices flushed.');
+    setEntriesError(null);
+    setEntriesSuccess('Contestant entry ticket cache cleared successfully. All client-side edge indices flushed.');
   };
 
   // -- USER ACTIONS --
@@ -518,15 +619,15 @@ export const AdminUserManagement: React.FC = () => {
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUsername.trim()) {
-      setError('Username is required.');
+      setUsersError('Username is required.');
       return;
     }
 
     setSubmittingUser(true);
-    setError(null);
-    setSuccess(null);
+    setUsersError(null);
+    setUsersSuccess(null);
 
-    const generatedId = users.length > 0 ? Math.max(...users.map(u => u.user_id)) + 1 : 101;
+    const generatedId = (users || []).length > 0 ? Math.max(...(users || []).map(u => u.user_id)) + 1 : 101;
     const payload: ManagedUser = {
       user_id: generatedId,
       username: newUsername.trim(),
@@ -537,10 +638,10 @@ export const AdminUserManagement: React.FC = () => {
 
     if (sandboxActive) {
       setTimeout(() => {
-        const updatedUsers = [...users, payload];
+        const updatedUsers = [...(users || []), payload];
         setUsers(updatedUsers);
         localStorage.setItem('semisharp_sandbox_users', JSON.stringify(updatedUsers));
-        setSuccess(`User @${payload.username} created successfully (Simulation).`);
+        setUsersSuccess(`User @${payload.username} created successfully (Simulation).`);
         setShowAddUserForm(false);
         setNewUsername('');
         setNewDisplayName('');
@@ -565,7 +666,7 @@ export const AdminUserManagement: React.FC = () => {
         throw new Error(`Failed to create user: ${response.statusText} (${response.status})`);
       }
 
-      setSuccess(`User @${payload.username} created successfully!`);
+      setUsersSuccess(`User @${payload.username} created successfully!`);
       setShowAddUserForm(false);
       setNewUsername('');
       setNewDisplayName('');
@@ -573,7 +674,9 @@ export const AdminUserManagement: React.FC = () => {
       setNewUserIsActive(true);
       await fetchUsers();
     } catch (err: any) {
-      setError(err.message || 'Failed to submit User POST request.');
+      console.error('Connection failure:', err);
+      setConnectionError(true);
+      setUsersError(err.message || 'Failed to submit User POST request.');
     } finally {
       setSubmittingUser(false);
     }
@@ -582,8 +685,8 @@ export const AdminUserManagement: React.FC = () => {
   // Delete User (DELETE)
   const handleDeleteUser = async (userId: number) => {
     setLoadingUsers(true);
-    setError(null);
-    setSuccess(null);
+    setUsersError(null);
+    setUsersSuccess(null);
     setDeletingUserId(userId);
     setUserDeleteConfirmId(null);
 
@@ -592,13 +695,8 @@ export const AdminUserManagement: React.FC = () => {
         const currentUsers = users.filter(u => u.user_id !== userId);
         setUsers(currentUsers);
         localStorage.setItem('semisharp_sandbox_users', JSON.stringify(currentUsers));
-        
-        // Cascade delete accounts linked to this user for simulation sanity
-        const currentAccounts = accounts.filter(a => a.user_id !== userId);
-        setAccounts(currentAccounts);
-        localStorage.setItem('semisharp_sandbox_accounts', JSON.stringify(currentAccounts));
 
-        setSuccess(`Deleted user ID ${userId} and all linked simulator credentials.`);
+        setUsersSuccess(`Deleted user ID ${userId}.`);
         setDeletingUserId(null);
         setLoadingUsers(false);
       }, 500);
@@ -617,11 +715,13 @@ export const AdminUserManagement: React.FC = () => {
         throw new Error(`DELETE request failed with status ${response.status}`);
       }
 
-      setSuccess(`User ID ${userId} deleted successfully.`);
+      setUsersSuccess(`User ID ${userId} deleted successfully.`);
       // Auto-refresh tables
       await loadData();
     } catch (err: any) {
-      setError(err.message || 'Failed to complete user delete request.');
+      console.error('Connection failure:', err);
+      setConnectionError(true);
+      setUsersError(err.message || 'Failed to complete user delete request.');
     } finally {
       setDeletingUserId(null);
       setLoadingUsers(false);
@@ -630,13 +730,13 @@ export const AdminUserManagement: React.FC = () => {
 
   // Update User Role (PATCH)
   const handleUpdateRole = async (userId: number, newRole: string) => {
-    setError(null);
-    setSuccess(null);
+    setUsersError(null);
+    setUsersSuccess(null);
     setUpdatingUserId(userId);
 
     if (sandboxActive) {
       setTimeout(() => {
-        const updatedUsers = users.map(u => {
+        const updatedUsers = (users || []).map(u => {
           if (u.user_id === userId) {
             return { ...u, role: newRole };
           }
@@ -644,7 +744,7 @@ export const AdminUserManagement: React.FC = () => {
         });
         setUsers(updatedUsers);
         localStorage.setItem('semisharp_sandbox_users', JSON.stringify(updatedUsers));
-        setSuccess(`Updated user ${userId} authorization role to ${newRole}.`);
+        setUsersSuccess(`Updated user ${userId} authorization role to ${newRole}.`);
         setUpdatingUserId(null);
       }, 400);
       return;
@@ -664,205 +764,37 @@ export const AdminUserManagement: React.FC = () => {
         throw new Error(`PATCH request failed with status ${response.status}`);
       }
 
-      setSuccess(`User role updated to ${newRole} successfully.`);
+      setUsersSuccess(`User role updated to ${newRole} successfully.`);
       // Auto-refresh tables
       await fetchUsers();
     } catch (err: any) {
-      setError(err.message || 'Failed to complete role update request.');
+      console.error('Connection failure:', err);
+      setConnectionError(true);
+      setUsersError(err.message || 'Failed to complete role update request.');
     } finally {
       setUpdatingUserId(null);
-    }
-  };
-
-  // -- ACCOUNT ACTIONS --
-
-  // Create Account (POST)
-  const handleCreateAccount = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const uId = parseInt(newAccountUserId, 10);
-    if (isNaN(uId)) {
-      setError('Valid User ID is required.');
-      return;
-    }
-    if (!newAccountName.trim()) {
-      setError('Account name is required.');
-      return;
-    }
-
-    setSubmittingAccount(true);
-    setError(null);
-    setSuccess(null);
-
-    const generatedId = accounts.length > 0 ? Math.max(...accounts.map(a => a.account_id)) + 1 : 201;
-    const payload: ManagedAccount = {
-      account_id: generatedId,
-      user_id: uId,
-      account_name: newAccountName.trim(),
-      provider: newProvider,
-      status: newAccountStatus
-    };
-
-    if (sandboxActive) {
-      setTimeout(() => {
-        const updatedAccounts = [...accounts, payload];
-        setAccounts(updatedAccounts);
-        localStorage.setItem('semisharp_sandbox_accounts', JSON.stringify(updatedAccounts));
-        setSuccess(`Account "${payload.account_name}" added successfully (Simulation).`);
-        setShowAddAccountForm(false);
-        setNewAccountUserId('');
-        setNewAccountName('');
-        setNewProvider('Google');
-        setNewAccountStatus('ACTIVE');
-        setSubmittingAccount(false);
-      }, 500);
-      return;
-    }
-
-    try {
-      const response = await fetch(accountsApiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to create account: ${response.statusText} (${response.status})`);
-      }
-
-      setSuccess(`Account "${payload.account_name}" added successfully!`);
-      setShowAddAccountForm(false);
-      setNewAccountUserId('');
-      setNewAccountName('');
-      setNewProvider('Google');
-      setNewAccountStatus('ACTIVE');
-      await fetchAccounts();
-    } catch (err: any) {
-      setError(err.message || 'Failed to submit Account POST request.');
-    } finally {
-      setSubmittingAccount(false);
-    }
-  };
-
-  // Delete Account (DELETE)
-  const handleDeleteAccount = async (accountId: number) => {
-    setLoadingAccounts(true);
-    setError(null);
-    setSuccess(null);
-    setDeletingAccountId(accountId);
-    setAccountDeleteConfirmId(null);
-
-    if (sandboxActive) {
-      setTimeout(() => {
-        const currentAccounts = accounts.filter(a => a.account_id !== accountId);
-        setAccounts(currentAccounts);
-        localStorage.setItem('semisharp_sandbox_accounts', JSON.stringify(currentAccounts));
-        setSuccess(`Deleted account credential ID ${accountId} (Simulation).`);
-        setDeletingAccountId(null);
-        setLoadingAccounts(false);
-      }, 500);
-      return;
-    }
-
-    try {
-      const response = await fetch(`${accountsApiUrl}${accountId}`, {
-        method: 'DELETE',
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`DELETE request failed with status ${response.status}`);
-      }
-
-      setSuccess(`Account ID ${accountId} deleted successfully.`);
-      // Auto-refresh tables
-      await loadData();
-    } catch (err: any) {
-      setError(err.message || 'Failed to complete account delete request.');
-    } finally {
-      setDeletingAccountId(null);
-      setLoadingAccounts(false);
-    }
-  };
-
-  // Toggle Account Status (PATCH)
-  const handleToggleAccountStatus = async (accountId: number, currentStatus: string) => {
-    setError(null);
-    setSuccess(null);
-    setUpdatingAccountId(accountId);
-
-    const nextStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-
-    if (sandboxActive) {
-      setTimeout(() => {
-        const updated = accounts.map(a => {
-          if (a.account_id === accountId) {
-            return { ...a, status: nextStatus };
-          }
-          return a;
-        });
-        setAccounts(updated);
-        localStorage.setItem('semisharp_sandbox_accounts', JSON.stringify(updated));
-        setSuccess(`Toggled account ID ${accountId} status to ${nextStatus}.`);
-        setUpdatingAccountId(null);
-      }, 400);
-      return;
-    }
-
-    try {
-      const response = await fetch(`${accountsApiUrl}${accountId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ status: nextStatus }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`PATCH status request failed with status ${response.status}`);
-      }
-
-      setSuccess(`Account status updated to ${nextStatus} successfully.`);
-      // Auto-refresh tables
-      await fetchAccounts();
-    } catch (err: any) {
-      setError(err.message || 'Failed to complete status update request.');
-    } finally {
-      setUpdatingAccountId(null);
     }
   };
 
   // Reset sandbox completely
   const handleResetSandbox = () => {
     localStorage.removeItem('semisharp_sandbox_users');
-    localStorage.removeItem('semisharp_sandbox_accounts');
     localStorage.removeItem('semisharp_sandbox_entries');
     setUsers(DEFAULT_SANDBOX_USERS);
-    setAccounts(DEFAULT_SANDBOX_ACCOUNTS);
     setEntries(DEFAULT_SANDBOX_ENTRIES);
     localStorage.setItem('semisharp_sandbox_users', JSON.stringify(DEFAULT_SANDBOX_USERS));
-    localStorage.setItem('semisharp_sandbox_accounts', JSON.stringify(DEFAULT_SANDBOX_ACCOUNTS));
     localStorage.setItem('semisharp_sandbox_entries', JSON.stringify(DEFAULT_SANDBOX_ENTRIES));
-    setSuccess('Local simulation user, account, and entry directories reset to default.');
+    
+    setUsersSuccess('Local simulation users directory reset to default.');
+    setEntriesSuccess('Local simulation survivor entry tickets reset to default.');
+    setUsersError(null);
+    setEntriesError(null);
     setError(null);
   };
 
   const roleOptions = [
     { value: 'USER', label: 'USER' },
     { value: 'ADMIN', label: 'ADMIN' }
-  ];
-
-  const providerOptions = [
-    { value: 'Google', label: 'Google Authenticator' },
-    { value: 'GitHub', label: 'GitHub Social Login' },
-    { value: 'Auth0', label: 'Auth0 Secure Token' },
-    { value: 'Firebase', label: 'Firebase Identity' },
-    { value: 'Cognito', label: 'AWS Cognito Pool' }
   ];
 
   return (
@@ -889,7 +821,7 @@ export const AdminUserManagement: React.FC = () => {
                 )}
               </div>
               <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono font-bold block">
-                Manage User Logins & Provider Accounts
+                Manage user access and survivor entries
               </span>
             </div>
           </div>
@@ -911,55 +843,52 @@ export const AdminUserManagement: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => loadData(true)}
-              disabled={loadingUsers || loadingAccounts}
+              disabled={loadingUsers || loadingEntries}
               className="font-mono text-[11px] border-slate-200 h-8 font-bold flex items-center gap-1.5"
               id="btn_refresh_users"
             >
-              <RefreshCw className={`w-3 h-3 ${(loadingUsers || loadingAccounts) ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3 h-3 ${(loadingUsers || loadingEntries) ? 'animate-spin' : ''}`} />
               Sync Tables
             </Button>
           </div>
         </div>
 
-        {/* Informational Connection Alert */}
-        {connectionWarning && (
-          <div className="bg-amber-50 border border-amber-150 rounded-xl p-3.5 text-xs text-amber-900 space-y-2">
-            <div className="flex items-center gap-2 font-mono font-bold uppercase tracking-wider text-amber-700">
-              <ShieldAlert className="w-4 h-4 shrink-0" />
-              Local Backend Offline (http://127.0.0.1:8000)
+        {/* Connection Error Alert */}
+        {connectionError && (
+          <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 text-xs text-rose-900 space-y-2 animate-fade-in" id="persistent_connection_error">
+            <div className="flex items-center gap-2 font-mono font-bold uppercase tracking-wider text-rose-700">
+              <ShieldAlert className="w-4 h-4 shrink-0 animate-pulse" />
+              Connection Error
             </div>
-            <p className="leading-relaxed">
-              We attempted to fetch the registry endpoints but the server is unreachable. To facilitate testing inside the AI Studio preview window, **Local Simulation Mode** has been auto-enabled.
+            <p className="leading-relaxed font-sans text-rose-800">
+              The frontend is unable to reach the registry endpoints at <span className="font-mono font-semibold">{API_BASE_URL}</span>. Please verify that the API service is active, responsive, and correct credentials or configuration are supplied.
             </p>
             <div className="flex flex-wrap gap-2 items-center pt-1.5">
               <Button
-                variant="primary"
+                variant="danger"
                 size="sm"
-                onClick={() => {
-                  setSandboxActive(false);
-                  loadData(true);
+                onClick={async () => {
+                  setConnectionError(false);
+                  setError(null);
+                  await loadData(true);
                 }}
-                className="text-[11px] font-mono bg-amber-800 hover:bg-amber-950 text-white font-bold h-7 border-none"
+                className="text-[11px] font-mono bg-rose-600 hover:bg-rose-700 text-white font-bold h-7 border-none"
               >
                 <RefreshCw className="w-3 h-3 mr-1" />
                 Retry Live Connection
               </Button>
               <button 
-                onClick={() => setSandboxActive(true)}
-                className="text-[11px] underline font-medium text-amber-800 hover:text-amber-950 ml-1"
+                onClick={() => {
+                  setSandboxActive(true);
+                  setConnectionError(false);
+                  loadData(true);
+                }}
+                className="text-[11px] underline font-medium text-rose-800 hover:text-rose-950 ml-1"
               >
-                Continue using simulation mode
+                Use Local Simulation Mode
               </button>
             </div>
           </div>
-        )}
-
-        {/* Feedback Alerts */}
-        {error && (
-          <Alert type="error" message={error} className="rounded-xl text-xs" />
-        )}
-        {success && (
-          <Alert type="success" message={success} className="rounded-xl text-xs" />
         )}
 
         {/* SECTION TABS */}
@@ -974,17 +903,6 @@ export const AdminUserManagement: React.FC = () => {
             id="subtab_btn_user_admin"
           >
             User Administration
-          </button>
-          <button
-            onClick={() => setActiveTab('accounts')}
-            className={`px-4 py-2 border-b-2 font-mono text-xs uppercase tracking-wider font-extrabold transition-all whitespace-nowrap ${
-              activeTab === 'accounts'
-                ? 'border-indigo-500 text-indigo-600 bg-indigo-50/5'
-                : 'border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-300'
-            }`}
-            id="subtab_btn_account_admin"
-          >
-            Account Administration
           </button>
           <button
             onClick={() => setActiveTab('entries')}
@@ -1002,6 +920,12 @@ export const AdminUserManagement: React.FC = () => {
         {/* TAB 1: USER ADMINISTRATION */}
         {activeTab === 'users' && (
           <div className="space-y-4 animate-fade-in">
+            {usersError && (
+              <Alert type="error" message={usersError} className="rounded-xl text-xs animate-fade-in" />
+            )}
+            {usersSuccess && (
+              <Alert type="success" message={usersSuccess} className="rounded-xl text-xs animate-fade-in" />
+            )}
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider">
                 User Registrations Database
@@ -1119,7 +1043,7 @@ export const AdminUserManagement: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-mono bg-white">
-                      {users.map((user) => {
+                      {(users || []).map((user) => {
                         const isUpdating = updatingUserId === user.user_id;
                         const isDeleting = deletingUserId === user.user_id;
                         const isAwaitingDelete = userDeleteConfirmId === user.user_id;
@@ -1243,558 +1167,330 @@ export const AdminUserManagement: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 2: ACCOUNT ADMINISTRATION */}
-        {activeTab === 'accounts' && (
-          <div className="space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider">
-                External Identity Providers Directory
-              </span>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => setShowAddAccountForm(!showAddAccountForm)}
-                className="font-mono text-xs font-bold gap-1 h-8"
-                id="btn_toggle_add_account"
-              >
-                {showAddAccountForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-                {showAddAccountForm ? 'Cancel Form' : 'Add Identity Account'}
-              </Button>
-            </div>
 
-            {/* ADD ACCOUNT POST FORM */}
-            {showAddAccountForm && (
-              <form onSubmit={handleCreateAccount} className="bg-slate-50 border border-slate-150 rounded-xl p-4 space-y-4">
-                <div className="flex items-center gap-2 border-b border-slate-200 pb-2 mb-2">
-                  <Database className="w-4 h-4 text-slate-500" />
-                  <span className="font-mono font-bold text-xs text-slate-700 uppercase tracking-wider">
-                    POST Payload: /admin/accounts/
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">
-                      Target User ID *
-                    </label>
-                    <Select
-                      id="new_account_user_select"
-                      options={[
-                        { value: '', label: '-- Select User Owner --' },
-                        ...users.map(u => ({ value: String(u.user_id), label: `${u.display_name || u.username} (ID: ${u.user_id})` }))
-                      ]}
-                      value={newAccountUserId}
-                      onChange={(e) => setNewAccountUserId(e.target.value)}
-                      required
-                      className="bg-white border-slate-200 text-xs font-mono"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">
-                      Account Name *
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="e.g. Primary LDAP Sync"
-                      value={newAccountName}
-                      onChange={(e) => setNewAccountName(e.target.value)}
-                      required
-                      className="bg-white border-slate-200 text-xs"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">
-                      Identity Provider
-                    </label>
-                    <Select
-                      id="new_account_provider_select"
-                      options={providerOptions}
-                      value={newProvider}
-                      onChange={(e) => setNewProvider(e.target.value)}
-                      className="bg-white border-slate-200 text-xs font-mono"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">
-                      Initial Status
-                    </label>
-                    <Select
-                      id="new_account_status_select"
-                      options={[
-                        { value: 'ACTIVE', label: 'ACTIVE' },
-                        { value: 'INACTIVE', label: 'INACTIVE' }
-                      ]}
-                      value={newAccountStatus}
-                      onChange={(e) => setNewAccountStatus(e.target.value)}
-                      className="bg-white border-slate-200 text-xs font-mono"
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end pt-2">
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    type="submit"
-                    isLoading={submittingAccount}
-                    className="font-mono text-xs font-bold"
-                  >
-                    Submit POST Request
-                  </Button>
-                </div>
-              </form>
-            )}
-
-            {/* ACCOUNTS TABLE */}
-            <div className="overflow-hidden border border-slate-100 rounded-xl bg-slate-50/20">
-              {loadingAccounts && accounts.length === 0 ? (
-                <LoadingSpinner size="md" message="Synchronizing identity accounts..." />
-              ) : accounts.length === 0 ? (
-                <div className="p-10 text-center space-y-2 text-slate-400 font-mono">
-                  <AlertCircle className="w-8 h-8 mx-auto text-slate-300" />
-                  <p className="text-xs">No integrated provider accounts discovered in register.</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-slate-150 text-left table-fixed">
-                    <thead className="bg-slate-50 font-mono text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                      <tr>
-                        <th className="px-4 py-3 w-[12%]">Acct ID</th>
-                        <th className="px-4 py-3 w-[12%]">User ID</th>
-                        <th className="px-4 py-3 w-[30%]">Account Name</th>
-                        <th className="px-4 py-3 w-[20%]">Provider</th>
-                        <th className="px-4 py-3 w-[16%] text-center">Status Toggle</th>
-                        <th className="px-4 py-3 w-[10%] text-center">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-mono bg-white">
-                      {accounts.map((acct) => {
-                        const isUpdating = updatingAccountId === acct.account_id;
-                        const isDeleting = deletingAccountId === acct.account_id;
-                        const isAwaitingDelete = accountDeleteConfirmId === acct.account_id;
-
-                        // Find matching owner name
-                        const ownerUser = users.find(u => u.user_id === acct.user_id);
-                        const ownerLabel = ownerUser ? (ownerUser.display_name || `@${ownerUser.username}`) : 'Unknown';
-
-                        return (
-                          <tr 
-                            key={acct.account_id}
-                            className={`transition-colors duration-150 ${isAwaitingDelete ? 'bg-rose-50/50' : 'hover:bg-slate-50/40'}`}
-                          >
-                            {/* Account ID */}
-                            <td className="px-4 py-3.5 text-slate-400 font-bold">
-                              #{acct.account_id}
-                            </td>
-
-                            {/* User ID Owner */}
-                            <td className="px-4 py-3.5">
-                              <span 
-                                className="font-bold bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-[10px] text-slate-600"
-                                title={`Owner: ${ownerLabel}`}
-                              >
-                                {acct.user_id}
-                              </span>
-                            </td>
-
-                            {/* Account Name */}
-                            <td className="px-4 py-3.5 font-sans font-medium text-slate-800 truncate">
-                              <div className="flex flex-col">
-                                <span>{acct.account_name}</span>
-                                <span className="text-[10px] text-slate-400 font-mono">Owner: {ownerLabel}</span>
-                              </div>
-                            </td>
-
-                            {/* Provider */}
-                            <td className="px-4 py-3.5">
-                              <span className="bg-slate-50 border border-slate-200 rounded px-2 py-0.5 text-[10px] text-slate-500 font-bold uppercase">
-                                {acct.provider}
-                              </span>
-                            </td>
-
-                            {/* Status Toggle Button (PATCH /admin/accounts/{account_id}/status) */}
-                            <td className="px-4 py-3.5 text-center">
-                              <button
-                                disabled={isUpdating || isDeleting}
-                                onClick={() => handleToggleAccountStatus(acct.account_id, acct.status)}
-                                className={`
-                                  inline-flex items-center gap-1 px-2.5 py-1 rounded-md border text-[10px] font-bold transition-all
-                                  ${acct.status === 'ACTIVE' 
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' 
-                                    : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
-                                  }
-                                  ${(isUpdating || isDeleting) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                                `}
-                                title="Click to toggle identity status"
-                              >
-                                {isUpdating ? (
-                                  <RefreshCw className="w-3 h-3 animate-spin text-slate-500" />
-                                ) : acct.status === 'ACTIVE' ? (
-                                  <Check className="w-3 h-3 shrink-0" />
-                                ) : (
-                                  <X className="w-3 h-3 shrink-0" />
-                                )}
-                                {acct.status}
-                              </button>
-                            </td>
-
-                            {/* Delete Action Trigger (DELETE /admin/accounts/{account_id}) */}
-                            <td className="px-4 py-3.5 text-center">
-                              <div className="flex items-center justify-center gap-1.5 min-h-[28px]">
-                                {isAwaitingDelete ? (
-                                  <div className="flex items-center gap-1">
-                                    <Button
-                                      variant="danger"
-                                      size="sm"
-                                      onClick={() => handleDeleteAccount(acct.account_id)}
-                                      className="px-1.5 py-1 text-[9px] font-bold font-mono h-6 gap-0"
-                                      title="Confirm delete"
-                                    >
-                                      Yes
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => setAccountDeleteConfirmId(null)}
-                                      className="px-1.5 py-1 text-[9px] border-slate-300 text-slate-600 h-6 gap-0"
-                                      title="Cancel"
-                                    >
-                                      No
-                                    </Button>
-                                  </div>
-                                ) : (
-                                  <button
-                                    disabled={isUpdating || isDeleting}
-                                    onClick={() => setAccountDeleteConfirmId(acct.account_id)}
-                                    className={`p-1.5 rounded-md border text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 transition-all ${isDeleting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                                    title={`Delete integrated credentials #${acct.account_id}`}
-                                  >
-                                    {isDeleting ? (
-                                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-slate-400" />
-                                    ) : (
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    )}
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* TAB 3: ENTRY MANAGEMENT */}
         {activeTab === 'entries' && (
-          <div className="space-y-4 animate-fade-in" id="panel_entry_admin">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <span className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider">
-                Contestant Ticket Registry
-              </span>
-              <div className="flex items-center gap-2 flex-wrap">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClearEntryCache}
-                  className="font-mono text-xs border-slate-200 text-slate-600 font-bold h-8 flex items-center gap-1.5"
-                  id="btn_clear_entry_cache"
-                >
-                  Clear Entry Cache
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => setShowAddEntryForm(!showAddEntryForm)}
-                  className="font-mono text-xs font-bold gap-1 h-8"
-                  id="btn_toggle_add_entry"
-                >
-                  {showAddEntryForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-                  {showAddEntryForm ? 'Cancel' : 'Add Ticket Entry'}
-                </Button>
-              </div>
-            </div>
-
-            {/* ADD ENTRY FORM */}
-            {showAddEntryForm && (
-              <form onSubmit={handleCreateEntry} className="bg-slate-50 border border-slate-150 rounded-xl p-4 space-y-4" id="form_add_entry">
-                <div className="flex items-center gap-2 border-b border-slate-200 pb-2 mb-2">
-                  <Database className="w-4 h-4 text-slate-500" />
-                  <span className="font-mono font-bold text-xs text-slate-700 uppercase tracking-wider">
-                    POST Payload: /admin/entries/
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">
-                      Contestant User *
-                    </label>
-                    <Select
-                      id="new_entry_user_select"
-                      options={[
-                        { value: '', label: 'Select user...' },
-                        ...users.map(u => ({
-                          value: String(u.user_id),
-                          label: `${u.display_name || u.username} (${u.user_id})`
-                        }))
-                      ]}
-                      value={newEntryUserId}
-                      onChange={(e) => setNewEntryUserId(e.target.value)}
-                      required
-                      className="bg-white border-slate-200 text-xs font-mono"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">
-                      NFL Week (1-18) *
-                    </label>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={18}
-                      placeholder="1"
-                      value={newEntryWeek}
-                      onChange={(e) => setNewEntryWeek(parseInt(e.target.value) || 1)}
-                      required
-                      className="bg-white border-slate-200 text-xs font-mono"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">
-                      Selected NFL Team *
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="e.g. Philadelphia Eagles"
-                      value={newEntrySelectedTeam}
-                      onChange={(e) => setNewEntrySelectedTeam(e.target.value)}
-                      required
-                      className="bg-white border-slate-200 text-xs font-mono"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">
-                      Entry Submission Status
-                    </label>
-                    <Select
-                      id="new_entry_status_select"
-                      options={[
-                        { value: 'SUBMITTED', label: 'SUBMITTED' },
-                        { value: 'PENDING', label: 'PENDING' },
-                        { value: 'STUCK', label: 'STUCK' },
-                        { value: 'OVERRIDDEN', label: 'OVERRIDDEN' }
-                      ]}
-                      value={newEntryStatus}
-                      onChange={(e) => setNewEntryStatus(e.target.value as any)}
-                      className="bg-white border-slate-200 text-xs font-mono"
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end pt-2">
+          <ErrorBoundary>
+            <div className="space-y-4 animate-fade-in" id="panel_entry_admin">
+              {entriesError && (
+                <Alert type="error" message={entriesError} className="rounded-xl text-xs animate-fade-in" />
+              )}
+              {entriesSuccess && (
+                <Alert type="success" message={entriesSuccess} className="rounded-xl text-xs animate-fade-in" />
+              )}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <span className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider">
+                  Contestant Ticket Registry
+                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearEntryCache}
+                    className="font-mono text-xs border-slate-200 text-slate-600 font-bold h-8 flex items-center gap-1.5"
+                    id="btn_clear_entry_cache"
+                  >
+                    Clear Entry Cache
+                  </Button>
                   <Button
                     variant="primary"
                     size="sm"
-                    type="submit"
-                    disabled={submittingEntry}
-                    className="font-mono text-xs font-bold px-5"
-                    id="btn_submit_new_entry"
+                    onClick={() => setShowAddEntryForm(!showAddEntryForm)}
+                    className="font-mono text-xs font-bold gap-1 h-8"
+                    id="btn_toggle_add_entry"
                   >
-                    {submittingEntry ? (
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1" />
-                    ) : (
-                      <Database className="w-3.5 h-3.5 mr-1" />
-                    )}
-                    Dispatch POST Request
+                    {showAddEntryForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                    {showAddEntryForm ? 'Cancel' : 'Add Ticket Entry'}
                   </Button>
                 </div>
-              </form>
-            )}
+              </div>
 
-            {/* ENTRIES LIST / TABLE */}
-            <div className="border border-slate-150 rounded-xl overflow-hidden bg-white">
-              {loadingEntries ? (
-                <div className="p-12 flex flex-col items-center justify-center gap-3">
-                  <LoadingSpinner className="w-6 h-6 text-indigo-500" />
-                  <span className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider animate-pulse">
-                    Querying ticket ledger index...
-                  </span>
-                </div>
-              ) : entries.length === 0 ? (
-                <div className="p-10 flex flex-col items-center justify-center text-center gap-3">
-                  <div className="p-3 bg-slate-50 border border-slate-100 rounded-2xl text-slate-400">
-                    <Ticket className="w-6 h-6 text-slate-300" />
+              {/* ADD ENTRY FORM */}
+              {showAddEntryForm && (
+                <form onSubmit={handleCreateEntry} className="bg-slate-50 border border-slate-150 rounded-xl p-4 space-y-4 animate-fade-in" id="form_add_entry">
+                  <div className="flex items-center gap-2 border-b border-slate-200 pb-2 mb-2">
+                    <Database className="w-4 h-4 text-slate-500" />
+                    <span className="font-mono font-bold text-xs text-slate-700 uppercase tracking-wider">
+                      POST Payload: /admin/entries/
+                    </span>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-xs font-bold text-slate-700 font-mono uppercase tracking-wider">No tickets recorded</p>
-                    <p className="text-[11px] text-slate-400 max-w-sm">
-                      There are no contestant entry tickets found in the database. Use the button above to seed simulation tickets.
-                    </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+                    {/* User Dropdown */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">
+                        Contestant User *
+                      </label>
+                      <Select
+                        id="new_entry_user_select"
+                        options={[
+                          { value: '', label: 'Select user...' },
+                          ...(users || []).map(u => ({
+                            value: String(u.user_id),
+                            label: `${u.display_name || u.username} (${u.user_id})`
+                          }))
+                        ]}
+                        value={newEntryUserId || ''}
+                        onChange={(e) => setNewEntryUserId(e.target.value)}
+                        required
+                        className="bg-white border-slate-200 text-xs font-mono"
+                      />
+                    </div>
+
+                    {/* Survivor Sweat Name */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">
+                        Survivor Sweat Name *
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="e.g. UWOSH-5"
+                        value={newEntrySweatName || ''}
+                        onChange={(e) => setNewEntrySweatName(e.target.value)}
+                        required
+                        className="bg-white border-slate-200 text-xs font-mono"
+                      />
+                    </div>
+
+                    {/* Entry Label */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">
+                        Entry Label *
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="e.g. SAS Entry 3"
+                        value={newEntryLabel || ''}
+                        onChange={(e) => setNewEntryLabel(e.target.value)}
+                        required
+                        className="bg-white border-slate-200 text-xs font-mono"
+                      />
+                    </div>
+
+                    {/* Contest Format Dropdown */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">
+                        Contest Format *
+                      </label>
+                      <Select
+                        id="new_entry_contest_format_select"
+                        options={[
+                          { value: '1', label: 'Standard Survivor' },
+                          { value: '2', label: 'Circa Survivor' }
+                        ]}
+                        value={String(newEntryContestFormatId || 1)}
+                        onChange={(e) => setNewEntryContestFormatId(parseInt(e.target.value, 10) || 1)}
+                        required
+                        className="bg-white border-slate-200 text-xs font-mono"
+                      />
+                    </div>
+
+                    {/* Active Toggle */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono block">
+                        Active Status
+                      </label>
+                      <div className="flex items-center h-9">
+                        <button
+                          type="button"
+                          onClick={() => setNewEntryIsActive(!newEntryIsActive)}
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 ${
+                            newEntryIsActive ? 'bg-indigo-600' : 'bg-slate-200'
+                          }`}
+                          id="toggle_active_status"
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                              newEntryIsActive ? 'translate-x-5' : 'translate-x-0'
+                            }`}
+                          />
+                        </button>
+                        <span className="ml-2.5 text-xs font-mono text-slate-600 font-bold">
+                          {newEntryIsActive ? 'ACTIVE' : 'INACTIVE'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse" id="table_entries_registry">
-                    <thead>
-                      <tr className="bg-slate-50/75 border-b border-slate-150 select-none">
-                        <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono">
-                          ID / Ref
-                        </th>
-                        <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono">
-                          Contestant
-                        </th>
-                        <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono text-center">
-                          NFL Week
-                        </th>
-                        <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono">
-                          Selected Team
-                        </th>
-                        <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono text-center">
-                          Status
-                        </th>
-                        <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono text-center">
-                          Override Actions
-                        </th>
-                        <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono text-center">
-                          Delete
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-xs">
-                      {entries.map((ent) => {
-                        const isUpdating = updatingEntryId === ent.entry_id;
-                        const isDeleting = deletingEntryId === ent.entry_id;
-                        const isAwaitingDelete = entryDeleteConfirmId === ent.entry_id;
 
-                        let statusColor = '';
-                        if (ent.status === 'SUBMITTED') {
-                          statusColor = 'bg-emerald-50 text-emerald-700 border-emerald-100';
-                        } else if (ent.status === 'PENDING') {
-                          statusColor = 'bg-sky-50 text-sky-700 border-sky-100';
-                        } else if (ent.status === 'STUCK') {
-                          statusColor = 'bg-rose-50 text-rose-700 border-rose-100 animate-pulse';
-                        } else {
-                          statusColor = 'bg-purple-50 text-purple-700 border-purple-100';
-                        }
-
-                        return (
-                          <tr key={ent.entry_id} className="hover:bg-slate-50/50 transition-colors">
-                            {/* Entry ID */}
-                            <td className="px-4 py-3.5 font-mono font-bold text-slate-700">
-                              <div className="flex items-center gap-1.5">
-                                <Ticket className="w-3.5 h-3.5 text-indigo-400" />
-                                <span>#{ent.entry_id}</span>
-                              </div>
-                            </td>
-
-                            {/* Contestant */}
-                            <td className="px-4 py-3.5">
-                              <div>
-                                <div className="font-semibold text-slate-900">{ent.username}</div>
-                                <div className="text-[10px] text-slate-400 font-mono">ID: {ent.user_id}</div>
-                              </div>
-                            </td>
-
-                            {/* NFL Week */}
-                            <td className="px-4 py-3.5 text-center font-mono font-bold text-slate-600">
-                              Week {ent.week}
-                            </td>
-
-                            {/* Selected Team */}
-                            <td className="px-4 py-3.5 font-medium text-slate-800">
-                              {ent.selected_team}
-                            </td>
-
-                            {/* Status */}
-                            <td className="px-4 py-3.5 text-center">
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-mono font-extrabold tracking-wide ${statusColor}`}>
-                                {ent.status}
-                              </span>
-                            </td>
-
-                            {/* Override Actions */}
-                            <td className="px-4 py-3.5">
-                              <div className="flex items-center justify-center gap-2">
-                                {/* State Override Select */}
-                                <div className="relative">
-                                  <select
-                                    disabled={isUpdating || isDeleting}
-                                    value={ent.status}
-                                    onChange={(e) => handleOverrideEntryStatus(ent.entry_id, e.target.value as any)}
-                                    className="bg-slate-50 border border-slate-200 text-[10px] font-mono font-bold rounded-md px-1.5 py-1 text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                                  >
-                                    <option value="SUBMITTED">SUBMITTED</option>
-                                    <option value="PENDING">PENDING</option>
-                                    <option value="STUCK">STUCK</option>
-                                    <option value="OVERRIDDEN">OVERRIDDEN</option>
-                                  </select>
-                                </div>
-
-                                {/* Unlock button for STUCK status */}
-                                {ent.status === 'STUCK' && (
-                                  <button
-                                    disabled={isUpdating || isDeleting}
-                                    onClick={() => handleUnlockEntry(ent.entry_id)}
-                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 text-[10px] font-mono font-extrabold transition-all cursor-pointer disabled:opacity-50"
-                                    title="Unlock submission pipeline"
-                                  >
-                                    <Unlock className="w-3 h-3 shrink-0" />
-                                    Unlock
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-
-                            {/* Delete Button */}
-                            <td className="px-4 py-3.5 text-center">
-                              <div className="flex items-center justify-center gap-1.5 min-h-[28px]">
-                                {isAwaitingDelete ? (
-                                  <div className="flex items-center gap-1">
-                                    <Button
-                                      variant="danger"
-                                      size="sm"
-                                      onClick={() => handleDeleteEntry(ent.entry_id)}
-                                      className="px-1.5 py-1 text-[9px] font-bold font-mono h-6 gap-0"
-                                      title="Confirm delete"
-                                    >
-                                      Yes
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => setEntryDeleteConfirmId(null)}
-                                      className="px-1.5 py-1 text-[9px] border-slate-300 text-slate-600 h-6 gap-0"
-                                      title="Cancel"
-                                    >
-                                      No
-                                    </Button>
-                                  </div>
-                                ) : (
-                                  <button
-                                    disabled={isUpdating || isDeleting}
-                                    onClick={() => setEntryDeleteConfirmId(ent.entry_id)}
-                                    className={`p-1.5 rounded-md border text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 transition-all ${isDeleting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                                    title={`Delete entry ticket #${ent.entry_id}`}
-                                  >
-                                    {isDeleting ? (
-                                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-slate-400" />
-                                    ) : (
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    )}
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                  <div className="flex justify-end pt-2">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      type="submit"
+                      disabled={submittingEntry}
+                      className="font-mono text-xs font-bold px-5"
+                      id="btn_submit_new_entry"
+                    >
+                      {submittingEntry ? (
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1" />
+                      ) : (
+                        <Database className="w-3.5 h-3.5 mr-1" />
+                      )}
+                      Dispatch POST Request
+                    </Button>
+                  </div>
+                </form>
               )}
+
+              {/* ENTRIES LIST / TABLE */}
+              <div className="border border-slate-150 rounded-xl overflow-hidden bg-white">
+                {loadingEntries ? (
+                  <div className="p-12 flex flex-col items-center justify-center gap-3">
+                    <LoadingSpinner className="w-6 h-6 text-indigo-500" />
+                    <span className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider animate-pulse">
+                      Querying ticket ledger index...
+                    </span>
+                  </div>
+                ) : (entries || []).length === 0 ? (
+                  <div className="p-10 flex flex-col items-center justify-center text-center gap-3">
+                    <div className="p-3 bg-slate-50 border border-slate-100 rounded-2xl text-slate-400">
+                      <Ticket className="w-6 h-6 text-slate-300" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold text-slate-700 font-mono uppercase tracking-wider">No tickets recorded</p>
+                      <p className="text-[11px] text-slate-400 max-w-sm">
+                        There are no contestant entry tickets found in the database. Use the button above to seed simulation tickets.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse" id="table_entries_registry">
+                      <thead>
+                        <tr className="bg-slate-50/75 border-b border-slate-150 select-none">
+                          <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono">
+                            Entry ID
+                          </th>
+                          <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono">
+                            User
+                          </th>
+                          <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono">
+                            Survivor Sweat Name
+                          </th>
+                          <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono">
+                            Entry Label
+                          </th>
+                          <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono text-center">
+                            Contest Format
+                          </th>
+                          <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono text-center">
+                            Active Status
+                          </th>
+                          <th className="px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono text-center">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-xs bg-white">
+                        {(entries || []).map((ent) => {
+                          const isUpdating = updatingEntryId === ent.entry_id;
+                          const isDeleting = deletingEntryId === ent.entry_id;
+                          const isAwaitingDelete = entryDeleteConfirmId === ent.entry_id;
+
+                          return (
+                            <tr key={ent.entry_id} className="hover:bg-slate-50/50 transition-colors">
+                              {/* Entry ID */}
+                              <td className="px-4 py-3.5 font-mono font-bold text-slate-700">
+                                <div className="flex items-center gap-1.5">
+                                  <Ticket className="w-3.5 h-3.5 text-indigo-400" />
+                                  <span>#{ent.entry_id}</span>
+                                </div>
+                              </td>
+
+                              {/* User */}
+                              <td className="px-4 py-3.5">
+                                <div>
+                                  <div className="font-semibold text-slate-900">
+                                    {ent.display_name || ent.username || `User #${ent.user_id}`}
+                                  </div>
+                                  <div className="text-[10px] text-slate-400 font-mono">ID: {ent.user_id}</div>
+                                </div>
+                              </td>
+
+                              {/* Survivor Sweat Name */}
+                              <td className="px-4 py-3.5 font-mono text-slate-800">
+                                {ent.survivor_sweat_name || '-'}
+                              </td>
+
+                              {/* Entry Label */}
+                              <td className="px-4 py-3.5 font-medium text-slate-800">
+                                {ent.entry_label || '-'}
+                              </td>
+
+                              {/* Contest Format */}
+                              <td className="px-4 py-3.5 text-center">
+                                <select
+                                  disabled={isUpdating || isDeleting}
+                                  value={ent.contest_format_id || 1}
+                                  onChange={(e) => handleUpdateContestFormat(ent.entry_id, parseInt(e.target.value, 10))}
+                                  className="bg-slate-50 border border-slate-200 text-[10px] font-mono font-bold rounded-md px-1.5 py-1 text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mx-auto block"
+                                >
+                                  <option value="1">Standard Survivor</option>
+                                  <option value="2">Circa Survivor</option>
+                                </select>
+                              </td>
+
+                              {/* Active Status */}
+                              <td className="px-4 py-3.5 text-center">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold tracking-wide ${
+                                  ent.is_active 
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' 
+                                    : 'bg-slate-100 text-slate-500 border border-slate-200'
+                                }`}>
+                                  {ent.is_active ? 'ACTIVE' : 'INACTIVE'}
+                                </span>
+                              </td>
+
+                              {/* Actions */}
+                              <td className="px-4 py-3.5 text-center">
+                                <div className="flex items-center justify-center gap-1.5 min-h-[28px]">
+                                  {isAwaitingDelete ? (
+                                    <div className="flex items-center gap-1 justify-center">
+                                      <Button
+                                        variant="danger"
+                                        size="sm"
+                                        onClick={() => handleDeleteEntry(ent.entry_id)}
+                                        className="px-1.5 py-1 text-[9px] font-bold font-mono h-6 gap-0"
+                                        title="Confirm delete"
+                                      >
+                                        Yes
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setEntryDeleteConfirmId(null)}
+                                        className="px-1.5 py-1 text-[9px] border-slate-300 text-slate-600 h-6 gap-0"
+                                        title="Cancel"
+                                      >
+                                        No
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      disabled={isUpdating || isDeleting}
+                                      onClick={() => setEntryDeleteConfirmId(ent.entry_id)}
+                                      className={`p-1.5 rounded-md border text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 transition-all ${isDeleting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                      title={`Delete entry ticket #${ent.entry_id}`}
+                                    >
+                                      {isDeleting ? (
+                                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-slate-400" />
+                                      ) : (
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          </ErrorBoundary>
         )}
 
         {/* Unified Help and Integration Guide */}

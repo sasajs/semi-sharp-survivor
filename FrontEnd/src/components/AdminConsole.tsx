@@ -42,7 +42,7 @@ interface AdminConsoleProps {
 }
 
 export const AdminConsole: React.FC<AdminConsoleProps> = ({ season }) => {
-  const [activeAdminTab, setActiveAdminTab] = useState<'weekly' | 'platform' | 'diagnostics'>('weekly');
+  const [activeAdminTab, setActiveAdminTab] = useState<'weekly_operations' | 'platform_config' | 'diagnostics'>('weekly_operations');
   const [refreshingAnalytics, setRefreshingAnalytics] = useState<boolean>(false);
   const [refreshSuccess, setRefreshSuccess] = useState<string | null>(null);
 
@@ -1493,7 +1493,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ season }) => {
                           <input
                             type="number"
                             step="0.5"
-                            value={currentPoints === '' ? '' : currentPoints}
+                            value={(currentPoints as any) === '' || currentPoints === null || currentPoints === undefined ? '' : currentPoints}
                             onChange={(e) => handleHfaFieldChange(record.team_id, 'home_field_points', e.target.value)}
                             disabled={savingHfa}
                             className={`w-24 px-2 py-1 text-xs border rounded-md font-mono focus:outline-none focus:ring-1 focus:ring-slate-800 ${isModified ? 'border-amber-300 focus:border-amber-500 bg-amber-50/10' : 'border-slate-200 focus:border-slate-800 bg-white'}`}

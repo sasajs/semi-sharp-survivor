@@ -1,11 +1,11 @@
 {
-  "generated": "2026-07-20 18:00:01.373727",
+  "generated": "2026-07-22 16:38:47.132844",
   "database": "semisharp",
   "tables": [
     {
       "schema": "analytics",
       "table": "game_win_probabilities",
-      "row_count": 544,
+      "row_count": 1088,
       "columns": [
         {
           "name": "win_prob_id",
@@ -543,7 +543,7 @@
     {
       "schema": "market",
       "table": "consensus_spreads",
-      "row_count": 174,
+      "row_count": 186,
       "columns": [
         {
           "name": "game_id",
@@ -598,7 +598,7 @@
     {
       "schema": "market",
       "table": "events",
-      "row_count": 87,
+      "row_count": 93,
       "columns": [
         {
           "name": "market_event_id",
@@ -674,7 +674,7 @@
     {
       "schema": "market",
       "table": "projection_edges",
-      "row_count": 174,
+      "row_count": 186,
       "columns": [
         {
           "name": "game_id",
@@ -734,7 +734,7 @@
     {
       "schema": "market",
       "table": "spreads",
-      "row_count": 1020,
+      "row_count": 2360,
       "columns": [
         {
           "name": "market_spread_id",
@@ -2214,7 +2214,7 @@
     {
       "schema": "survivor",
       "table": "entry_pick_history",
-      "row_count": 1,
+      "row_count": 4,
       "columns": [
         {
           "name": "entry_pick_history_id",
@@ -2305,7 +2305,7 @@
     {
       "schema": "survivor",
       "table": "entry_picks",
-      "row_count": 1,
+      "row_count": 2,
       "columns": [
         {
           "name": "entry_pick_id",

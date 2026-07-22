@@ -16,7 +16,7 @@ Key Rules
 3. Risk is joined specifically to the projected favorite.
 4. Results are written idempotently to
    analytics.game_win_probabilities.
-5. The canonical model identifier is SEMISHARP_WP_V2.
+5. The canonical model identifier is SEMISHARP_WP_V3.
 """
 
 import argparse
@@ -26,8 +26,9 @@ from decimal import Decimal
 from app.db import get_connection
 
 
-SIGMA = Decimal("2.4")
-SOURCE_SYSTEM = "SEMISHARP_WP_V2"
+CALIBRATION_INTERCEPT = Decimal("-0.136299")
+CALIBRATION_COEFFICIENT = Decimal("0.165789")
+SOURCE_SYSTEM = "SEMISHARP_WP_V3"
 RISK_SOURCE_SYSTEM = "SEMISHARP_RISK_V3"
 
 
@@ -60,10 +61,14 @@ def calculate_favorite_probability(spread):
     """
     spread_strength = abs(Decimal(spread))
 
-    exponent = float(-spread_strength / SIGMA)
+    logit = (
+        CALIBRATION_INTERCEPT
+        + CALIBRATION_COEFFICIENT * spread_strength
+    )
 
     return Decimal("1") / (
-        Decimal("1") + Decimal(str(math.exp(exponent)))
+        Decimal("1")
+        + Decimal(str(math.exp(-float(logit))))
     )
 
 

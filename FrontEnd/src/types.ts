@@ -14,6 +14,7 @@ export interface SurvivorEntry {
   contest_format_id?: number;
   format_code?: string;
   format_name?: string;
+  contest_name?: string;
 }
 
 export interface UserProfile {
@@ -52,12 +53,15 @@ export interface SemiSharpContext {
   environment: string;
   status?: string;
   projection_model?: string;
+  risk_model?: string;
+  probability_model?: string;
   rating_week?: number;
   hfa_source?: string;
 }
 
 // Reference Data
 export interface Team {
+  team_id?: number;
   abbr: string;
   name: string;
   conference?: string;
@@ -117,6 +121,7 @@ export interface ProjectionGame {
   home_team: string;
   favorite: string;
   projected_spread: number;
+  predicted_spread?: number;
   model: string;
 }
 
@@ -204,6 +209,8 @@ export interface StrategyBackendPick {
   risk_stars?: number;
   risk_points?: number;
   risk_summary?: string;
+  adjusted_probability?: number;
+  rationale?: string;
 }
 
 export interface AlternativeRecommendation {
@@ -224,6 +231,7 @@ export interface StrategyBackendEntry {
   survivor_sweat_name: string;
   picks: StrategyBackendPick[];
   alternative_recommendations?: AlternativeRecommendation[];
+  estimated_path_survival_probability?: number;
 }
 
 export interface StrategyRecommendation {

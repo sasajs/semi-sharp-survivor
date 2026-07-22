@@ -480,7 +480,7 @@ function AppContent() {
       {activeTab === 'market' && (
         <div className="space-y-6 animate-fade-in">
           {renderScreenHeader(
-            'Consensus Market Edge', 
+            'Market Lines & Consensus', 
             'Identify value by comparing SemiSharp spread projections directly against consensus sportsbook lines.', 
             <Database className="w-5 h-5" />,
             'LIVE'
@@ -520,8 +520,8 @@ function AppContent() {
       {activeTab === 'strategies' && (
         <div className="space-y-6 animate-fade-in">
           {renderScreenHeader(
-            'Strategy Lab', 
-            'Explore one survivor strategy at a time and inspect how it evaluates your selected entry.', 
+            'Season Path', 
+            'Explore survivor strategy paths and evaluate future leg coverage for your selected entry.', 
             <Award className="w-5 h-5" />,
             'LIVE'
           )}
@@ -540,7 +540,7 @@ function AppContent() {
       {activeTab === 'recommendation_workspace' && (
         <div className="space-y-6 animate-fade-in">
           {renderScreenHeader(
-            'Recommendation Workspace', 
+            'Advanced Strategy Analysis', 
             'Review backend-generated survivor recommendations before recording an official pick.', 
             <Brain className="w-5 h-5" />,
             'LIVE'
@@ -641,7 +641,7 @@ function AppContent() {
       {activeTab === 'placeholder_sstatus' && (
         <div className="space-y-6 animate-fade-in">
           {renderScreenHeader(
-            'Administration Console', 
+            'Operations Console', 
             'Run approved backend data operations and monitor background job execution.', 
             <Activity className="w-5 h-5" />,
             'LIVE'
