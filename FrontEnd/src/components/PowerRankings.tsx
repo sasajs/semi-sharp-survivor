@@ -69,7 +69,7 @@ export const PowerRankings: React.FC<PowerRankingsProps> = ({
         onLoaded(false);
       }
       if (err instanceof ApiError) {
-        setError(err.message || 'API error retrieving PFF power rankings.');
+        setError(err.message || 'API error retrieving power rankings.');
       } else {
         setError('A network error occurred connecting to the backend.');
       }
@@ -274,7 +274,7 @@ export const PowerRankings: React.FC<PowerRankingsProps> = ({
       <div className="space-y-6" id="pff_error_state">
         <Alert 
           type="error" 
-          title="Failed to Load PFF Power Rankings" 
+          title="Failed to Load Power Rankings" 
           message={error} 
           className="rounded-xl border-rose-200 bg-rose-50/50 text-rose-900"
         />
@@ -284,7 +284,7 @@ export const PowerRankings: React.FC<PowerRankingsProps> = ({
           </div>
           <h3 className="text-sm font-bold text-slate-800 font-mono">Ratings Service Unavailable</h3>
           <p className="text-xs text-slate-500 max-w-sm">
-            Could not retrieve team PFF ratings, quarterback evaluations, or season outlooks. Please verify your connection status and retry the query.
+            Could not retrieve team power ratings, quarterback evaluations, or season outlooks. Please verify your connection status and retry the query.
           </p>
           <Button 
             variant="outline" 
@@ -307,7 +307,7 @@ export const PowerRankings: React.FC<PowerRankingsProps> = ({
         <Alert 
           type="warning" 
           title="Empty Dataset" 
-          message="No PFF power rankings were returned for the selected season and rating week." 
+          message="No power rankings were returned for the selected season and rating week." 
           className="rounded-xl border-amber-200 bg-amber-50/50 text-amber-900"
         />
         <Card className="p-10 text-center flex flex-col items-center justify-center space-y-4 border border-slate-200 bg-white">
@@ -362,11 +362,11 @@ export const PowerRankings: React.FC<PowerRankingsProps> = ({
           <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">Data Source</span>
           <span className="text-sm font-extrabold text-slate-200 flex items-center gap-1.5">
             <FileText className="w-4 h-4 text-slate-400" />
-            {data.source || 'PFF Export'}
+            {data.source && !data.source.includes('PFF') ? data.source : 'SemiSharp Power Rating Engine'}
           </span>
         </div>
         <div className="space-y-1 sm:col-span-2 lg:col-span-1">
-          <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">Latest Import</span>
+          <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">Last Model Update</span>
           <span className="text-[11px] font-extrabold text-slate-300 truncate block mt-0.5" title={formatDateTime(data.latest_imported_at)}>
             {data.latest_imported_at ? new Date(data.latest_imported_at).toLocaleDateString() : 'N/A'}
           </span>
@@ -432,11 +432,11 @@ export const PowerRankings: React.FC<PowerRankingsProps> = ({
             </div>
           </Card>
 
-          {/* CARD 4: Latest Import */}
+          {/* CARD 4: Last Model Update */}
           <Card className="border border-slate-100 bg-white" id="card_latest_import">
             <div className="flex flex-col gap-1.5">
               <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">
-                Latest Import
+                Last Model Update
               </span>
               <span className="text-sm font-extrabold text-slate-950 font-mono break-words leading-relaxed py-1.5">
                 {summaryMetrics.latestImportTimestamp ? new Date(summaryMetrics.latestImportTimestamp).toLocaleDateString() : 'N/A'}
@@ -445,13 +445,24 @@ export const PowerRankings: React.FC<PowerRankingsProps> = ({
                 </span>
               </span>
               <span className="text-[10px] text-slate-500 font-medium">
-                PFF schedule ingest audit
+                SemiSharp model update log
               </span>
             </div>
           </Card>
 
         </div>
       )}
+
+      {/* Informational Transparency Note */}
+      <div className="flex items-start gap-3 px-4 py-3.5 bg-blue-50/80 border border-blue-200/80 rounded-xl text-blue-900 text-xs shadow-2xs" id="power_rankings_transparency_note">
+        <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+        <div className="space-y-0.5">
+          <span className="font-bold text-blue-950 font-mono text-[11px] uppercase tracking-wide block">About Power Rankings</span>
+          <p className="text-slate-700 leading-relaxed font-sans font-medium">
+            Power Rankings estimate each team's overall strength entering the current week. These ratings are used throughout SemiSharp when generating projected point spreads, game probabilities, survivor recommendations, and season outlook metrics. Ratings are updated whenever new analytical inputs become available.
+          </p>
+        </div>
+      </div>
 
       {/* 3. CONTROLS BAR (Search, Filters, Sort & Refresh) */}
       <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-3xs space-y-4" id="pff_controls_panel">
@@ -554,7 +565,7 @@ export const PowerRankings: React.FC<PowerRankingsProps> = ({
           <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/40 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-slate-600" />
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono">PFF Team Evaluations Log</h3>
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono">Power Rankings</h3>
             </div>
             <div className="text-[10px] text-slate-400 font-mono font-bold">
               Displaying {processedRankings.length} of {data.count} records
@@ -698,7 +709,7 @@ export const PowerRankings: React.FC<PowerRankingsProps> = ({
                     {renderDetailField('Nickname', selectedTeam.team_nick)}
                     {renderDetailField('Conference', selectedTeam.conference)}
                     {renderDetailField('Division', selectedTeam.division)}
-                    {renderDetailField('PFF Source Code', selectedTeam.pff_team_code)}
+                    {renderDetailField('Team Source Code', selectedTeam.pff_team_code)}
                     {renderDetailField('Team ID', selectedTeam.team_id)}
                   </div>
                 </div>
@@ -709,7 +720,7 @@ export const PowerRankings: React.FC<PowerRankingsProps> = ({
                     Current Ratings
                   </h5>
                   <div className="px-1">
-                    {renderDetailField('PFF Rank', selectedTeam.rank)}
+                    {renderDetailField('Power Rank', selectedTeam.rank)}
                     {renderDetailField('Point Spread Rating', selectedTeam.point_spread_rating, formatSpread)}
                     {renderDetailField('QB Rating', selectedTeam.qb_rating, formatQbRating)}
                   </div>
@@ -748,7 +759,7 @@ export const PowerRankings: React.FC<PowerRankingsProps> = ({
                   <div className="px-1">
                     {renderDetailField('Source File', selectedTeam.source_file)}
                     {renderDetailField('Imported Timestamp', selectedTeam.imported_at, formatDateTime)}
-                    {renderDetailField('PFF Power Rating ID', selectedTeam.pff_power_rating_id)}
+                    {renderDetailField('Power Rating ID', selectedTeam.pff_power_rating_id)}
                     {renderDetailField('Season', selectedTeam.season)}
                     {renderDetailField('Week', selectedTeam.week)}
                     {renderDetailField('Contest Leg ID', selectedTeam.contest_leg_id)}
@@ -779,7 +790,7 @@ export const PowerRankings: React.FC<PowerRankingsProps> = ({
         {educationOpen && (
           <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-600 leading-relaxed max-w-3xl space-y-2">
             <p>
-              PFF power ratings and quarterback ratings are used as analytical inputs within SemiSharp’s projection, risk, and strategy processes. They are considered alongside schedule context, team health, home-field advantage, market information, and contest constraints. No single rating determines a recommendation.
+              Power ratings and quarterback ratings are used as analytical inputs within SemiSharp’s projection, risk, and strategy processes. They are considered alongside schedule context, team health, home-field advantage, market information, and contest constraints. No single rating determines a recommendation.
             </p>
           </div>
         )}

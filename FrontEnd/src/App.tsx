@@ -362,7 +362,7 @@ function AppContent() {
     title: string, 
     subtitle: string, 
     icon: React.ReactNode, 
-    status?: 'LIVE' | 'IN_DEVELOPMENT' | 'PLACEHOLDER'
+    status?: 'LIVE' | 'IN_DEVELOPMENT' | 'PLACEHOLDER' | 'IN_PROGRESS'
   ) => (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 mb-8 border-b border-slate-200/80">
       <div className="flex items-start gap-3">
@@ -372,9 +372,14 @@ function AppContent() {
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-bold text-slate-950 tracking-tight leading-none">{title}</h2>
-            {(status === 'LIVE' || status === 'IN_DEVELOPMENT') && (
+            {status === 'LIVE' && (
               <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
                 🟢 LIVE
+              </span>
+            )}
+            {(status === 'IN_DEVELOPMENT' || status === 'IN_PROGRESS') && (
+              <span className="text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                🟡 IN PROGRESS
               </span>
             )}
             {status === 'PLACEHOLDER' && (
@@ -457,11 +462,11 @@ function AppContent() {
       )}
 
       {/* 4. RISK VIEW */}
-      {activeTab === 'risk' && (
+      {(activeTab === 'risk' || activeTab === 'risk_analysis') && (
         <div className="space-y-6 animate-fade-in">
           {renderScreenHeader(
-            'Risk & Uncertainty Analysis', 
-            'Interactive evaluation of team safety ratings, weather conditions, injury reports, and traveling factors.', 
+            'Risk Analysis', 
+            "SemiSharp Risk Analysis measures how vulnerable a favored team is to an upset. Unlike Win Probability, which estimates a team's chance of winning, Risk Analysis evaluates characteristics historically associated with unexpected losses. Risk scores are one of the analytical inputs used throughout SemiSharp to distinguish between safe favorites and fragile favorites when making survivor recommendations.", 
             <AlertOctagon className="w-5 h-5" />,
             'LIVE'
           )}
@@ -480,8 +485,8 @@ function AppContent() {
       {activeTab === 'market' && (
         <div className="space-y-6 animate-fade-in">
           {renderScreenHeader(
-            'Market Lines & Consensus', 
-            'Identify value by comparing SemiSharp spread projections directly against consensus sportsbook lines.', 
+            'Market Comparison & Win Probability', 
+            "Market Comparison shows how current sportsbook lines compare with SemiSharp's projected spread. It also displays the model's win probability and risk assessment for each matchup.", 
             <Database className="w-5 h-5" />,
             'LIVE'
           )}
@@ -595,7 +600,7 @@ function AppContent() {
         <div className="space-y-6 animate-fade-in">
           {renderScreenHeader(
             'Power Rankings', 
-            'Review current PFF team ratings, quarterback ratings, and season outlook metrics used by SemiSharp.', 
+            "Power Rankings estimate the overall strength of every NFL team using SemiSharp's analytical models. These ratings provide a baseline for game projections, survivor recommendations, and season outlook analysis.", 
             <TrendingUp className="w-5 h-5" />,
             'LIVE'
           )}
@@ -619,7 +624,7 @@ function AppContent() {
         <div className="space-y-6 animate-fade-in">
           {renderScreenHeader(
             'Home Field Advantage', 
-            'Review the team-level home-field point adjustments used by SemiSharp’s projection models.', 
+            "Home-field advantage adjusts each team's projected point spread when playing at home. These values are recalibrated annually and are used throughout SemiSharp's projection models.", 
             <Sliders className="w-5 h-5" />,
             'LIVE'
           )}

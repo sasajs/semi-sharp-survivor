@@ -23,13 +23,15 @@ export const SportsbookTableV2: React.FC<SportsbookTableV2Props> = ({
   homeAbbr,
 }) => {
   // Format price helper (e.g. -110 or +105)
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number | null | undefined) => {
+    if (price == null || isNaN(price)) return 'Pending';
     if (price > 0) return `+${price}`;
     return price.toString();
   };
 
-  const formatSpread = (val: number) => {
-    if (val === 0) return '0.0';
+  const formatSpread = (val: number | null | undefined) => {
+    if (val == null || isNaN(val)) return 'Pending';
+    if (val === 0) return 'PK';
     return val > 0 ? `+${val.toFixed(1)}` : val.toFixed(1);
   };
 

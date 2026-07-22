@@ -198,6 +198,14 @@ export const SemiSharpApi = {
     return request<RiskResponse>(`/risk/${season}/${week}`);
   },
 
+  async getRiskWeek(season: number, week: number): Promise<RiskResponse> {
+    return request<RiskResponse>(`/risk/week/${season}/${week}`);
+  },
+
+  async getRiskGame(gameId: string): Promise<any> {
+    return request<any>(`/risk/game/${encodeURIComponent(gameId)}`);
+  },
+
   async getRiskMethodology(): Promise<any> {
     return request<any>('/risk/methodology');
   },

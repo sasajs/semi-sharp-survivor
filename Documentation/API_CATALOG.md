@@ -1,6 +1,6 @@
 # SemiSharp API Catalog
 
-Generated: 2026-07-22 16:38:47.913647
+Generated: 2026-07-22 18:37:50.108523
 
 Total API Routes: 52
 

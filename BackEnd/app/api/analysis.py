@@ -114,6 +114,12 @@ def get_weekly_game_analysis(
             home_edge.edge_points
                 AS home_edge_points,
 
+            away_wp.risk_adjusted_wp
+                AS away_win_probability,
+
+            home_wp.risk_adjusted_wp
+                AS home_win_probability,
+
             away_risk.risk_score AS away_risk_score,
             away_risk.risk_stars AS away_risk_stars,
             away_risk.risk_level AS away_risk_level,
@@ -154,6 +160,32 @@ def get_weekly_game_analysis(
         LEFT JOIN market.projection_edges home_edge
           ON home_edge.game_id = g.game_id
          AND home_edge.team_id = g.home_team_id
+
+        LEFT JOIN LATERAL (
+            SELECT
+                wp.risk_adjusted_wp
+            FROM analytics.game_win_probabilities wp
+            WHERE wp.game_id = g.game_id
+              AND wp.team_id = g.away_team_id
+              AND wp.season = g.season
+              AND wp.week = g.week
+              AND wp.source_system = 'SEMISHARP_WP_V3'
+            ORDER BY wp.created_at DESC
+            LIMIT 1
+        ) away_wp ON TRUE
+
+        LEFT JOIN LATERAL (
+            SELECT
+                wp.risk_adjusted_wp
+            FROM analytics.game_win_probabilities wp
+            WHERE wp.game_id = g.game_id
+              AND wp.team_id = g.home_team_id
+              AND wp.season = g.season
+              AND wp.week = g.week
+              AND wp.source_system = 'SEMISHARP_WP_V3'
+            ORDER BY wp.created_at DESC
+            LIMIT 1
+        ) home_wp ON TRUE
 
         LEFT JOIN LATERAL (
             SELECT
@@ -411,9 +443,12 @@ def get_weekly_game_analysis(
                     "source_system": row["projection_source"],
                     "created_at": row["projection_created_at"],
 
-                    # No calibrated win-probability field exists yet.
-                    "home_win_probability": None,
-                    "away_win_probability": None,
+                    "home_win_probability": (
+                        row["home_win_probability"]
+                    ),
+                    "away_win_probability": (
+                        row["away_win_probability"]
+                    ),
                 },
 
                 "market": {

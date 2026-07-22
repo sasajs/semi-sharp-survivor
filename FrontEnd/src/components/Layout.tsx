@@ -138,12 +138,11 @@ export const Layout: React.FC<LayoutProps> = ({
     {
       title: 'Reference Data',
       items: [
-        { id: 'game_analysis', name: 'Weekly Game Analysis', icon: ClipboardList, status: 'IN_PROGRESS' },
-        { id: 'market', name: 'Market Lines & Consensus', icon: Database, status: 'IN_PROGRESS' },
-        { id: 'power_rankings', name: 'Power Rankings', icon: TrendingUp, status: 'IN_PROGRESS' },
-        { id: 'placeholder_thealth', name: 'Team Health', icon: Heart, status: 'IN_PROGRESS' },
-        { id: 'home_field_advantage', name: 'Home Field Advantage', icon: Sliders, status: 'IN_PROGRESS' },
-        { id: 'placeholder_hanalysis', name: 'Historical Analysis', icon: History, status: 'COMING_SOON' },
+        { id: 'home_field_advantage', name: 'Home Field Advantage', icon: Sliders, status: 'LIVE' },
+        { id: 'power_rankings', name: 'Power Rankings', icon: TrendingUp, status: 'LIVE' },
+        { id: 'risk_analysis', name: 'Risk Analysis', icon: AlertOctagon, status: 'LIVE' },
+        { id: 'placeholder_thealth', name: 'Team Health', icon: Heart, status: 'LIVE' },
+        { id: 'market', name: 'Market Comparison & Win Probability', icon: Database, status: 'LIVE' },
       ]
     },
     {

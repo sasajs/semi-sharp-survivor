@@ -418,6 +418,12 @@ export const HomeFieldAdvantage: React.FC<HomeFieldAdvantageProps> = ({
         </div>
       )}
 
+      {/* Informational Note */}
+      <div className="flex items-center gap-2.5 px-4 py-3 bg-blue-50/80 border border-blue-200/80 rounded-xl text-blue-900 text-xs font-medium shadow-2xs" id="hfa_recalibration_note">
+        <Info className="w-4 h-4 text-blue-600 shrink-0" />
+        <span>These values are recalculated once each NFL season and remain fixed unless a new model calibration is released.</span>
+      </div>
+
       {/* 3. CONTROLS BAR (Search, Filters, Sort & Refresh) */}
       <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-3xs space-y-4" id="hfa_controls_panel">
         <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
