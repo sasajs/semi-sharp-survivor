@@ -17,6 +17,7 @@ from app.services.season_management_service import (
     advance_current_week,
     create_entry_pick,
     delete_entry_pick,
+    get_entry_review,
     get_season_management_status,
     list_entry_picks,
     list_valid_pick_options,
@@ -84,6 +85,18 @@ def season_management_status():
     """
     try:
         return get_season_management_status()
+
+    except SeasonManagementError as exc:
+        _raise_http_error(exc)
+
+
+@router.get("/entries/{entry_id}/review")
+def entry_review(entry_id: int):
+    """
+    Return the complete Step 1 entry-review model.
+    """
+    try:
+        return get_entry_review(entry_id)
 
     except SeasonManagementError as exc:
         _raise_http_error(exc)

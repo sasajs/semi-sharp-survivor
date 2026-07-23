@@ -508,6 +508,331 @@ def _entry_pick_select_sql() -> str:
     """
 
 
+
+def get_entry_review(
+    entry_id: int,
+) -> dict[str, Any]:
+    """
+    Return the backend-owned Step 1 entry-review model.
+
+    Global week advancement is not blocked by incomplete entry history.
+    This response identifies missing prior contest legs so the user can
+    complete them before advancing to strategy planning.
+    """
+    try:
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                application = (
+                    _load_active_application_context(cursor)
+                )
+
+                cursor.execute(
+                    """
+                    SELECT
+                        e.entry_id,
+                        e.user_id,
+                        e.survivor_sweat_name,
+                        e.entry_label,
+                        e.is_active,
+                        e.contest_format_id,
+                        f.format_code,
+                        f.format_name,
+                        f.includes_thanksgiving,
+                        f.includes_christmas
+                    FROM survivor.entries e
+                    JOIN contest.formats f
+                      ON f.contest_format_id =
+                         e.contest_format_id
+                    WHERE e.entry_id = %s;
+                    """,
+                    (entry_id,),
+                )
+
+                entry_row = cursor.fetchone()
+
+                if entry_row is None:
+                    raise SeasonManagementError(
+                        f"Survivor entry {entry_id} was not found."
+                    )
+
+                (
+                    loaded_entry_id,
+                    user_id,
+                    survivor_sweat_name,
+                    entry_label,
+                    is_active,
+                    contest_format_id,
+                    format_code,
+                    format_name,
+                    includes_thanksgiving,
+                    includes_christmas,
+                ) = entry_row
+
+                cursor.execute(
+                    """
+                    SELECT
+                        l.contest_leg_id,
+                        l.leg_number,
+                        l.leg_code,
+                        l.leg_name,
+                        l.nfl_week,
+                        l.is_special_leg,
+                        l.special_leg_type,
+                        l.starts_on,
+                        l.ends_on
+                    FROM contest.legs l
+                    WHERE l.contest_format_id = %s
+                      AND l.season = %s
+                      AND l.nfl_week = %s
+                    ORDER BY l.leg_number;
+                    """,
+                    (
+                        contest_format_id,
+                        application["season"],
+                        application["current_week"],
+                    ),
+                )
+
+                current_leg_rows = cursor.fetchall()
+
+                current_legs = [
+                    {
+                        "contest_leg_id": row[0],
+                        "leg_number": row[1],
+                        "leg_code": row[2],
+                        "leg_name": row[3],
+                        "nfl_week": row[4],
+                        "is_special_leg": row[5],
+                        "special_leg_type": row[6],
+                        "starts_on": row[7],
+                        "ends_on": row[8],
+                    }
+                    for row in current_leg_rows
+                ]
+
+                cursor.execute(
+                    """
+                    SELECT
+                        l.contest_leg_id,
+                        l.leg_number,
+                        l.leg_code,
+                        l.leg_name,
+                        l.nfl_week,
+                        l.is_special_leg,
+                        l.special_leg_type,
+                        l.starts_on,
+                        l.ends_on,
+                        ep.entry_pick_id,
+                        ep.team_id,
+                        t.team_abbr,
+                        t.team_name,
+                        ep.pick_source,
+                        ep.pick_status,
+                        ep.picked_at,
+                        ep.updated_at,
+                        ep.notes
+                    FROM contest.legs l
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            selected.entry_pick_id,
+                            selected.team_id,
+                            selected.pick_source,
+                            selected.pick_status,
+                            selected.picked_at,
+                            selected.updated_at,
+                            selected.notes
+                        FROM survivor.entry_picks selected
+                        WHERE selected.entry_id = %s
+                          AND selected.contest_leg_id =
+                              l.contest_leg_id
+                          AND selected.pick_status <> 'VOID'
+                        ORDER BY
+                            selected.updated_at DESC NULLS LAST,
+                            selected.picked_at DESC NULLS LAST,
+                            selected.entry_pick_id DESC
+                        LIMIT 1
+                    ) ep ON TRUE
+                    LEFT JOIN reference.teams t
+                      ON t.team_id = ep.team_id
+                    WHERE l.contest_format_id = %s
+                      AND l.season = %s
+                      AND l.nfl_week < %s
+                    ORDER BY l.leg_number;
+                    """,
+                    (
+                        entry_id,
+                        contest_format_id,
+                        application["season"],
+                        application["current_week"],
+                    ),
+                )
+
+                history_rows = cursor.fetchall()
+
+        prior_pick_history: list[dict[str, Any]] = []
+        missing_contest_leg_ids: list[int] = []
+        missing_regular_weeks: set[int] = set()
+        used_teams_by_id: dict[int, dict[str, Any]] = {}
+
+        for row in history_rows:
+            (
+                contest_leg_id,
+                leg_number,
+                leg_code,
+                leg_name,
+                nfl_week,
+                is_special_leg,
+                special_leg_type,
+                starts_on,
+                ends_on,
+                entry_pick_id,
+                team_id,
+                team_abbr,
+                team_name,
+                pick_source,
+                stored_pick_status,
+                picked_at,
+                updated_at,
+                notes,
+            ) = row
+
+            is_missing = entry_pick_id is None
+
+            if is_missing:
+                missing_contest_leg_ids.append(
+                    int(contest_leg_id)
+                )
+                missing_regular_weeks.add(int(nfl_week))
+
+            pick_status = (
+                "MISSING"
+                if is_missing
+                else stored_pick_status
+            )
+
+            prior_pick_history.append({
+                "contest_leg_id": contest_leg_id,
+                "leg_number": leg_number,
+                "leg_code": leg_code,
+                "leg_name": leg_name,
+                "nfl_week": nfl_week,
+                "is_special_leg": is_special_leg,
+                "special_leg_type": special_leg_type,
+                "starts_on": starts_on,
+                "ends_on": ends_on,
+                "entry_pick_id": entry_pick_id,
+                "team_id": team_id,
+                "team": team_abbr,
+                "team_name": team_name,
+                "pick_source": pick_source,
+                "pick_status": pick_status,
+                "picked_at": picked_at,
+                "updated_at": updated_at,
+                "notes": notes,
+                "is_missing": is_missing,
+            })
+
+            if team_id is not None:
+                used_teams_by_id[int(team_id)] = {
+                    "team_id": team_id,
+                    "team": team_abbr,
+                    "team_name": team_name,
+                }
+
+        missing_contest_leg_ids.sort()
+        missing_regular_week_list = sorted(
+            missing_regular_weeks
+        )
+
+        return {
+            "application_context": {
+                "season": application["season"],
+                "current_week": application[
+                    "current_week"
+                ],
+                "rating_week": application[
+                    "rating_week"
+                ],
+            },
+            "entry": {
+                "entry_id": loaded_entry_id,
+                "user_id": user_id,
+                "survivor_sweat_name": (
+                    survivor_sweat_name
+                ),
+                "entry_label": entry_label,
+                "is_active": is_active,
+            },
+            "contest_format": {
+                "contest_format_id": contest_format_id,
+                "format_code": format_code,
+                "format_name": format_name,
+                "includes_thanksgiving": (
+                    includes_thanksgiving
+                ),
+                "includes_christmas": (
+                    includes_christmas
+                ),
+            },
+            "current_legs": current_legs,
+            "prior_pick_history": prior_pick_history,
+            "used_team_ids": sorted(
+                used_teams_by_id.keys()
+            ),
+            "used_teams": [
+                used_teams_by_id[team_id]
+                for team_id in sorted(
+                    used_teams_by_id.keys()
+                )
+            ],
+            "missing_contest_leg_ids": (
+                missing_contest_leg_ids
+            ),
+            "missing_regular_weeks": (
+                missing_regular_week_list
+            ),
+            "expected_prior_leg_count": len(
+                prior_pick_history
+            ),
+            "stored_prior_pick_count": (
+                len(prior_pick_history)
+                - len(missing_contest_leg_ids)
+            ),
+            "entry_ready": (
+                len(missing_contest_leg_ids) == 0
+            ),
+            "entry_status": (
+                {
+                    "code": "READY",
+                    "title": "Entry Ready",
+                    "severity": "SUCCESS",
+                    "message": (
+                        "All required prior contest legs have "
+                        "confirmed picks."
+                    ),
+                }
+                if len(missing_contest_leg_ids) == 0
+                else {
+                    "code": "MISSING_PRIOR_PICKS",
+                    "title": "Entry Incomplete",
+                    "severity": "WARNING",
+                    "message": (
+                        "Complete all missing prior picks before "
+                        "continuing to the Season Strategy Planner."
+                    ),
+                }
+            ),
+        }
+
+    except SeasonManagementError:
+        raise
+
+    except Exception as exc:
+        raise SeasonManagementError(
+            "Unable to load the survivor entry review."
+        ) from exc
+
+
 def list_entry_picks(
     entry_id: int,
 ) -> list[dict[str, Any]]:
