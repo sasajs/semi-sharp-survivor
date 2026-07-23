@@ -1,6 +1,6 @@
 SemiSharp Database Dictionary V3.0
 ================================================================================
-Generated: 2026-07-22 18:37:49.296678
+Generated: 2026-07-23 10:52:14.668535
 Database: semisharp
 
 
@@ -952,7 +952,7 @@ SCHEMA: survivor
 TABLE: entry_pick_history
 ================================================================================
 
-Rows: 4
+Rows: 5
 
 Columns:
   entry_pick_history_id         bigint              nullable=NO

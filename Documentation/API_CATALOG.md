@@ -1,8 +1,8 @@
 # SemiSharp API Catalog
 
-Generated: 2026-07-22 18:37:50.108523
+Generated: 2026-07-23 10:52:15.476513
 
-Total API Routes: 52
+Total API Routes: 53
 
 ---
 
@@ -759,6 +759,25 @@ Total API Routes: 52
 ### Request Body
 
 - application/json
+
+### Responses
+
+- `200` Successful Response
+- `422` Validation Error
+
+---
+
+## GET /season-management/entries/{entry_id}/review
+
+**Tags:** Season Management
+
+**Summary:** Entry Review
+
+**Operation ID:** `entry_review_season_management_entries__entry_id__review_get`
+
+### Parameters
+
+- `entry_id` (path)
 
 ### Responses
 

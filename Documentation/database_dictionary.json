@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-22 18:37:49.296678",
+  "generated": "2026-07-23 10:52:14.668535",
   "database": "semisharp",
   "tables": [
     {
@@ -2214,7 +2214,7 @@
     {
       "schema": "survivor",
       "table": "entry_pick_history",
-      "row_count": 4,
+      "row_count": 5,
       "columns": [
         {
           "name": "entry_pick_history_id",

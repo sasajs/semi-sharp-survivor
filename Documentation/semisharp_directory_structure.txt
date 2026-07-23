@@ -62,6 +62,7 @@
 │       ├── ratings_service.py
 │       ├── reference_service.py
 │       ├── season_management_service.py
+│       ├── season_management_service.py.before_nonblocking_week_advance
 │       ├── sic_scores_import_service.py
 │       ├── strategy_context_service.py
 │       └── strategy_service.py
@@ -105,6 +106,7 @@
 │   ├── refresh_fast_20260720_180000.log
 │   ├── refresh_fast_20260721_175037.log
 │   ├── refresh_fast_20260722_105309.log
+│   ├── refresh_fast_20260723_105213.log
 │   ├── refresh_full_20260718_133718.log
 │   └── refresh_full_20260718_140216.log
 ├── main.py
@@ -190,6 +192,10 @@
 │       ├── validate_analysis_api.py
 │       ├── validate_backend.sh
 │       └── validate_database.sql
+├── sql
+│   └── migrations
+│       └── v5.3
+│           └── 001_correct_entry_1_contest_leg.sql
 ├── SQL
 │   └── migrations
 │       ├── 002_job_audit_fields.sql
@@ -9158,4 +9164,4 @@
             └── man1
                 └── ttx.1
 
-891 directories, 8268 files
+894 directories, 8271 files
