@@ -266,6 +266,18 @@ export const SemiSharpApi = {
     return request<any>('/season-management/status');
   },
 
+  async updateSeasonManagementCurrentWeek(payload: {
+    season: number;
+    current_week: number;
+    rating_week: number;
+    allow_backward: boolean;
+  }): Promise<any> {
+    return request<any>('/season-management/current-week', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  },
+
   async getEntryPicks(entryId: string | number): Promise<{
     entry_id: number;
     picks: any[];

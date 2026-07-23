@@ -24,6 +24,7 @@ import {
   Brain,
   Sliders,
   CheckCircle,
+  CheckSquare,
   XCircle,
   Menu,
   X,
@@ -148,10 +149,9 @@ export const Layout: React.FC<LayoutProps> = ({
     {
       title: 'Decision Support',
       items: [
-        { id: 'season_management', name: 'My Entries', icon: Calendar, status: 'IN_PROGRESS' },
-        { id: 'dashboard', name: "This Week's Decision", icon: Compass, status: 'LIVE' },
-        { id: 'strategies', name: 'Season Path', icon: Award, status: 'IN_PROGRESS' },
-        { id: 'recommendation_workspace', name: 'Advanced Strategy Analysis', icon: Brain, status: 'IN_PROGRESS' },
+        { id: 'step1_entry_review', name: '① Step 1 – Entry Review', icon: CheckSquare, status: 'IN_PROGRESS' },
+        { id: 'step2_strategy_planner', name: '② Step 2 – Season Strategy Planner', icon: Compass, status: 'IN_PROGRESS' },
+        { id: 'dashboard', name: "③ Step 3 – This Week's Decision", icon: Award, status: 'LIVE' },
       ]
     },
     {
@@ -171,9 +171,9 @@ export const Layout: React.FC<LayoutProps> = ({
       {
         title: 'Administration',
         items: [
-          { id: 'placeholder_sstatus', name: 'Operations Console', icon: Activity, status: 'IN_PROGRESS' },
-          { id: 'admin_user_management', name: 'User Administration', icon: Users, status: 'IN_PROGRESS' },
-          { id: 'placeholder_config', name: 'Configuration', icon: Settings, status: 'COMING_SOON' },
+          { id: 'placeholder_sstatus', name: 'Operations Console', icon: Activity, status: 'LIVE' },
+          { id: 'admin_user_management', name: 'User Administration', icon: Users, status: 'LIVE' },
+          { id: 'admin_config', name: 'Configuration', icon: Settings, status: 'LIVE' },
         ]
       }
     ] : [])
@@ -335,28 +335,35 @@ export const Layout: React.FC<LayoutProps> = ({
                 )}
 
                 <div className="space-y-0.5">
-                  {section.items.map((item) => {
+                  {section.items.map((item, idx) => {
                     const Icon = item.icon;
                     const active = activeTab === item.id;
+                    const isDecisionSupport = section.title === 'Decision Support';
                     return (
-                      <button
-                        key={item.id}
-                        onClick={() => setActiveTab(item.id)}
-                        className={`
-                          w-full px-3 py-2 text-xs font-semibold rounded-lg flex items-center justify-between transition-colors cursor-pointer group
-                          ${active 
-                            ? 'bg-slate-950 text-white shadow-xs' 
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}
-                        `}
-                        title={isCollapsed ? `${item.name} (${item.status})` : undefined}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-white' : 'text-slate-400 group-hover:text-slate-700'}`} />
-                          {!isCollapsed && <span className="truncate">{item.name}</span>}
-                        </div>
-                        {!isCollapsed && getStatusBadge(item.status)}
-                        {isCollapsed && getStatusBadge(item.status, true)}
-                      </button>
+                      <React.Fragment key={item.id}>
+                        <button
+                          onClick={() => setActiveTab(item.id)}
+                          className={`
+                            w-full px-3 py-2 text-xs font-semibold rounded-lg flex items-center justify-between transition-colors cursor-pointer group
+                            ${active 
+                              ? 'bg-slate-950 text-white shadow-xs' 
+                              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}
+                          `}
+                          title={isCollapsed ? `${item.name} (${item.status})` : undefined}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-white' : 'text-slate-400 group-hover:text-slate-700'}`} />
+                            {!isCollapsed && <span className="truncate">{item.name}</span>}
+                          </div>
+                          {!isCollapsed && getStatusBadge(item.status)}
+                          {isCollapsed && getStatusBadge(item.status, true)}
+                        </button>
+                        {isDecisionSupport && idx < section.items.length - 1 && (
+                          <div className="flex justify-center py-0.5 my-0.5">
+                            <span className="text-[10px] font-black text-slate-300 select-none">↓</span>
+                          </div>
+                        )}
+                      </React.Fragment>
                     );
                   })}
                 </div>
@@ -411,29 +418,36 @@ export const Layout: React.FC<LayoutProps> = ({
                       {section.title}
                     </h4>
                     <div className="space-y-0.5">
-                      {section.items.map((item) => {
+                      {section.items.map((item, idx) => {
                         const Icon = item.icon;
                         const active = activeTab === item.id;
+                        const isDecisionSupport = section.title === 'Decision Support';
                         return (
-                          <button
-                            key={item.id}
-                            onClick={() => {
-                              setActiveTab(item.id);
-                              setMobileMenuOpen(false);
-                            }}
-                            className={`
-                              w-full px-3 py-2 text-xs font-semibold rounded-lg flex items-center justify-between transition-colors
-                              ${active 
-                                ? 'bg-slate-950 text-white shadow-xs' 
-                                : 'text-slate-600 hover:bg-slate-50'}
-                            `}
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <Icon className="w-4 h-4 shrink-0 text-slate-400" />
-                              <span>{item.name}</span>
-                            </div>
-                            {getStatusBadge(item.status)}
-                          </button>
+                          <React.Fragment key={item.id}>
+                            <button
+                              onClick={() => {
+                                setActiveTab(item.id);
+                                setMobileMenuOpen(false);
+                              }}
+                              className={`
+                                w-full px-3 py-2 text-xs font-semibold rounded-lg flex items-center justify-between transition-colors
+                                ${active 
+                                  ? 'bg-slate-950 text-white shadow-xs' 
+                                  : 'text-slate-600 hover:bg-slate-50'}
+                              `}
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <Icon className="w-4 h-4 shrink-0 text-slate-400" />
+                                <span>{item.name}</span>
+                              </div>
+                              {getStatusBadge(item.status)}
+                            </button>
+                            {isDecisionSupport && idx < section.items.length - 1 && (
+                              <div className="flex justify-center py-0.5 my-0.5">
+                                <span className="text-[10px] font-black text-slate-300 select-none">↓</span>
+                              </div>
+                            )}
+                          </React.Fragment>
                         );
                       })}
                     </div>

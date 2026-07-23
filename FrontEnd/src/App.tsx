@@ -22,8 +22,11 @@ import { WhySemiSharp } from './components/WhySemiSharp';
 import { TeamHealth } from './components/TeamHealth';
 import { AdminConsole } from './components/AdminConsole';
 import { AdminUserManagement } from './components/AdminUserManagement';
+import { AdminConfiguration } from './components/AdminConfiguration';
 import { PowerRankings } from './components/PowerRankings';
 import { HomeFieldAdvantage } from './components/HomeFieldAdvantage';
+import { Step1EntryReview } from './components/Step1EntryReview';
+import { Step2StrategyPlanner } from './components/Step2StrategyPlanner';
 import { Card, Button, Input, Alert, LoadingSpinner } from './components/ui';
 import { SemiSharpApi, ApiError } from './api';
 import { SemiSharpContext } from './types';
@@ -47,7 +50,10 @@ import {
   Activity,
   TrendingUp,
   Sliders,
-  Users
+  Users,
+  CheckSquare,
+  Compass,
+  Settings
 } from 'lucide-react';
 
 function LoginScreen() {
@@ -521,6 +527,32 @@ function AppContent() {
         </div>
       )}
 
+      {/* STEP 1 - ENTRY REVIEW VIEW */}
+      {activeTab === 'step1_entry_review' && (
+        <div className="space-y-6 animate-fade-in">
+          {renderScreenHeader(
+            'Step 1 – Entry Review', 
+            'Verify that your survivor entry accurately reflects the current contest before evaluating strategies.', 
+            <CheckSquare className="w-5 h-5" />,
+            'IN_PROGRESS'
+          )}
+          <Step1EntryReview context={context} onNavigate={setActiveTab} />
+        </div>
+      )}
+
+      {/* STEP 2 - SEASON STRATEGY PLANNER VIEW */}
+      {activeTab === 'step2_strategy_planner' && (
+        <div className="space-y-6 animate-fade-in">
+          {renderScreenHeader(
+            'Step 2 – Season Strategy Planner', 
+            'Compare SemiSharp\'s production survivor strategies before making this week\'s official pick.', 
+            <Compass className="w-5 h-5" />,
+            'IN_PROGRESS'
+          )}
+          <Step2StrategyPlanner context={context} onNavigate={setActiveTab} />
+        </div>
+      )}
+
       {/* 6. STRATEGIES VIEW */}
       {activeTab === 'strategies' && (
         <div className="space-y-6 animate-fade-in">
@@ -673,6 +705,20 @@ function AppContent() {
           )}
 
           <AdminUserManagement />
+        </div>
+      )}
+
+      {/* Admin Configuration View */}
+      {activeTab === 'admin_config' && (
+        <div className="space-y-6 animate-fade-in">
+          {renderScreenHeader(
+            'Configuration', 
+            'Manage the application-wide season context used across SemiSharp.', 
+            <Settings className="w-5 h-5" />,
+            'LIVE'
+          )}
+
+          <AdminConfiguration />
         </div>
       )}
 
