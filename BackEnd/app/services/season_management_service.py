@@ -1223,12 +1223,9 @@ def advance_current_week(
                         "missing_regular_weeks": missing,
                     })
 
-            if incomplete_entries:
-                raise SeasonManagementError(
-                    "Cannot advance the active week because "
-                    "one or more entries have incomplete prior "
-                    f"pick history: {incomplete_entries}"
-                )
+            # Incomplete prior-pick history does not block the global
+            # application week from advancing. Entry-level readiness is
+            # enforced before strategy planning.
 
             cursor.execute(
                 """
@@ -1268,4 +1265,9 @@ def advance_current_week(
         "probability_model": row[6],
         "updated_at": row[7],
         "advanced": True,
+        "entry_readiness": {
+            "all_entries_complete": len(incomplete_entries) == 0,
+            "incomplete_entry_count": len(incomplete_entries),
+            "incomplete_entries": incomplete_entries,
+        },
     }

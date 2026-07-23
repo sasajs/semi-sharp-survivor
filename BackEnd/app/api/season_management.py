@@ -8,9 +8,10 @@ readiness, or contest-leg mappings. It reads and submits backend-owned
 data only.
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from app.api.admin_auth import require_admin
 from app.services.season_management_service import (
     SeasonManagementError,
     advance_current_week,
@@ -210,7 +211,10 @@ def remove_pick(
         _raise_http_error(exc)
 
 
-@router.put("/current-week")
+@router.put(
+    "/current-week",
+    dependencies=[Depends(require_admin)],
+)
 def update_current_week(
     payload: CurrentWeekUpdate,
 ):
