@@ -12,7 +12,6 @@ import { WeeklyMatchups } from './components/WeeklyMatchups';
 import { Projections } from './components/Projections';
 import { RiskAnalysis } from './components/RiskAnalysis';
 import { MarketEdge } from './components/MarketEdge';
-import { ExecutiveDashboard } from './components/ExecutiveDashboard';
 import { SurvivorStrategies } from './components/SurvivorStrategies';
 import { RecommendationWorkspace } from './components/RecommendationWorkspace';
 import { SeasonManagement } from './components/SeasonManagement';
@@ -27,6 +26,9 @@ import { PowerRankings } from './components/PowerRankings';
 import { HomeFieldAdvantage } from './components/HomeFieldAdvantage';
 import { Step1EntryReview } from './components/Step1EntryReview';
 import { Step2StrategyPlanner } from './components/Step2StrategyPlanner';
+import { StepD } from './components/StepD';
+import { StepABCDNav } from './components/StepABCDNav';
+import { StepAComponent } from './components/StepAComponent';
 import { Card, Button, Input, Alert, LoadingSpinner } from './components/ui';
 import { SemiSharpApi, ApiError } from './api';
 import { SemiSharpContext } from './types';
@@ -53,7 +55,9 @@ import {
   Users,
   CheckSquare,
   Compass,
-  Settings
+  History,
+  Settings,
+  Layers
 } from 'lucide-react';
 
 function LoginScreen() {
@@ -321,7 +325,7 @@ function AnalyticalSummaries({ onNavigate }: AnalyticalSummariesProps) {
 function AppContent() {
   const { isAuthenticated, selectedEntry, user, backendUrl, logout } = useAuth();
   const [entryConfirmed, setEntryConfirmed] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [activeTab, setActiveTab] = useState<string>('step_1');
   const [context, setContext] = useState<SemiSharpContext | null>(null);
   const [contextLoading, setContextLoading] = useState<boolean>(false);
   const [contextError, setContextError] = useState<string | null>(null);
@@ -418,13 +422,18 @@ function AppContent() {
       isPowerRankingsLive={isPowerRankingsLive}
       isHomeFieldAdvantageLive={isHomeFieldAdvantageLive}
     >
-      {/* 1. DASHBOARD VIEW */}
-      {activeTab === 'dashboard' && (
-        <ExecutiveDashboard 
-          context={context}
-          onNavigate={setActiveTab}
-          onRefreshContext={fetchContext}
-        />
+      {/* 1. DASHBOARD VIEW / STEP 1 */}
+      {(activeTab === 'dashboard' || activeTab === 'step_1' || activeTab === 'step_a') && (
+        <div className="space-y-6 animate-fade-in">
+          {renderScreenHeader(
+            'Step 1 – Historical Pick Audit & Gatekeeper',
+            'Inspect entry state, verify past week selections, reconcile missing legs, and unlock Step 2.',
+            <Layers className="w-5 h-5 text-amber-400" />,
+            'LIVE'
+          )}
+          <StepABCDNav currentStep="step_1" onNavigate={setActiveTab} />
+          <StepAComponent context={context} onNavigate={setActiveTab} />
+        </div>
       )}
 
       {/* 2. WEEKLY MATCHUPS VIEW */}
@@ -527,29 +536,51 @@ function AppContent() {
         </div>
       )}
 
-      {/* STEP 1 - ENTRY REVIEW VIEW */}
-      {activeTab === 'step1_entry_review' && (
+
+
+      {/* STEP 2 - STRATEGY ROADMAP & SELECTION */}
+      {(activeTab === 'step_2' || activeTab === 'step_b') && (
         <div className="space-y-6 animate-fade-in">
           {renderScreenHeader(
-            'Step 1 – Entry Review', 
-            'Verify that your survivor entry accurately reflects the current contest before evaluating strategies.', 
-            <CheckSquare className="w-5 h-5" />,
-            'IN_PROGRESS'
+            'Step 2 – Strategy Roadmap & Selection',
+            'Review available survivor strategies and generate end-to-end multi-week season roadmaps.',
+            <Compass className="w-5 h-5" />,
+            'LIVE'
           )}
+          <StepABCDNav currentStep="step_2" onNavigate={setActiveTab} />
+          <Step2StrategyPlanner context={context} onNavigate={setActiveTab} />
+        </div>
+      )}
+
+      {/* STEP 3 - ACTIVE WEEKLY PICK SELECTION */}
+      {(activeTab === 'step_3' || activeTab === 'step_c') && (
+        <div className="space-y-6 animate-fade-in">
+          {renderScreenHeader(
+            'Step 3 – Active Weekly Pick Selection',
+            'Review strategy recommendations, inspect unused team eligibility, accept or change your pick, and lock it in.',
+            <CheckSquare className="w-5 h-5" />,
+            'LIVE'
+          )}
+          <StepABCDNav currentStep="step_3" onNavigate={setActiveTab} />
           <Step1EntryReview context={context} onNavigate={setActiveTab} />
         </div>
       )}
 
-      {/* STEP 2 - SEASON STRATEGY PLANNER VIEW */}
-      {activeTab === 'step2_strategy_planner' && (
+      {/* STEP 4 - FINAL PICK CONFIRMATION & SUBMISSION */}
+      {(activeTab === 'step_4' || activeTab === 'step_d') && (
         <div className="space-y-6 animate-fade-in">
           {renderScreenHeader(
-            'Step 2 – Season Strategy Planner', 
-            'Compare SemiSharp\'s production survivor strategies before making this week\'s official pick.', 
-            <Compass className="w-5 h-5" />,
-            'IN_PROGRESS'
+            'Step 4 – Final Pick Review & Submission',
+            'Survivor entry review, historical selections audit, and remaining strategy roadmap.',
+            <Layers className="w-5 h-5 text-amber-400" />,
+            'LIVE'
           )}
-          <Step2StrategyPlanner context={context} onNavigate={setActiveTab} />
+          <StepABCDNav currentStep="step_4" onNavigate={setActiveTab} />
+          <StepD 
+            context={context}
+            onNavigate={setActiveTab}
+            onRefreshContext={fetchContext}
+          />
         </div>
       )}
 
@@ -600,7 +631,15 @@ function AppContent() {
 
       {/* Why SemiSharp View */}
       {activeTab === 'why_semisharp' && (
-        <WhySemiSharp />
+        <div className="space-y-6 animate-fade-in">
+          {renderScreenHeader(
+            'Why SemiSharp', 
+            'Platform introduction, philosophy, and analytical methodology behind SemiSharp.', 
+            <Info className="w-5 h-5" />,
+            'LIVE'
+          )}
+          <WhySemiSharp />
+        </div>
       )}
 
       {/* Team Health View */}

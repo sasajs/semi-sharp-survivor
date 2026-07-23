@@ -257,6 +257,46 @@ export const SemiSharpApi = {
     return request<any>(`/strategies/compare/${season}/${contestFormat}${query}`);
   },
 
+  async getStrategyRoadmap(
+    strategyCode: string,
+    season: number,
+    contestFormat: string,
+    entryId?: string | number,
+    endpointSlug?: string
+  ): Promise<StrategyRecommendation> {
+    const slugMap: Record<string, string> = {
+      CURRENT_WEEK_HIGHEST_WIN: 'current-week-highest-win',
+      FUTURE_VALUE: 'future-value',
+      MULTIPLE_ENTRY: 'multiple-entry',
+      CIRCA_HOLIDAY: 'circa-holiday',
+      PROJECTION_EDGE: 'projection-edge',
+      MONTE_CARLO: 'monte-carlo',
+      DYNAMIC_PROGRAMMING: 'dynamic-programming',
+      BOTTOM_SIX_ROAD_FADE: 'bottom-six-road-fade',
+      MARKET_ARBITRAGE_EXIT: 'market-arbitrage-exit',
+    };
+
+    const slug = endpointSlug || slugMap[strategyCode] || strategyCode.toLowerCase().replace(/_/g, '-');
+    const query = entryId ? `?entry_id=${entryId}` : '';
+
+    if (strategyCode === 'CIRCA_HOLIDAY') {
+      try {
+        return await request<StrategyRecommendation>(`/strategies/circa-holiday/${season}${query}`);
+      } catch {
+        return await request<StrategyRecommendation>(`/strategies/CIRCA_HOLIDAY/${season}${query}`);
+      }
+    }
+
+    try {
+      return await request<StrategyRecommendation>(`/strategies/${slug}/${season}/${contestFormat}${query}`);
+    } catch (err) {
+      if (strategyCode !== slug) {
+        return await request<StrategyRecommendation>(`/strategies/${strategyCode}/${season}/${contestFormat}${query}`);
+      }
+      throw err;
+    }
+  },
+
   // --- Season Management ---
   async getSeasonManagementStatus(): Promise<{
     application_context: any;
@@ -285,6 +325,10 @@ export const SemiSharpApi = {
     return request<any>(`/season-management/entries/${entryId}/picks`);
   },
 
+  async getEntryReview(entryId: string | number): Promise<any> {
+    return request<any>(`/season-management/entries/${entryId}/review`);
+  },
+
   async getStrategyContext(entryId: string | number, contestFormat: string): Promise<any> {
     return request<any>(`/strategy-context/${entryId}?contest_format=${encodeURIComponent(contestFormat)}`);
   },
@@ -293,9 +337,28 @@ export const SemiSharpApi = {
     return request<any>(`/season-management/entries/${entryId}/valid-picks/${contestLegId}`);
   },
 
-  async createPick(entryId: string | number, payload: { contest_leg_id: number; team_id: number }): Promise<any> {
+  async createPick(entryId: string | number, payload: { 
+    contest_leg_id: number; 
+    team_id: number;
+    pick_source?: string;
+    pick_status?: string;
+    change_reason?: string;
+  }): Promise<any> {
     return request<any>(`/season-management/entries/${entryId}/picks`, {
       method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async updatePick(entryId: string | number, contestLegId: string | number, payload: {
+    team_id: number;
+    pick_source?: string;
+    pick_status?: string;
+    change_reason?: string;
+    contest_leg_id?: number;
+  }): Promise<any> {
+    return request<any>(`/season-management/entries/${entryId}/picks/${contestLegId}`, {
+      method: 'PUT',
       body: JSON.stringify(payload),
     });
   },

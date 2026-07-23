@@ -42,7 +42,8 @@ import {
   Radio,
   ClipboardList,
   Info,
-  Lock
+  Lock,
+  Layers
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -149,9 +150,10 @@ export const Layout: React.FC<LayoutProps> = ({
     {
       title: 'Decision Support',
       items: [
-        { id: 'step1_entry_review', name: '① Step 1 – Entry Review', icon: CheckSquare, status: 'IN_PROGRESS' },
-        { id: 'step2_strategy_planner', name: '② Step 2 – Season Strategy Planner', icon: Compass, status: 'IN_PROGRESS' },
-        { id: 'dashboard', name: "③ Step 3 – This Week's Decision", icon: Award, status: 'LIVE' },
+        { id: 'step_1', name: 'Step 1 – Historical Pick Audit & Gatekeeper', icon: Layers, status: 'LIVE' },
+        { id: 'step_2', name: 'Step 2 – Strategy Roadmap & Selection', icon: Compass, status: 'LIVE' },
+        { id: 'step_3', name: 'Step 3 – Active Weekly Pick Selection', icon: CheckSquare, status: 'LIVE' },
+        { id: 'step_4', name: 'Step 4 – Final Pick Review & Submission', icon: Award, status: 'LIVE' },
       ]
     },
     {
@@ -164,7 +166,7 @@ export const Layout: React.FC<LayoutProps> = ({
     {
       title: 'About',
       items: [
-        { id: 'why_semisharp', name: 'Why SemiSharp', icon: Info, status: 'IN_PROGRESS' },
+        { id: 'why_semisharp', name: 'About SemiSharp', icon: Info, status: 'LIVE' },
       ]
     },
     ...(isAdmin ? [

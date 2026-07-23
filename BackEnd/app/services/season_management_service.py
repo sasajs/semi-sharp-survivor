@@ -1099,6 +1099,15 @@ def create_entry_pick(
                         %s,
                         %s
                     )
+                    ON CONFLICT (entry_id, contest_leg_id) 
+                    DO UPDATE SET 
+                        team_id = EXCLUDED.team_id,
+                        pick_source = EXCLUDED.pick_source,
+                        pick_status = EXCLUDED.pick_status,
+                        notes = EXCLUDED.notes,
+                        updated_at = now(),
+                        updated_by_user_id = EXCLUDED.updated_by_user_id,
+                        change_reason = EXCLUDED.change_reason
                     RETURNING entry_pick_id;
                     """,
                     (
@@ -1113,9 +1122,15 @@ def create_entry_pick(
                     ),
                 )
 
-                entry_pick_id = int(
-                    cursor.fetchone()[0]
-                )
+                row = cursor.fetchone()
+                if row:
+                    entry_pick_id = int(row[0])
+                else:
+                    cursor.execute(
+                        "SELECT entry_pick_id FROM survivor.entry_picks WHERE entry_id = %s AND contest_leg_id = %s;",
+                        (entry_id, contest_leg_id)
+                    )
+                    entry_pick_id = int(cursor.fetchone()[0])
 
             connection.commit()
 
