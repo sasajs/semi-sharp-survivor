@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-23 18:04:29.239851",
+  "generated": "2026-07-24 16:58:52.013619",
   "database": "semisharp",
   "tables": [
     {
@@ -2149,7 +2149,7 @@
     {
       "schema": "survivor",
       "table": "entries",
-      "row_count": 2,
+      "row_count": 4,
       "columns": [
         {
           "name": "entry_id",
@@ -2214,7 +2214,7 @@
     {
       "schema": "survivor",
       "table": "entry_pick_history",
-      "row_count": 7,
+      "row_count": 18,
       "columns": [
         {
           "name": "entry_pick_history_id",
@@ -2305,7 +2305,7 @@
     {
       "schema": "survivor",
       "table": "entry_picks",
-      "row_count": 5,
+      "row_count": 13,
       "columns": [
         {
           "name": "entry_pick_id",
