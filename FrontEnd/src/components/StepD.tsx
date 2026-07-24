@@ -22,8 +22,10 @@ import {
   AlertTriangle,
   ChevronRight,
   ChevronDown,
-  Info
+  Info,
+  Printer
 } from 'lucide-react';
+import { openSeasonSummaryPrintWindow } from '../utils/printSummary';
 
 interface StepDProps {
   context: SemiSharpContext | null;
@@ -273,6 +275,135 @@ export const StepD: React.FC<StepDProps> = ({
     ];
   }, [rationaleText, currentWeek, selectedStrategyName]);
 
+  // Extract path survival probability if present
+  const pathSurvivalProb = useMemo(() => {
+    if (!roadmapData) return null;
+
+    let prob: number | null | undefined = undefined;
+
+    if (roadmapData.entries && roadmapData.entries.length > 0) {
+      const match: any = entryId
+        ? roadmapData.entries.find((e: any) => String(e.entry_id) === String(entryId))
+        : null;
+      const firstEntry: any = roadmapData.entries[0];
+      prob = match?.estimated_path_survival_probability ?? match?.conditional_survival_probability ?? match?.path_metrics?.estimated_path_survival_probability ?? firstEntry?.estimated_path_survival_probability ?? firstEntry?.conditional_survival_probability ?? firstEntry?.path_metrics?.estimated_path_survival_probability;
+    }
+
+    if (prob === undefined || prob === null) {
+      prob = (roadmapData as any).estimated_path_survival_probability ?? (roadmapData as any).conditional_survival_probability ?? (roadmapData as any).path_metrics?.estimated_path_survival_probability ?? null;
+    }
+
+    return prob;
+  }, [roadmapData, entryId]);
+
+  const seasonSurvivalProbFormatted = useMemo(() => {
+    if (pathSurvivalProb === null || pathSurvivalProb === undefined) return 'Not available';
+    const val = Number(pathSurvivalProb);
+    if (isNaN(val)) return 'Not available';
+    if (val <= 1) return `${(val * 100).toFixed(2)}%`;
+    return `${val.toFixed(2)}%`;
+  }, [pathSurvivalProb]);
+
+  // Handler for opening print window
+  const handlePrintSeasonSummary = useCallback(() => {
+    const entryLabel = selectedEntry?.entry_label || (selectedEntry as any)?.name || `Entry #${entryId || '1'}`;
+    const survivorSweatName = selectedEntry?.survivor_sweat_name || (selectedEntry as any)?.entry_name || (selectedEntry as any)?.contest_name || '';
+
+    const formattedHistoricalPicks = historicalPicks.map((hp: any, idx: number) => {
+      const legNum = hp.contest_leg?.nfl_week || hp.week || hp.nfl_week || (idx + 1);
+      const teamName = hp.team_name || 'Selected Team';
+      const teamCode = hp.team_code || teamName.substring(0, 3).toUpperCase();
+      const status = hp.pick_status || 'CONFIRMED';
+      const timestamp = formatTimestamp(hp.created_at || hp.updated_at);
+      return {
+        week: legNum,
+        legId: hp.contest_leg_id || legNum,
+        teamCode,
+        teamName,
+        pickSource: hp.pick_source || 'USER_ENTRY',
+        status,
+        timestamp,
+      };
+    });
+
+    const formattedCurrentWeekPick = currentWeekPick ? {
+      week: currentWeekPick.week || currentWeekPick.nfl_week || currentWeek,
+      teamCode: currentWeekPick.team_code || currentWeekPick.team_name?.substring(0, 3)?.toUpperCase() || 'DET',
+      teamName: currentWeekPick.team_name || 'Selected Team',
+      opponent: currentWeekPick.opponent || currentWeekPick.opponent_code || currentWeekStrategyRec?.opponent || 'Scheduled Matchup',
+      winProbFormatted,
+      riskLevel: riskLevelText,
+      spreadText,
+      edgeText,
+      pickSource: currentWeekPick.pick_source || 'USER_ENTRY',
+      status: currentWeekPick.pick_status || 'LOCKED IN DATABASE',
+      timestamp: formatTimestamp(currentWeekPick.created_at || currentWeekPick.updated_at),
+      rationale: rationaleText,
+      rationaleBullets,
+    } : null;
+
+    const formattedFuturePicks = remainingStrategyPicks.map((sp: any, idx: number) => {
+      const legWeek = sp.week || sp.nfl_week || (currentWeek + idx + 1);
+      const teamName = sp.team_name || sp.team || 'Recommended Team';
+      const teamCode = sp.team_code || sp.team || teamName.substring(0, 3).toUpperCase();
+      const winProb = formatWinProb(sp.win_probability || sp.win_prob);
+      const opponent = sp.opponent || sp.opponent_code || 'TBD';
+      const optionValueStatus = sp.future_option_value || sp.future_value || 'AVAILABLE IN ROADMAP';
+      return {
+        week: legWeek,
+        teamCode,
+        teamName,
+        opponent,
+        winProbFormatted: winProb,
+        optionValueStatus,
+        rationale: sp.rationale || sp.reasoning,
+      };
+    });
+
+    openSeasonSummaryPrintWindow({
+      entryLabel,
+      survivorSweatName,
+      contestFormat,
+      season,
+      currentWeek,
+      generatedTimestamp: new Date().toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      }),
+      selectedStrategyName,
+      selectedStrategyCode,
+      entryId: entryId ? String(entryId) : undefined,
+      seasonSurvivalProbFormatted,
+      historicalPicks: formattedHistoricalPicks,
+      currentWeekPick: formattedCurrentWeekPick,
+      futurePicks: formattedFuturePicks,
+    });
+  }, [
+    selectedEntry,
+    entryId,
+    historicalPicks,
+    currentWeekPick,
+    currentWeekStrategyRec,
+    winProbFormatted,
+    riskLevelText,
+    spreadText,
+    edgeText,
+    rationaleText,
+    rationaleBullets,
+    remainingStrategyPicks,
+    contestFormat,
+    season,
+    currentWeek,
+    selectedStrategyName,
+    selectedStrategyCode,
+    seasonSurvivalProbFormatted,
+    formatTimestamp,
+    formatWinProb,
+  ]);
+
   if (loading) {
     return (
       <Card className="p-12 text-center bg-slate-900 border-slate-800 space-y-4">
@@ -282,7 +413,7 @@ export const StepD: React.FC<StepDProps> = ({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* Status Header */}
       <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
@@ -298,15 +429,53 @@ export const StepD: React.FC<StepDProps> = ({
           </span>
         </div>
 
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePrintSeasonSummary}
+            className="bg-amber-500 hover:bg-amber-400 text-slate-950 border-amber-400 font-mono text-xs font-black cursor-pointer shrink-0 shadow-sm flex items-center gap-1.5"
+            id="btn_print_season_summary_top"
+          >
+            <Printer className="w-3.5 h-3.5 text-slate-950" />
+            <span>Print Season Summary</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-750 font-mono text-xs cursor-pointer shrink-0"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 mr-1 ${refreshing ? 'animate-spin text-amber-400' : ''}`} />
+            {refreshing ? 'Syncing...' : 'Refresh Database Status'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Season Survival Probability Callout Banner */}
+      <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span>Projected Probability of Surviving the Remaining Season</span>
+          </div>
+          <div className="text-2xl font-black font-mono text-emerald-400">
+            {seasonSurvivalProbFormatted}
+          </div>
+          <p className="text-xs text-slate-400 font-sans">
+            Cumulative multi-week survival likelihood for <span className="text-amber-300 font-semibold">{selectedStrategyName}</span> strategy path.
+          </p>
+        </div>
+
         <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-750 font-mono text-xs cursor-pointer shrink-0"
+          onClick={handlePrintSeasonSummary}
+          className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono text-xs font-black px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-md cursor-pointer shrink-0"
+          id="btn_print_season_summary_banner"
         >
-          <RefreshCw className={`w-3.5 h-3.5 mr-1 ${refreshing ? 'animate-spin text-amber-400' : ''}`} />
-          {refreshing ? 'Syncing...' : 'Refresh Database Status'}
+          <Printer className="w-4 h-4 text-slate-950" />
+          <span>Print Season Summary</span>
         </Button>
       </div>
 
@@ -557,10 +726,20 @@ export const StepD: React.FC<StepDProps> = ({
               <div className="flex flex-wrap items-center gap-3">
                 <Button
                   variant="outline"
-                  onClick={() => onNavigate('step_3')}
-                  className="bg-amber-500 text-slate-950 font-mono font-black border-amber-400 hover:bg-amber-400 text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 cursor-pointer shadow-md"
+                  onClick={handlePrintSeasonSummary}
+                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-black border-amber-400 text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 cursor-pointer shadow-md"
+                  id="btn_print_season_summary_sec2"
                 >
-                  <Sliders className="w-4 h-4 text-slate-950" />
+                  <Printer className="w-4 h-4 text-slate-950" />
+                  Print Season Summary
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => onNavigate('step_3')}
+                  className="bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-750 font-mono text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 cursor-pointer"
+                >
+                  <Sliders className="w-4 h-4 text-amber-400" />
                   Change Official Pick (Step 3)
                 </Button>
 

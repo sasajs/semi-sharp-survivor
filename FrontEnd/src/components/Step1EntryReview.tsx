@@ -714,10 +714,10 @@ export const Step1EntryReview: React.FC<Step1EntryReviewProps> = ({
   );
 
   return (
-    <div className="space-y-6 animate-fade-in text-left font-sans text-slate-900" id="step2_active_pick_workspace">
+    <div className="space-y-4 animate-fade-in text-left font-sans text-slate-900" id="step2_active_pick_workspace">
 
       {/* STATUS HEADER */}
-      <div className="p-4 bg-slate-900 text-white border border-slate-800 rounded-2xl shadow-3xs" id="active_entry_header_banner">
+      <div className="p-3.5 sm:p-4 bg-slate-900 text-white border border-slate-800 rounded-2xl shadow-3xs" id="active_entry_header_banner">
         
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
@@ -1136,105 +1136,6 @@ export const Step1EntryReview: React.FC<Step1EntryReviewProps> = ({
             )}
           </Card>
 
-          {/* SECTION 3: FORCED SELECTION & PROGRESSION CONTROL BAR */}
-          <Card className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-white shadow-md space-y-4" id="card_active_pick_submission">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] font-mono font-extrabold text-emerald-400 bg-emerald-950 border border-emerald-800 px-2.5 py-0.5 rounded-md uppercase tracking-wider">
-                    STEP 3 PICK SUBMISSION GATE
-                  </span>
-
-                  {isPickLocked ? (
-                    <span className="text-[10px] font-mono font-extrabold text-emerald-300 bg-emerald-950/90 border border-emerald-700 px-2.5 py-0.5 rounded-md uppercase flex items-center gap-1">
-                      <Lock className="w-3 h-3 text-emerald-400" /> OFFICIAL PICK RECORDED FOR WEEK {currentWeek}
-                    </span>
-                  ) : activeSelection?.is_strategy_recommendation ? (
-                    <span className="text-[10px] font-mono font-bold text-indigo-300 bg-indigo-950 border border-indigo-800 px-2.5 py-0.5 rounded-md uppercase">
-                      ✓ STEP 1 STRATEGY RECOMMENDATION
-                    </span>
-                  ) : activeSelection ? (
-                    <span className="text-[10px] font-mono font-bold text-amber-300 bg-amber-950 border border-amber-800 px-2.5 py-0.5 rounded-md uppercase">
-                      ✎ ALTERNATE UNUSED TEAM
-                    </span>
-                  ) : null}
-                </div>
-
-                <h3 className="text-base font-extrabold font-mono text-white flex items-center gap-2">
-                  <Award className="w-5 h-5 text-indigo-400" />
-                  <span>Selected Choice: {activeSelection ? activeSelection.team_name : 'No Selection Active'}</span>
-                </h3>
-
-                <p className="text-xs text-slate-300 font-normal leading-relaxed">
-                  {isPickLocked
-                    ? `Official pick recorded for NFL Week ${currentWeek}: ${activeSelection?.team_name}. You can change your selection or proceed directly to Step 4.`
-                    : activeSelection
-                      ? `Lock in ${activeSelection.team_name} for NFL Week ${currentWeek} (Entry #${entryId}) and proceed to Step 4.`
-                      : 'Please select either the strategy recommendation or an alternate unused team above.'
-                  }
-                </p>
-              </div>
-
-              {/* Action Buttons: Reset / Change Pick and Lock In & Proceed */}
-              <div className="shrink-0 flex items-center gap-3 self-end md:self-auto flex-wrap">
-                {isPickLocked && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleResetOrChangePick}
-                    className="font-mono text-xs font-bold py-3 px-4 rounded-xl flex items-center gap-2 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer"
-                    id="btn_reset_pick_selection"
-                  >
-                    <RotateCcw className="w-4 h-4 text-amber-400" />
-                    <span>Change Pick</span>
-                  </Button>
-                )}
-
-                <Button
-                  onClick={handleLockInPickAndProceed}
-                  disabled={!activeSelection || submittingPick}
-                  className={`font-mono text-xs font-extrabold py-3 px-6 rounded-xl flex items-center gap-2 shadow-sm cursor-pointer ${
-                    activeSelection
-                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                      : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-60'
-                  }`}
-                  id="btn_lock_in_weekly_pick"
-                >
-                  {submittingPick ? (
-                    <LoadingSpinner size="sm" message="Posting Pick..." />
-                  ) : isPickLocked ? (
-                    <>
-                      <span>Continue to Step 4 — Final Pick Confirmation & Submission</span>
-                      <ArrowRight className="w-4 h-4 ml-1" />
-                    </>
-                  ) : (
-                    <>
-                      <span>Continue to Step 4 — Final Pick Confirmation & Submission</span>
-                      <ArrowRight className="w-4 h-4 ml-1" />
-                    </>
-                  )}
-                </Button>
-              </div>
-
-            </div>
-
-            {/* Error / Success Feedback */}
-            {submitError && (
-              <div className="p-3 bg-rose-950/80 border border-rose-800 rounded-xl text-xs text-rose-200 font-mono flex items-center gap-2">
-                <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                <span>{submitError}</span>
-              </div>
-            )}
-
-            {submitSuccess && (
-              <div className="p-3 bg-emerald-950/80 border border-emerald-800 rounded-xl text-xs text-emerald-200 font-mono flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>{submitSuccess}</span>
-              </div>
-            )}
-          </Card>
-
           {/* SECTION 4: ENTRY HOUSEKEEPING & HISTORICAL AUDIT (COLLAPSIBLE) */}
           <Card className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-3xs space-y-4" id="card_housekeeping_collapsible">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -1356,6 +1257,100 @@ export const Step1EntryReview: React.FC<Step1EntryReviewProps> = ({
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+          </Card>
+
+          {/* SECTION 3: FORCED SELECTION & PROGRESSION CONTROL BAR */}
+          <Card className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-white shadow-md space-y-4" id="card_active_pick_submission">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-mono font-extrabold text-emerald-400 bg-emerald-950 border border-emerald-800 px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                    STEP 3 PICK SUBMISSION GATE
+                  </span>
+
+                  {isPickLocked ? (
+                    <span className="text-[10px] font-mono font-extrabold text-emerald-300 bg-emerald-950/90 border border-emerald-700 px-2.5 py-0.5 rounded-md uppercase flex items-center gap-1">
+                      <Lock className="w-3 h-3 text-emerald-400" /> OFFICIAL PICK RECORDED FOR WEEK {currentWeek}
+                    </span>
+                  ) : activeSelection?.is_strategy_recommendation ? (
+                    <span className="text-[10px] font-mono font-bold text-indigo-300 bg-indigo-950 border border-indigo-800 px-2.5 py-0.5 rounded-md uppercase">
+                      ✓ STEP 1 STRATEGY RECOMMENDATION
+                    </span>
+                  ) : activeSelection ? (
+                    <span className="text-[10px] font-mono font-bold text-amber-300 bg-amber-950 border border-amber-800 px-2.5 py-0.5 rounded-md uppercase">
+                      ✎ ALTERNATE UNUSED TEAM
+                    </span>
+                  ) : null}
+                </div>
+
+                <h3 className="text-base font-extrabold font-mono text-white flex items-center gap-2">
+                  <Award className="w-5 h-5 text-indigo-400" />
+                  <span>Selected Choice: {activeSelection ? activeSelection.team_name : 'No Selection Active'}</span>
+                </h3>
+
+                <p className="text-xs text-slate-300 font-normal leading-relaxed">
+                  {isPickLocked
+                    ? `Official pick recorded for NFL Week ${currentWeek}: ${activeSelection?.team_name}. You can change your selection or proceed directly to Final Confirmation.`
+                    : activeSelection
+                      ? `Lock in ${activeSelection.team_name} for NFL Week ${currentWeek} (Entry #${entryId}) and proceed to Final Confirmation.`
+                      : 'Please select either the strategy recommendation or an alternate unused team above.'
+                  }
+                </p>
+              </div>
+
+              {/* Action Buttons: Reset / Change Pick and Lock In & Proceed */}
+              <div className="shrink-0 flex items-center gap-3 self-end md:self-auto flex-wrap">
+                {isPickLocked && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleResetOrChangePick}
+                    className="font-mono text-xs font-bold py-3 px-4 rounded-xl flex items-center gap-2 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer"
+                    id="btn_reset_pick_selection"
+                  >
+                    <RotateCcw className="w-4 h-4 text-amber-400" />
+                    <span>Change Pick</span>
+                  </Button>
+                )}
+
+                <Button
+                  onClick={handleLockInPickAndProceed}
+                  disabled={!activeSelection || submittingPick}
+                  className={`font-mono text-xs font-extrabold py-3 px-6 rounded-xl flex items-center gap-2 shadow-sm cursor-pointer ${
+                    activeSelection
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                      : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-60'
+                  }`}
+                  id="btn_lock_in_weekly_pick"
+                >
+                  {submittingPick ? (
+                    <LoadingSpinner size="sm" message="Posting Pick..." />
+                  ) : (
+                    <>
+                      <span>Lock In & Proceed to Step 4: Final Confirmation</span>
+                      <ArrowRight className="w-4 h-4 ml-1" />
+                    </>
+                  )}
+                </Button>
+              </div>
+
+            </div>
+
+            {/* Error / Success Feedback */}
+            {submitError && (
+              <div className="p-3 bg-rose-950/80 border border-rose-800 rounded-xl text-xs text-rose-200 font-mono flex items-center gap-2">
+                <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>{submitError}</span>
+              </div>
+            )}
+
+            {submitSuccess && (
+              <div className="p-3 bg-emerald-950/80 border border-emerald-800 rounded-xl text-xs text-emerald-200 font-mono flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{submitSuccess}</span>
               </div>
             )}
           </Card>

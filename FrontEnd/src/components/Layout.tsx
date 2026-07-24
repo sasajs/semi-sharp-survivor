@@ -150,17 +150,10 @@ export const Layout: React.FC<LayoutProps> = ({
     {
       title: 'Decision Support',
       items: [
-        { id: 'step_1', name: 'Step 1 – Historical Pick Audit & Gatekeeper', icon: Layers, status: 'LIVE' },
-        { id: 'step_2', name: 'Step 2 – Strategy Roadmap & Selection', icon: Compass, status: 'LIVE' },
-        { id: 'step_3', name: 'Step 3 – Active Weekly Pick Selection', icon: CheckSquare, status: 'LIVE' },
-        { id: 'step_4', name: 'Step 4 – Final Pick Review & Submission', icon: Award, status: 'LIVE' },
-      ]
-    },
-    {
-      title: 'Reports',
-      items: [
-        { id: 'placeholder_wreports', name: 'Weekly Reports', icon: FileText, status: 'COMING_SOON' },
-        { id: 'placeholder_ssummary', name: 'Season Summary', icon: BarChart3, status: 'COMING_SOON' },
+        { id: 'step_1', name: 'Step 1 – Historical Audit', icon: Layers, status: 'LIVE' },
+        { id: 'step_2', name: 'Step 2 – Strategy Roadmap', icon: Compass, status: 'LIVE' },
+        { id: 'step_3', name: 'Step 3 – Weekly Selection', icon: CheckSquare, status: 'LIVE' },
+        { id: 'step_4', name: 'Step 4 – Final Confirmation', icon: Award, status: 'LIVE' },
       ]
     },
     {
@@ -463,7 +456,7 @@ export const Layout: React.FC<LayoutProps> = ({
         {/* Right main body viewport wrapper */}
         <div className="flex-1 flex flex-col overflow-y-auto">
           {/* Main viewport */}
-          <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8">
+          <main className="flex-1 px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
             {children}
           </main>
 

@@ -63,17 +63,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(parsedUser);
         setIsAuthenticated(true);
 
+        const activeEntries = parsedUser.entries ? parsedUser.entries.filter(e => e.is_active) : [];
+
         if (storedEntry) {
           const parsedEntry = JSON.parse(storedEntry) as SurvivorEntry;
-          // Verify that the stored entry still belongs to the user and pick the fresh one from parsedUser
-          const matchedEntry = parsedUser.entries.find(e => e.entry_id === parsedEntry.entry_id);
+          // Verify that the stored entry still belongs to the user AND is active
+          const matchedEntry = activeEntries.find(e => String(e.entry_id) === String(parsedEntry.entry_id));
           if (matchedEntry) {
             setSelectedEntry(matchedEntry);
-          } else if (parsedUser.entries.length > 0) {
-            setSelectedEntry(parsedUser.entries[0]);
+          } else {
+            // Discard invalid or inactive stored entry and pick a valid active entry
+            const validEntry = activeEntries[0] || null;
+            setSelectedEntry(validEntry);
+            if (validEntry) {
+              localStorage.setItem(SESSION_KEY_ENTRY, JSON.stringify(validEntry));
+            } else {
+              localStorage.removeItem(SESSION_KEY_ENTRY);
+            }
           }
-        } else if (parsedUser.entries.length > 0) {
-          setSelectedEntry(parsedUser.entries[0]);
+        } else {
+          const validEntry = activeEntries[0] || null;
+          setSelectedEntry(validEntry);
+          if (validEntry) {
+            localStorage.setItem(SESSION_KEY_ENTRY, JSON.stringify(validEntry));
+          } else {
+            localStorage.removeItem(SESSION_KEY_ENTRY);
+          }
         }
       }
     } catch (e) {
@@ -121,7 +136,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       // Auto-select first active entry if available
-      const defaultEntry = userProfile.entries.find(e => e.is_active) || userProfile.entries[0] || null;
+      const activeEntries = userProfile.entries ? userProfile.entries.filter(e => e.is_active) : [];
+      const defaultEntry = activeEntries[0] || null;
       setSelectedEntry(defaultEntry);
       if (defaultEntry) {
         localStorage.setItem(SESSION_KEY_ENTRY, JSON.stringify(defaultEntry));

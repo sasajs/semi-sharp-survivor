@@ -268,6 +268,15 @@ export const Step2StrategyPlanner: React.FC<Step2StrategyPlannerProps> = ({
         activeEntryId,
         activeStrategyObj?.endpoint_slug || undefined
       );
+
+      console.log('Strategy Roadmap API Response:', {
+        selectedStrategyCode,
+        fullResponse: data,
+        estimated_path_survival_probability: (data as any)?.estimated_path_survival_probability,
+        conditional_survival_probability: (data as any)?.conditional_survival_probability,
+        entries: (data as any)?.entries,
+      });
+
       setRoadmapData(data);
     } catch (err: any) {
       console.error('Error generating strategy roadmap:', err);
@@ -299,20 +308,29 @@ export const Step2StrategyPlanner: React.FC<Step2StrategyPlannerProps> = ({
   // Extract path survival probability if present
   const pathSurvivalProb = useMemo(() => {
     if (!roadmapData) return null;
+
+    let prob: number | null | undefined = undefined;
+
     if (roadmapData.entries && roadmapData.entries.length > 0) {
-      const match = activeEntryId
+      const match: any = activeEntryId
         ? roadmapData.entries.find((e: any) => String(e.entry_id) === String(activeEntryId))
         : null;
-      return match?.estimated_path_survival_probability ?? roadmapData.entries[0]?.estimated_path_survival_probability;
+      const firstEntry: any = roadmapData.entries[0];
+      prob = match?.estimated_path_survival_probability ?? match?.conditional_survival_probability ?? match?.path_metrics?.estimated_path_survival_probability ?? firstEntry?.estimated_path_survival_probability ?? firstEntry?.conditional_survival_probability ?? firstEntry?.path_metrics?.estimated_path_survival_probability;
     }
-    return (roadmapData as any).estimated_path_survival_probability ?? null;
+
+    if (prob === undefined || prob === null) {
+      prob = (roadmapData as any).estimated_path_survival_probability ?? (roadmapData as any).conditional_survival_probability ?? (roadmapData as any).path_metrics?.estimated_path_survival_probability ?? null;
+    }
+
+    return prob;
   }, [roadmapData, activeEntryId]);
 
   return (
-    <div className="space-y-6 animate-fade-in text-left font-sans text-slate-900" id="step1_strategy_selection_workspace">
+    <div className="space-y-4 animate-fade-in text-left font-sans text-slate-900" id="step1_strategy_selection_workspace">
 
       {/* 1. STATUS HEADER */}
-      <div className="p-4 bg-slate-900 text-white border border-slate-800 rounded-2xl shadow-3xs">
+      <div className="p-3.5 sm:p-4 bg-slate-900 text-white border border-slate-800 rounded-2xl shadow-3xs">
         
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
@@ -346,15 +364,15 @@ export const Step2StrategyPlanner: React.FC<Step2StrategyPlannerProps> = ({
       </div>
 
       {/* 2. STRATEGY REGISTRY GRID / CARDS */}
-      <Card className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-3xs space-y-6" id="card_strategy_grid">
+      <Card className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-3xs space-y-4" id="card_strategy_grid">
         <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h3 className="text-sm font-extrabold text-slate-900 font-mono uppercase tracking-wider flex items-center gap-2">
               <Cpu className="w-4 h-4 text-indigo-600" />
-              <span>Available Algorithmic Survivor Strategies</span>
+              <span>Select Strategy Framework</span>
             </h3>
             <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Select a strategy from the backend strategy registry to inspect its optimization rules and generate a multi-week roadmap.
+              Select a strategy framework to optimize your multi-week picks and build a season roadmap.
             </p>
           </div>
 
@@ -460,12 +478,12 @@ export const Step2StrategyPlanner: React.FC<Step2StrategyPlannerProps> = ({
             {isGenerating ? (
               <>
                 <LoadingSpinner size="sm" />
-                <span>Generating Season Roadmap...</span>
+                <span>Building Roadmap...</span>
               </>
             ) : (
               <>
                 <Sparkles className="w-4 h-4 text-amber-300" />
-                <span>Generate & Review Season Roadmap</span>
+                <span>Build Strategy Roadmap</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -487,15 +505,15 @@ export const Step2StrategyPlanner: React.FC<Step2StrategyPlannerProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono font-bold bg-indigo-100 text-indigo-800 border border-indigo-200 px-2 py-0.5 rounded-md uppercase">
-                  ROADMAP COMPUTED
+                  ROADMAP READY
                 </span>
                 <span className="text-[10px] font-mono text-slate-500">
-                  Strategy Code: {roadmapData.strategy || selectedStrategyCode}
+                  Strategy: {roadmapData.strategy || selectedStrategyCode}
                 </span>
               </div>
               <h3 className="text-base font-extrabold text-slate-900 font-mono mt-1 flex items-center gap-2">
                 <GitBranch className="w-5 h-5 text-indigo-600" />
-                <span>Season Roadmap — {roadmapData.strategy_name || activeStrategyObj?.display_name}</span>
+                <span>Strategy Roadmap — {roadmapData.strategy_name || activeStrategyObj?.display_name}</span>
               </h3>
             </div>
 
@@ -588,23 +606,30 @@ export const Step2StrategyPlanner: React.FC<Step2StrategyPlannerProps> = ({
           )}
 
           {/* Bottom Navigation & Workflow Actions */}
-          <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <Button
-              onClick={() => onNavigate('power_rankings')}
-              variant="outline"
-              className="w-full sm:w-auto font-mono text-xs font-bold border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer"
-            >
-              <span>View Model Reference Data</span>
-            </Button>
+          <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/80 -mx-4 -mb-4 sm:-mx-5 sm:-mb-5 p-4 sm:p-5 rounded-b-2xl border-t-slate-200">
+            <div className="flex items-center gap-2 text-xs text-slate-600 font-sans">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="font-medium">Roadmap active. Proceed to Step 3 to review and lock in your weekly pick.</span>
+            </div>
 
-            <Button
-              onClick={() => onNavigate('step_3')}
-              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs font-bold py-2.5 px-6 rounded-xl flex items-center justify-center gap-2 shadow-xs cursor-pointer"
-              id="btn_continue_to_step_3_from_roadmap"
-            >
-              <span>Continue to Step 3 – Active Weekly Pick Selection</span>
-              <ArrowRight className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <Button
+                onClick={() => onNavigate('power_rankings')}
+                variant="outline"
+                className="w-full sm:w-auto font-mono text-xs font-bold border-slate-200 text-slate-700 hover:bg-white cursor-pointer"
+              >
+                <span>Model Reference Data</span>
+              </Button>
+
+              <Button
+                onClick={() => onNavigate('step_3')}
+                className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-slate-950 font-mono text-xs font-black py-2.5 px-6 rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                id="btn_continue_to_step_3_from_roadmap"
+              >
+                <span>Proceed to Step 3: Select Weekly Pick</span>
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
 
         </Card>

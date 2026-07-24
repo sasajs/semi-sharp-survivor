@@ -283,17 +283,17 @@ export const StepAComponent: React.FC<StepAComponentProps> = ({
   }
 
   return (
-    <div className="space-y-6 animate-fade-in text-left font-sans text-slate-900">
+    <div className="space-y-4 animate-fade-in text-left font-sans text-slate-900">
       
       {/* 1. COMPACT ENTRY & SYSTEM WEEK INSPECTION HEADER */}
-      <div className="bg-slate-950 text-white rounded-2xl p-5 shadow-xl border border-slate-800 space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="bg-slate-950 text-white rounded-2xl p-4 shadow-xl border border-slate-800 space-y-3.5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
           
           <div className="flex items-center gap-3">
             <div>
               <h1 className="text-lg font-black text-white tracking-tight flex items-center gap-2">
                 <span>{selectedEntry.entry_label}</span>
-                <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold border ${
+                <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-md font-extrabold border uppercase tracking-wider ${
                   selectedEntry.is_active 
                     ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' 
                     : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
@@ -301,7 +301,7 @@ export const StepAComponent: React.FC<StepAComponentProps> = ({
                   {selectedEntry.is_active ? 'ACTIVE' : 'ELIMINATED'}
                 </span>
               </h1>
-              <p className="text-xs text-slate-400 font-mono">
+              <p className="text-xs text-slate-400 font-mono mt-0.5">
                 {selectedEntry.contest_name || (selectedEntry as any).contest_format || 'Survivor Contest'} • Season {season} • Active Week {currentWeek}
               </p>
             </div>
@@ -313,63 +313,95 @@ export const StepAComponent: React.FC<StepAComponentProps> = ({
               disabled={refreshing || loading}
               variant="outline"
               size="sm"
-              className="bg-slate-900 border-slate-700 text-slate-200 hover:bg-slate-800 text-xs font-mono"
+              className="bg-slate-900 border-slate-700 text-slate-200 hover:bg-slate-800 text-xs font-mono font-bold shadow-2xs"
             >
               <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${refreshing ? 'animate-spin text-amber-400' : ''}`} />
-              Refresh Audit
+              Verify Previous Picks
             </Button>
 
             {isGateUnlocked ? (
-              <Button
-                onClick={() => onNavigate('step_2')}
-                className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black font-mono text-xs py-2 px-4 rounded-xl cursor-pointer flex items-center gap-1.5 shadow-lg shadow-emerald-950/50"
-              >
-                <span>Proceed to Step 2</span>
-                <ArrowRight className="w-4 h-4" />
-              </Button>
+              <div className="px-3 py-1.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 rounded-xl text-xs font-mono font-extrabold flex items-center gap-1.5 shadow-2xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Ready to Continue</span>
+              </div>
             ) : (
-              <div className="px-3 py-1.5 bg-rose-500/10 border border-rose-500/20 text-rose-300 rounded-xl text-xs font-mono font-bold flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5 text-rose-400" />
-                <span>Gate Locked</span>
+              <div className="px-3 py-1.5 bg-rose-500/15 border border-rose-500/30 text-rose-200 rounded-xl text-xs font-mono font-extrabold flex items-center gap-1.5 shadow-2xs">
+                <Lock className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>Verification Pending</span>
               </div>
             )}
           </div>
         </div>
 
         {/* System Inspection Metadata Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
-          <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-            <div className="text-slate-400 text-[10px] uppercase font-bold">Current NFL Week</div>
-            <div className="text-base font-black text-amber-400 mt-0.5">Week {currentWeek}</div>
-          </div>
-          <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-            <div className="text-slate-400 text-[10px] uppercase font-bold">Past Legs Requiring Audit</div>
-            <div className="text-base font-black text-white mt-0.5">
-              {currentWeek <= 1 ? '0 (Week 1 Active)' : `${currentWeek - 1} Weeks`}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-mono">
+          
+          {/* Card 1: Current NFL Week */}
+          <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800 flex flex-col justify-between space-y-1.5 shadow-2xs">
+            <div className="flex items-center justify-between text-slate-400 text-[10px] uppercase font-bold tracking-wider">
+              <span>Current NFL Week</span>
+              <Calendar className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            </div>
+            <div className="text-base font-black text-amber-400">
+              Week {currentWeek}
             </div>
           </div>
-          <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-            <div className="text-slate-400 text-[10px] uppercase font-bold">Resolved Historical Picks</div>
-            <div className="text-base font-black text-emerald-400 mt-0.5">
-              {currentWeek <= 1 ? '100%' : `${auditLegs.filter(l => l.isResolved).length} / ${auditLegs.length}`}
+
+          {/* Card 2: Past Legs Requiring Audit */}
+          <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800 flex flex-col justify-between space-y-1.5 shadow-2xs">
+            <div className="flex items-center justify-between text-slate-400 text-[10px] uppercase font-bold tracking-wider">
+              <span>Past Weeks to Verify</span>
+              <History className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             </div>
-          </div>
-          <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-            <div className="text-slate-400 text-[10px] uppercase font-bold">Progression Status</div>
-            <div className={`text-base font-black mt-0.5 flex items-center gap-1.5 ${isGateUnlocked ? 'text-emerald-400' : 'text-rose-400'}`}>
-              {isGateUnlocked ? (
-                <>
-                  <Unlock className="w-4 h-4 text-emerald-400" />
-                  <span>UNLOCKED</span>
-                </>
+            <div className="text-base font-black text-white">
+              {currentWeek <= 1 ? (
+                <span className="text-slate-300 font-bold">0 <span className="text-xs text-slate-400 font-normal">(Week 1 Active)</span></span>
               ) : (
-                <>
-                  <Lock className="w-4 h-4 text-rose-400" />
-                  <span>{missingLegsCount} MISSING</span>
-                </>
+                <span>{currentWeek - 1} <span className="text-xs text-slate-400 font-normal">Weeks</span></span>
               )}
             </div>
           </div>
+
+          {/* Card 3: Resolved Historical Picks */}
+          <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800 flex flex-col justify-between space-y-1.5 shadow-2xs">
+            <div className="flex items-center justify-between text-slate-400 text-[10px] uppercase font-bold tracking-wider">
+              <span>Verified Previous Picks</span>
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            </div>
+            <div className="text-base font-black text-emerald-400">
+              {currentWeek <= 1 ? '100% Synced' : `${auditLegs.filter(l => l.isResolved).length} / ${auditLegs.length} Verified`}
+            </div>
+          </div>
+
+          {/* Card 4: Progression Status (Strong Emphasis) */}
+          <div className={`p-3.5 rounded-xl border flex flex-col justify-between space-y-1.5 shadow-sm transition-all ${
+            isGateUnlocked
+              ? 'bg-emerald-950/80 border-emerald-500/50 text-emerald-300'
+              : 'bg-rose-950/80 border-rose-500/50 text-rose-200'
+          }`}>
+            <div className="flex items-center justify-between text-[10px] uppercase font-extrabold tracking-wider">
+              <span className={isGateUnlocked ? 'text-emerald-400' : 'text-rose-400'}>Ready to Continue</span>
+              {isGateUnlocked ? (
+                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              ) : (
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+              )}
+            </div>
+            <div className="flex items-center gap-1.5">
+              {isGateUnlocked ? (
+                <div className="flex items-center gap-1.5 font-black text-sm text-emerald-300 tracking-tight">
+                  <Unlock className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>READY</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 font-black text-sm text-rose-300 tracking-tight">
+                  <Lock className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>{missingLegsCount} ACTION NEEDED</span>
+                </div>
+              )}
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -377,20 +409,20 @@ export const StepAComponent: React.FC<StepAComponentProps> = ({
       {currentWeek === 1 ? (
         <Alert
           type="success"
-          title="Week 1 Active – No Prior Historical Picks Required"
-          message="Since this entry is currently in Week 1, there are no prior historical weeks to reconcile. The progression gate to Step 2 (Strategy Selection & Roadmap) is automatically unlocked."
+          title="Week 1 Active – Ready to Generate Roadmap"
+          message="Since this entry is currently in Week 1, there are no prior weeks to verify. You are ready to generate your strategy roadmap in Step 2."
         />
       ) : !isGateUnlocked ? (
         <Alert
           type="warning"
-          title={`Progression Gate Locked – ${missingLegsCount} Historical Week(s) Require Resolution`}
-          message={`Please select and save historical picks for all unresolved past weeks (Weeks 1 through ${currentWeek - 1}) below to synchronize your backend database and unlock Step 2.`}
+          title={`Action Needed – Verify ${missingLegsCount} Previous Pick(s)`}
+          message={`Please select and save historical picks for all unverified past weeks (Weeks 1 through ${currentWeek - 1}) below to update your records and proceed to Step 2.`}
         />
       ) : (
         <Alert
           type="success"
-          title="✓ Progression Gate Unlocked – All Historical Legs Synchronized"
-          message={`All ${auditLegs.length} prior historical week(s) are fully verified and recorded in the database. You are authorized to proceed to Step 2.`}
+          title="✓ Previous Picks Verified – Ready to Continue"
+          message={`All ${auditLegs.length} prior week(s) are verified and recorded. Click below to generate your strategy roadmap in Step 2.`}
         />
       )}
 
@@ -416,10 +448,10 @@ export const StepAComponent: React.FC<StepAComponentProps> = ({
           <div>
             <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
               <Calendar className="w-4 h-4 text-amber-500" />
-              <span>Historical Leg Reconciliation Audit (Weeks 1 to {currentWeek - 1})</span>
+              <span>Verify Previous Picks (Weeks 1 to {currentWeek - 1})</span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Review used team records for each past week. Click "Resolve Pick" or "Update Pick" to fetch eligible teams live from the backend.
+              Review team records for past weeks. Select "Verify Pick" or "Update Pick" to ensure accurate entry history.
             </p>
           </div>
           {loading && <LoadingSpinner size="sm" message="Loading review data..." />}
@@ -430,14 +462,8 @@ export const StepAComponent: React.FC<StepAComponentProps> = ({
             <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
             <div className="text-sm font-bold text-slate-800">No Past Weeks to Audit</div>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Your contest entry is currently starting in Week 1. You may directly navigate to Step 2 to select your strategy.
+              Your contest entry is currently starting in Week 1. Review the gatekeeper authorization status below to proceed.
             </p>
-            <Button
-              onClick={() => onNavigate('step_2')}
-              className="mt-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black font-mono text-xs py-2 px-5 rounded-lg"
-            >
-              Proceed to Step 2 →
-            </Button>
           </div>
         ) : (
           <div className="space-y-4">
@@ -453,56 +479,82 @@ export const StepAComponent: React.FC<StepAComponentProps> = ({
               return (
                 <div
                   key={legWeek}
-                  className={`p-4 rounded-xl border transition-all ${
+                  className={`p-4 sm:p-4.5 rounded-xl border transition-all shadow-2xs ${
                     !isResolved
-                      ? 'bg-rose-50/50 border-rose-200 hover:border-rose-300'
-                      : 'bg-slate-50/80 border-slate-200 hover:border-slate-300'
+                      ? 'bg-rose-50/70 border-rose-200 hover:border-rose-300 border-l-4 border-l-rose-500'
+                      : 'bg-white border-slate-200/90 hover:border-slate-300 border-l-4 border-l-emerald-500'
                   }`}
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                     
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-mono font-black text-sm shrink-0 ${
+                    <div className="flex items-start sm:items-center gap-3 min-w-0">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-mono font-black text-sm shrink-0 shadow-2xs ${
                         isResolved
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                          : 'bg-rose-100 text-rose-800 border border-rose-200 animate-pulse'
+                          ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                          : 'bg-rose-950 text-rose-400 border border-rose-800 animate-pulse'
                       }`}>
                         W{legWeek}
                       </div>
 
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-slate-900 text-sm">Week {legWeek} Historical Pick</span>
-                          <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold border ${
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-extrabold text-slate-900 text-sm tracking-tight">
+                            Week {legWeek} Historical Pick
+                          </span>
+                          <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-md font-extrabold tracking-wider border uppercase flex items-center gap-1 ${
                             isResolved
-                              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                              : 'bg-rose-100 text-rose-800 border-rose-300'
+                              ? 'bg-emerald-100/90 text-emerald-900 border-emerald-300'
+                              : 'bg-rose-100 text-rose-900 border-rose-300'
                           }`}>
-                            {isResolved ? '✓ RESOLVED' : '⚠ MISSING PICK'}
+                            {isResolved ? (
+                              <>
+                                <CheckCircle2 className="w-3 h-3 text-emerald-700" />
+                                <span>RESOLVED</span>
+                              </>
+                            ) : (
+                              <>
+                                <AlertTriangle className="w-3 h-3 text-rose-700" />
+                                <span>MISSING PICK</span>
+                              </>
+                            )}
                           </span>
                         </div>
 
-                        <div className="text-xs text-slate-600 font-mono mt-0.5">
+                        <div>
                           {isResolved ? (
-                            <span>
-                              Recorded Team: <strong className="text-slate-900 font-bold">{teamName}</strong> ({teamCode || 'N/A'})
-                              {pick?.pick_source && <span className="text-slate-400 ml-2">[{pick.pick_source}]</span>}
-                            </span>
+                            <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                              <span className="text-xs text-slate-500 font-medium">Recorded:</span>
+                              <div className="inline-flex items-center gap-1.5 bg-slate-900 text-white px-2.5 py-1 rounded-md font-mono text-xs font-black shadow-2xs">
+                                <span className="text-amber-300 font-bold">{teamName}</span>
+                                {teamCode && (
+                                  <span className="text-[10px] font-mono font-extrabold bg-amber-400 text-slate-950 px-1.5 py-0.2 rounded uppercase">
+                                    {teamCode}
+                                  </span>
+                                )}
+                              </div>
+                              {pick?.pick_source && (
+                                <span className="text-[11px] font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                                  [{pick.pick_source}]
+                                </span>
+                              )}
+                            </div>
                           ) : (
-                            <span className="text-rose-700 font-bold">No historical pick recorded for Week {legWeek}. Action required.</span>
+                            <div className="text-xs text-rose-700 font-bold flex items-center gap-1.5 mt-0.5">
+                              <span>No historical pick recorded for Week {legWeek}. Action required.</span>
+                            </div>
                           )}
                         </div>
                       </div>
                     </div>
 
-                    <div className="shrink-0">
+                    <div className="shrink-0 self-end sm:self-center">
                       <Button
                         size="sm"
                         variant={isResolved ? "outline" : "primary"}
                         onClick={() => handleStartEditLeg(legItem)}
                         className={
                           isResolved
-                            ? "border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-mono font-bold"
+                            ? "border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900 text-xs font-mono font-bold shadow-2xs"
                             : "bg-rose-600 hover:bg-rose-700 text-white text-xs font-mono font-black shadow-md"
                         }
                       >
@@ -614,15 +666,15 @@ export const StepAComponent: React.FC<StepAComponentProps> = ({
       <Card className="p-6 bg-slate-900 text-white rounded-2xl border border-slate-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="space-y-1 text-left">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-extrabold uppercase text-amber-400">Step 1 Gatekeeper</span>
+            <span className="text-xs font-mono font-extrabold uppercase text-amber-400">Step 1 Verification</span>
             <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${isGateUnlocked ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
-              {isGateUnlocked ? 'AUTHORIZATION GRANTED' : 'ACTION REQUIRED'}
+              {isGateUnlocked ? 'READY TO CONTINUE' : 'ACTION NEEDED'}
             </span>
           </div>
           <p className="text-xs text-slate-300 font-sans">
             {isGateUnlocked
-              ? "All historical picks for prior weeks are reconciled in the database. Proceed to Step 2 to generate your strategy roadmap."
-              : `Resolve all ${missingLegsCount} missing historical pick(s) above to unlock Step 2.`}
+              ? "All previous picks are verified. Continue to Step 2 to generate your strategy roadmap."
+              : `Verify all ${missingLegsCount} missing previous pick(s) above to continue to Step 2.`}
           </p>
         </div>
 
@@ -637,13 +689,13 @@ export const StepAComponent: React.FC<StepAComponentProps> = ({
         >
           {isGateUnlocked ? (
             <span className="flex items-center gap-2">
-              <span>Proceed to Step 2 (Strategy Roadmap)</span>
+              <span>Generate Strategy Roadmap</span>
               <ChevronRight className="w-4 h-4" />
             </span>
           ) : (
             <span className="flex items-center gap-2">
               <Lock className="w-4 h-4" />
-              <span>Step 2 Locked (Resolve Missing Picks)</span>
+              <span>Complete Verification to Continue</span>
             </span>
           )}
         </Button>

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Layout } from './components/Layout';
 import { ApiHealth } from './components/ApiHealth';
@@ -57,7 +57,8 @@ import {
   Compass,
   History,
   Settings,
-  Layers
+  Layers,
+  Clock
 } from 'lucide-react';
 
 function LoginScreen() {
@@ -154,6 +155,8 @@ function EntrySelectionScreen({ onConfirm }: { onConfirm: () => void }) {
 
   if (!user) return null;
 
+  const activeEntries = user.entries ? user.entries.filter(e => e.is_active) : [];
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans animate-fade-in">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
@@ -171,16 +174,16 @@ function EntrySelectionScreen({ onConfirm }: { onConfirm: () => void }) {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg px-4">
         <Card className="py-6 px-6 border border-slate-200/80 shadow-md space-y-6">
           <div className="space-y-3">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Available Entries ({user.entries.length})</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Available Entries ({activeEntries.length})</span>
             
-            {user.entries.length === 0 ? (
+            {activeEntries.length === 0 ? (
               <Alert 
                 type="warning" 
-                message="No survivor entries are connected to your account. Please contact an administrator." 
+                message="No active Survivor entries are assigned to this account." 
               />
             ) : (
               <div className="grid grid-cols-1 gap-3">
-                {user.entries.map((entry) => {
+                {activeEntries.map((entry) => {
                   const isSelected = selectedEntry?.entry_id === entry.entry_id;
                   return (
                     <button
@@ -225,13 +228,23 @@ function EntrySelectionScreen({ onConfirm }: { onConfirm: () => void }) {
             >
               Sign Out
             </Button>
-            <Button
-              onClick={onConfirm}
-              disabled={!selectedEntry}
-              className="flex-1"
-            >
-              Confirm & Proceed
-            </Button>
+            {activeEntries.length > 0 && (
+              <Button
+                onClick={onConfirm}
+                disabled={!selectedEntry}
+                className="flex-1"
+              >
+                Confirm & Proceed
+              </Button>
+            )}
+            {activeEntries.length === 0 && user.role === 'ADMIN' && (
+              <Button
+                onClick={onConfirm}
+                className="flex-1"
+              >
+                Proceed to Admin Area
+              </Button>
+            )}
           </div>
         </Card>
       </div>
@@ -323,7 +336,7 @@ function AnalyticalSummaries({ onNavigate }: AnalyticalSummariesProps) {
 }
 
 function AppContent() {
-  const { isAuthenticated, selectedEntry, user, backendUrl, logout } = useAuth();
+  const { isAuthenticated, selectedEntry, selectEntry, user, backendUrl, logout } = useAuth();
   const [entryConfirmed, setEntryConfirmed] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('step_1');
   const [context, setContext] = useState<SemiSharpContext | null>(null);
@@ -332,6 +345,12 @@ function AppContent() {
   const [isTeamHealthLive, setIsTeamHealthLive] = useState<boolean>(false);
   const [isPowerRankingsLive, setIsPowerRankingsLive] = useState<boolean>(false);
   const [isHomeFieldAdvantageLive, setIsHomeFieldAdvantageLive] = useState<boolean>(false);
+
+  const activeEntries = useMemo(() => {
+    return user?.entries ? user.entries.filter(e => e.is_active) : [];
+  }, [user]);
+
+  const prevEntryIdRef = useRef<string | null>(null);
 
   const fetchContext = async () => {
     setContextLoading(true);
@@ -354,17 +373,61 @@ function AppContent() {
       fetchContext();
     } else {
       setEntryConfirmed(false);
+      prevEntryIdRef.current = null;
     }
   }, [isAuthenticated, backendUrl]);
+
+  // Handle auto-selection and auto-routing to step_1 upon login
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (activeEntries.length === 1) {
+        if (!selectedEntry || selectedEntry.entry_id !== activeEntries[0].entry_id) {
+          selectEntry(activeEntries[0]);
+        }
+        setEntryConfirmed(true);
+        setActiveTab('step_1');
+      } else if (activeEntries.length === 0) {
+        setEntryConfirmed(false);
+      }
+    } else {
+      setEntryConfirmed(false);
+    }
+  }, [isAuthenticated, user, activeEntries.length]);
+
+  // Monitor explicit active entry changes to route users to Step 1
+  useEffect(() => {
+    if (!isAuthenticated || !selectedEntry?.entry_id) {
+      prevEntryIdRef.current = selectedEntry?.entry_id ? String(selectedEntry.entry_id) : null;
+      return;
+    }
+
+    const currentEntryId = String(selectedEntry.entry_id);
+    const prevEntryId = prevEntryIdRef.current;
+
+    if (prevEntryId && prevEntryId !== currentEntryId) {
+      const ADMIN_TABS = ['placeholder_sstatus', 'admin_user_management', 'admin_config', 'season_management'];
+      if (!ADMIN_TABS.includes(activeTab)) {
+        setActiveTab('step_1');
+      }
+      fetchContext();
+    }
+
+    prevEntryIdRef.current = currentEntryId;
+  }, [selectedEntry?.entry_id, isAuthenticated, activeTab]);
 
   if (!isAuthenticated) {
     return <LoginScreen />;
   }
 
-  const requiresEntrySelection = user?.role === 'USER';
-
-  if (requiresEntrySelection && !entryConfirmed) {
-    return <EntrySelectionScreen onConfirm={() => setEntryConfirmed(true)} />;
+  if (!entryConfirmed) {
+    return (
+      <EntrySelectionScreen 
+        onConfirm={() => {
+          setEntryConfirmed(true);
+          setActiveTab('step_1');
+        }} 
+      />
+    );
   }
 
   // Helper template for structural screens
@@ -373,44 +436,60 @@ function AppContent() {
     subtitle: string, 
     icon: React.ReactNode, 
     status?: 'LIVE' | 'IN_DEVELOPMENT' | 'PLACEHOLDER' | 'IN_PROGRESS'
-  ) => (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 mb-8 border-b border-slate-200/80">
-      <div className="flex items-start gap-3">
-        <div className="p-2.5 bg-slate-900 text-white rounded-xl shadow-xs mt-0.5">
-          {icon}
-        </div>
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-xl font-bold text-slate-950 tracking-tight leading-none">{title}</h2>
-            {status === 'LIVE' && (
-              <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
-                🟢 LIVE
-              </span>
-            )}
-            {(status === 'IN_DEVELOPMENT' || status === 'IN_PROGRESS') && (
-              <span className="text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
-                🟡 IN PROGRESS
-              </span>
-            )}
-            {status === 'PLACEHOLDER' && (
-              <span className="text-[10px] font-extrabold bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
-                ⚪ Coming Soon
-              </span>
-            )}
+  ) => {
+    const timestampStr = (context as any)?.updated_at || (context as any)?.last_updated || (context as any)?.timestamp;
+    const formattedTime = timestampStr 
+      ? new Date(timestampStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : 'Just Now';
+
+    return (
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-slate-900 text-white rounded-lg shadow-xs">
+            {icon}
           </div>
-          <p className="text-xs text-slate-500 mt-1.5 font-medium">{subtitle}</p>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-lg md:text-xl font-bold text-slate-950 tracking-tight leading-none">{title}</h2>
+              {status === 'LIVE' && (
+                <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                  🟢 LIVE
+                </span>
+              )}
+              {(status === 'IN_DEVELOPMENT' || status === 'IN_PROGRESS') && (
+                <span className="text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                  🟡 IN PROGRESS
+                </span>
+              )}
+              {status === 'PLACEHOLDER' && (
+                <span className="text-[10px] font-extrabold bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                  ⚪ Coming Soon
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 mt-1 font-medium">{subtitle}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/90 rounded-md px-2.5 py-1 shadow-2xs font-mono text-[11px] text-slate-600">
+            <Clock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            <span className="text-slate-500 font-medium">Data Refreshed:</span>
+            <span className="font-bold text-slate-800">{formattedTime}</span>
+          </div>
+
+          {context && (
+            <div className="flex items-center gap-2 bg-white border border-slate-200/80 rounded-md px-2.5 py-1 shadow-2xs font-mono text-[11px] text-slate-600">
+              <Database className="w-3.5 h-3.5 text-slate-400" />
+              <span>v3.1</span>
+              <span className="text-slate-300">|</span>
+              <span className="uppercase font-bold text-emerald-600">LIVE API</span>
+            </div>
+          )}
         </div>
       </div>
-      {context && (
-        <div className="flex items-center gap-2 bg-white border border-slate-200/80 rounded-lg px-3 py-1.5 shadow-3xs self-start md:self-auto font-mono text-xs text-slate-600">
-          <Database className="w-3.5 h-3.5 text-slate-400" />
-          <span>v3.1</span>
-          <span className="text-slate-300">|</span>
-          <span className="uppercase font-bold text-emerald-600">LIVE API</span>
-        </div>
-      )}
-    </div>
-  );
+    );
+  };
 
   return (
     <Layout 
@@ -424,10 +503,10 @@ function AppContent() {
     >
       {/* 1. DASHBOARD VIEW / STEP 1 */}
       {(activeTab === 'dashboard' || activeTab === 'step_1' || activeTab === 'step_a') && (
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-4 animate-fade-in">
           {renderScreenHeader(
-            'Step 1 – Historical Pick Audit & Gatekeeper',
-            'Inspect entry state, verify past week selections, reconcile missing legs, and unlock Step 2.',
+            'Step 1 – Verify Previous Picks',
+            'Inspect entry state, verify past week selections, and confirm readiness for Step 2.',
             <Layers className="w-5 h-5 text-amber-400" />,
             'LIVE'
           )}
@@ -538,11 +617,11 @@ function AppContent() {
 
 
 
-      {/* STEP 2 - STRATEGY ROADMAP & SELECTION */}
+      {/* STEP 2 - STRATEGY ROADMAP */}
       {(activeTab === 'step_2' || activeTab === 'step_b') && (
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-4 animate-fade-in">
           {renderScreenHeader(
-            'Step 2 – Strategy Roadmap & Selection',
+            'Step 2 – Strategy Roadmap',
             'Review available survivor strategies and generate end-to-end multi-week season roadmaps.',
             <Compass className="w-5 h-5" />,
             'LIVE'
@@ -552,11 +631,11 @@ function AppContent() {
         </div>
       )}
 
-      {/* STEP 3 - ACTIVE WEEKLY PICK SELECTION */}
+      {/* STEP 3 - WEEKLY SELECTION */}
       {(activeTab === 'step_3' || activeTab === 'step_c') && (
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-4 animate-fade-in">
           {renderScreenHeader(
-            'Step 3 – Active Weekly Pick Selection',
+            'Step 3 – Weekly Selection',
             'Review strategy recommendations, inspect unused team eligibility, accept or change your pick, and lock it in.',
             <CheckSquare className="w-5 h-5" />,
             'LIVE'
@@ -566,11 +645,11 @@ function AppContent() {
         </div>
       )}
 
-      {/* STEP 4 - FINAL PICK CONFIRMATION & SUBMISSION */}
+      {/* STEP 4 - FINAL CONFIRMATION */}
       {(activeTab === 'step_4' || activeTab === 'step_d') && (
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-4 animate-fade-in">
           {renderScreenHeader(
-            'Step 4 – Final Pick Review & Submission',
+            'Step 4 – Final Confirmation',
             'Survivor entry review, historical selections audit, and remaining strategy roadmap.',
             <Layers className="w-5 h-5 text-amber-400" />,
             'LIVE'

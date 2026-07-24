@@ -32,7 +32,9 @@ export const SeasonManagement: React.FC = () => {
   const { user, selectedEntry, selectEntry } = useAuth();
 
   // State for entries and operational context
-  const [managedEntry, setManagedEntry] = useState<SurvivorEntry | null>(selectedEntry || (user?.entries[0] || null));
+  const [managedEntry, setManagedEntry] = useState<SurvivorEntry | null>(
+    selectedEntry || (user?.entries && user.entries.length > 0 ? user.entries[0] : null)
+  );
   const [context, setContext] = useState<any>(null);
   
   // Picks mapping per entryId: { [entryId]: { picks: any[], loading: boolean, error: string | null } }

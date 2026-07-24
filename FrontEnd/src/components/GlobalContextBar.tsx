@@ -97,11 +97,15 @@ export const GlobalContextBar: React.FC<GlobalContextBarProps> = ({
     setRefreshing(false);
   };
 
-  if (!user || !user.entries || user.entries.length === 0) {
+  const activeEntries = user?.entries ? user.entries.filter(e => e.is_active) : [];
+
+  if (!user || activeEntries.length === 0) {
     return null;
   }
 
-  const activeEntry = selectedEntry || user.entries[0];
+  const activeEntry = selectedEntry || activeEntries[0];
+  if (!activeEntry) return null;
+
   const contestName = activeEntry.contest_name || 'NFL Survivor';
   const formatLabel = (activeEntry.format_code || activeEntry.format_name || 'STANDARD').toUpperCase();
   const seasonYear = context?.season || 2026;
